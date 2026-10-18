@@ -1,6 +1,6 @@
 # Halsa Frontend — Plan de Hitos y Seguimiento de Implementación
 
-> **Estado general:** En preparación para M0  
+> **Estado general:** M0 completado (2026-10-18); siguiente: M1  
 > **Fecha de inicio:** 2026-10-17  
 > **Tipografía UI:** Plus Jakarta Sans (`@fontsource/plus-jakarta-sans`)  
 > **Monospace:** JetBrains Mono (`@fontsource/jetbrains-mono`)  
@@ -10,7 +10,7 @@
 
 ## 1. Lista de Verificación de Hitos (Checklist)
 
-- [ ] **M0: Workspace y Tooling**
+- [x] **M0: Workspace y Tooling**
 - [ ] **M1: Design System y Primitivas UI**
 - [ ] **M1.5: Keycloak Local (Podman) y Login Theme**
 - [ ] **M2: Core Plumbing (HTTP, Errores, Fechas, i18n, Mock Adapter)**
@@ -28,7 +28,7 @@
 
 ## 2. Detalle de Hitos y Criterios de Aceptación (AC)
 
-### [ ] M0: Workspace y Tooling
+### [x] M0: Workspace y Tooling
 - **Alcance:**
   - Creación del workspace Angular CLI (`halsa`) con dos aplicaciones standalone y zoneless (`backoffice`, `portal`) sin SSR (`--ssr=false`).
   - Creación de librerías locales en `libs/`:

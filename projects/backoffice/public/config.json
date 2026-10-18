@@ -1,0 +1,8 @@
+{
+  "apiBaseUrl": "",
+  "mock": false,
+  "keycloak": {
+    "authority": "http://localhost:8080/realms/halsa",
+    "clientId": "halsa-backoffice"
+  }
+}

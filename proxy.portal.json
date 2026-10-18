@@ -1,0 +1,7 @@
+{
+  "/paciente": {
+    "target": "https://localhost:5610",
+    "secure": false,
+    "changeOrigin": false
+  }
+}

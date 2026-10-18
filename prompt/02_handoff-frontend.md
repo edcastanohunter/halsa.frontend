@@ -17,6 +17,7 @@
 5. The backend repository is the sibling folder `../Halsa.Backend`. It's read-only for you, so don't modify it. Useful files in it:
    - `docs/api/atel-api.openapi.yaml`: the hand-written contract (most schemas, enums, error semantics).
    - `docs/arquitectura/01-arquitectura-backend-atel.md`: why the system is shaped this way.
+   - `docs/diagrams/workflows/`: Mermaid diagrams of **what each user does**, with screens, flows, state machines and the work the system does on its own. Read them before building a persona's screens.
    - `specs/08-lectura-clinica-y-dictamen-pcl.md`, `specs/12-bff-paciente.md`: the two specs with the most frontend impact.
    - `docker/keycloak/halsa-realm.json`, `docker/keycloak/halsa-pacientes-realm.json`: dev users, clients and roles.
    - `README.md`: how to run the backend locally.

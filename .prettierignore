@@ -1,0 +1,12 @@
+dist
+node_modules
+.angular
+coverage
+playwright-report
+test-results
+package-lock.json
+libs/api-types/src/schema.d.ts
+prompt
+.claude
+GEMINI.md
+MILESTONES.md
