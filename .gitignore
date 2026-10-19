@@ -49,3 +49,8 @@ Thumbs.db
 
 # Nx cache (Spartan CLI generators)
 /.nx
+
+# Keycloak theme (plan Appendix B.5): reference templates and generated assets
+keycloak-theme/.reference/
+keycloak-theme/themes/**/resources/css/halsa.css
+keycloak-theme/themes/**/resources/fonts/

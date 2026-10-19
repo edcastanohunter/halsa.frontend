@@ -1,0 +1,6 @@
+{
+  "themes": [
+    { "name": "halsa", "types": ["login"] },
+    { "name": "halsa-pacientes", "types": ["login"] }
+  ]
+}

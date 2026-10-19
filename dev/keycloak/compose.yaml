@@ -1,0 +1,25 @@
+# Local Keycloak for the frontend (plan Appendix B). Run it through `npm run kc:up`.
+name: halsa-frontend-dev
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4 # same version as the backend
+    command: ['start-dev', '--import-realm'] # start-dev disables theme caching: .ftl/.css edits show on reload
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: http://localhost:8180 # issuer = http://localhost:8180/realms/<realm>
+      KC_HTTP_ENABLED: 'true'
+    ports:
+      - '8180:8080' # 8080 is the backend's Keycloak; both can run at once
+    # No data volume: the database is ephemeral, so kc:reset always reimports the realms.
+    volumes:
+      - ./realms:/opt/keycloak/data/import:ro
+      - ../../keycloak-theme/themes/halsa:/opt/keycloak/themes/halsa:ro
+      - ../../keycloak-theme/themes/halsa-pacientes:/opt/keycloak/themes/halsa-pacientes:ro
+
+  # SMTP sink for the theme pages that send email (verify email, reset password). The realms don't
+  # use it by default; point a realm's SMTP at host `mailpit`, port 1025. Inbox: http://localhost:8025
+  mailpit:
+    image: docker.io/axllent/mailpit:v1.21
+    ports:
+      - '8025:8025'

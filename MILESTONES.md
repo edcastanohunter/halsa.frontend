@@ -1,6 +1,6 @@
 # Halsa Frontend — Plan de Hitos y Seguimiento de Implementación
 
-> **Estado general:** M1 completado (2026-10-18); siguiente: M1.5  
+> **Estado general:** M1.5 completado (2026-10-19); siguiente: M2  
 > **Fecha de inicio:** 2026-10-17  
 > **Tipografía UI:** Plus Jakarta Sans (`@fontsource/plus-jakarta-sans`)  
 > **Monospace:** JetBrains Mono (`@fontsource/jetbrains-mono`)  
@@ -12,7 +12,7 @@
 
 - [x] **M0: Workspace y Tooling**
 - [x] **M1: Design System y Primitivas UI**
-- [ ] **M1.5: Keycloak Local (Podman) y Login Theme**
+- [x] **M1.5: Keycloak Local (Podman) y Login Theme**
 - [ ] **M2: Core Plumbing (HTTP, Errores, Fechas, i18n, Mock Adapter)**
 - [ ] **M3: Backoffice Shell e Identidad (OIDC, Permisos, Layout Responsivo)**
 - [ ] **M4: Casos (Flujo Administrativo, Resumen, Equipo, Activación Paciente)**
@@ -65,7 +65,7 @@
 
 ---
 
-### [ ] M1.5: Keycloak Local (Podman) y Login Theme
+### [x] M1.5: Keycloak Local (Podman) y Login Theme
 - **Alcance:**
   - `dev/keycloak/compose.yaml` configurado en puerto 8180 usando Podman.
   - Script `scripts/sync-realms.mjs` para transformar los realms del backend (`halsa-realm.json`, `halsa-pacientes-realm.json`) eliminando cuentas de servicio con certificados mTLS y fijando el tema Halsa y locales en español.
@@ -82,6 +82,10 @@
   - Registro de cuenta funcional en `halsa-pacientes`.
   - JAR generado en `dist/keycloak-theme/halsa-keycloak-theme.jar`.
   - Playwright visual test sin cadenas en inglés ni elementos PatternFly sin estilo.
+- **Notas de implementación:**
+  - Los tokens viven en `libs/ui/src/tokens.css` (sin Tailwind ni fuentes); `theme.css` de las apps y `keycloak-theme/src/halsa.css` lo importan.
+  - `dev/keycloak/compose.yaml` añade Mailpit (`:8025`) como buzón SMTP: sin él, Keycloak muestra error en lugar de la página "Revisa tu correo".
+  - Spec del tema: `npm run e2e:theme` (`playwright.keycloak.config.ts`, serial); capturas en `docs/reportes/m1.5/`.
 
 ---
 
@@ -241,7 +245,7 @@
 | Código | Tema | Impacto | Estrategia de Mitigación / Decisión |
 | :--- | :--- | :--- | :--- |
 | **OBS-1** | Tipografía | Legibilidad e identidad clínica. | **Plus Jakarta Sans** seleccionada como fuente principal de UI; **JetBrains Mono** para radicados y códigos. |
-| **OBS-2** | Podman en Windows | Keycloak local para M1.5. | `podman-machine-default` se iniciará (`podman machine start`) antes de ejecutar scripts `kc:*`. |
+| **OBS-2** | Podman en Windows | Keycloak local para M1.5. | `podman-machine-default` se iniciará (`podman machine start`) antes de ejecutar scripts `kc:*`. Verificado: los bind mounts relativos funcionan; `podman compose` delega en `docker-compose.exe`. En esta máquina `host.containers.internal` resuelve al router (192.168.1.1), no al host: no depender de él. |
 | **OBS-3** | Generación OpenAPI (M0) | API backend fuera de línea al inicio. | Uso del script alternativo `npm run api:types:yaml` apuntando a `../Halsa.Backend/docs/api/atel-api.openapi.yaml`. |
 | **OBS-4** | Compatibilidad Spartan UI | Soporte sobre Angular 21 zoneless. | Si `@spartan-ng/*` presenta conflicto en v21, se aplicará el fallback documentado en `@angular/cdk` + `cva` + `tailwind-merge`. |
 | **G1** | Falta de CORS en Backend API | Afecta llamadas directas cross-origin. | En desarrollo se usa el proxy local (`proxy.backoffice.json`). Para despliegue se documentan cabeceras requeridas en `deploy/README.md`. |

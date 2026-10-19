@@ -78,44 +78,42 @@ Cada app carga `public/config.json` **antes** del bootstrap (`loadAppConfig()` d
 
 ### Identidad Local (Keycloak en Podman)
 
-> Disponible a partir del hito M1.5 (los scripts `scripts/*.mjs` y `dev/keycloak/` aún no existen).
+Un Keycloak 26.4 local en `http://localhost:8180` con los mismos usuarios, subs, roles, claims y flujo de step-up (`browser-loa`) que el realm del backend, más Mailpit (`http://localhost:8025`) como buzón de prueba. Sirve para el modo mock del backoffice y para desarrollar el tema de login. Requiere Podman con la máquina iniciada (`podman machine start`) y un proveedor de compose (`podman compose version`; si no hay ninguno, `pip install podman-compose`).
 
 ```bash
-# Sincronizar y generar mock realms desde el backend
+# Regenerar dev/keycloak/realms/*.json desde ../Halsa.Backend/docker/keycloak (se versionan)
 npm run kc:sync
+npm run kc:sync -- --check   # falla si los archivos versionados difieren de la fuente
 
-# Iniciar Keycloak en Podman (puerto 8180)
+# Iniciar (compila el CSS del tema, levanta los contenedores y espera a que el realm responda)
 npm run kc:up
 
-# Ver logs de Keycloak
+# Logs, detener, reiniciar con importación desde cero (la base de datos es efímera)
 npm run kc:logs
-
-# Detener Keycloak
 npm run kc:down
-
-# Reiniciar e importar realms desde cero
 npm run kc:reset
 ```
 
+- Usuarios de desarrollo (contraseña `dev`): `analista.arla`, `calificador.arla` (OTP), `privacidad.arla`, `analista.arlb`, `medico.ips` (OTP), `coordinador.ips`; en `halsa-pacientes`, `paciente.dev@halsa.dev`. Consola de administración: `http://localhost:8180/admin` (`admin`/`admin`).
+- `kc:sync` quita los clientes `int-*` y las cuentas `service-account-*` (necesitan certificados mTLS), fija el tema y el idioma `es`, y apunta `halsa-backoffice` a `http://localhost:3000`. Nunca edites a mano los archivos generados.
+- Backoffice contra este Keycloak con el API simulado: `npm run start:mock`.
+- El issuer es `http://localhost:8180`, así que el API real rechaza estos tokens (es intencional). El portal no usa este Keycloak: su BFF apunta al Keycloak del backend.
+
 ### Tema de Keycloak
 
-> Disponible a partir del hito M1.5.
+Tema FreeMarker propio para las páginas de login (`keycloak-theme/`, variantes `halsa` y `halsa-pacientes`). Detalles, pruebas e instalación en los Keycloak del backend: [`keycloak-theme/README.md`](keycloak-theme/README.md).
 
 ```bash
-# Compilar CSS del tema
-npm run theme:css
-
-# Compilar CSS en modo escucha
-npm run theme:watch
-
-# Generar el paquete JAR del tema (dist/keycloak-theme/halsa-keycloak-theme.jar)
-npm run theme:build
+npm run theme:css     # compila keycloak-theme/src/halsa.css y copia las fuentes
+npm run theme:watch   # lo mismo en modo escucha (con kc:up, los cambios se ven al recargar)
+npm run theme:build   # dist/keycloak-theme/halsa-keycloak-theme.jar
+npm run e2e:theme     # Playwright de todas las páginas del tema contra el Keycloak de Podman
 ```
 
 ## Sistema de Diseño (`@halsa/ui`)
 
 - **Showcase:** `npm start` y abre `http://localhost:3000/_ui` (también existe en el portal). Muestra todas las primitivas y componentes Halsa en claro y oscuro. Es solo de desarrollo: los builds de producción reemplazan `dev.routes.ts` por `dev.routes.prod.ts` y `scripts/check-bundles.mjs` falla si el showcase llega al bundle.
-- **Tokens:** `libs/ui/src/theme.css` (OKLCH, claro y oscuro). Tras cambiar un color ejecuta `npm run check:contrast` (también corre dentro de `npm run test`): verifica WCAG 2.2 AA para cada par texto/fondo y 3:1 para controles y foco.
+- **Tokens:** `libs/ui/src/tokens.css` (OKLCH, claro y oscuro), importado por `theme.css` en las apps y por el tema de Keycloak. Tras cambiar un color ejecuta `npm run check:contrast` (también corre dentro de `npm run test`): verifica WCAG 2.2 AA para cada par texto/fondo y 3:1 para controles y foco.
 - **Tema claro/oscuro:** por defecto sigue al sistema; el usuario lo cambia con `<halsa-selector-tema />` (`TemaService`) y la preferencia se guarda en `localStorage` (`halsa.tema`, solo preferencia de UI). `theme-init.js` aplica la clase `.dark` antes del primer pintado, como archivo externo porque la CSP prohíbe scripts inline.
 - **Importaciones:** componentes Halsa desde `@halsa/ui`; primitivas Spartan desde `@halsa/ui/helm/<nombre>` (p. ej. `HlmButtonImports` de `@halsa/ui/helm/button`).
 - **Agregar una primitiva Spartan:** `npx ng g @spartan-ng/cli:ui <nombre> --defaults` (usa `components.json`). Después revisa el código generado: textos en inglés → español, alturas táctiles (`pointer-coarse:h-11`), y que no use `new Date(string)` con fechas `YYYY-MM-DD`.

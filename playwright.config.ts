@@ -2,6 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
+  // The Keycloak theme spec has its own config (playwright.keycloak.config.ts, npm run e2e:theme).
+  testIgnore: 'keycloak-theme.spec.ts',
   fullyParallel: true,
   forbidOnly: !!process.env['CI'],
   retries: process.env['CI'] ? 2 : 0,

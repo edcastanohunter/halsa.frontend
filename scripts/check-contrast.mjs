@@ -1,9 +1,9 @@
 // WCAG 2.2 AA contrast gate for the design tokens (plan §8.1, M1 AC).
-// Parses the OKLCH custom properties of libs/ui/src/theme.css for both themes and checks every
+// Parses the OKLCH custom properties of libs/ui/src/tokens.css for both themes and checks every
 // text/background pair the components use (4.5:1) plus the non-text UI pairs (3:1, WCAG 1.4.11).
 import { readFileSync } from 'node:fs';
 
-const THEME_FILE = 'libs/ui/src/theme.css';
+const THEME_FILE = 'libs/ui/src/tokens.css';
 const css = readFileSync(THEME_FILE, 'utf8');
 
 function readBlock(selector) {

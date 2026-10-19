@@ -1,0 +1,184 @@
+/*
+ * Halsa design tokens (plan §8.1): colors, radii, base layer and motion rules, with no Tailwind
+ * import and no fonts. Both apps get them through theme.css; the Keycloak login theme imports this
+ * file directly (keycloak-theme/src/halsa.css), so a token change shows up everywhere.
+ *
+ * - Every color is OKLCH. `scripts/check-contrast.mjs` verifies the text/background pairs
+ *   (WCAG 2.2 AA) for both themes, so run `npm run check:contrast` after touching a value.
+ * - Status colors (success, warning, info, destructive, clinical) are tuned to work both as
+ *   text on --background/--card and as a fill under their own --*-foreground.
+ * - --input is darker than --border on purpose: form controls need 3:1 against the page
+ *   (WCAG 1.4.11), decorative card borders don't.
+ * - Dark mode is the `.dark` class on <html>, set before first paint by `theme-init.js` in the
+ *   apps (system preference by default, user override in localStorage) and by `halsa.js` in the
+ *   Keycloak theme (system preference only).
+ */
+:root {
+  color-scheme: light;
+
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --radius: 0.625rem;
+
+  --background: oklch(0.985 0.004 220);
+  --foreground: oklch(0.22 0.025 245);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.025 245);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.025 245);
+
+  /* Deep teal: health + calm */
+  --primary: oklch(0.48 0.085 195);
+  --primary-foreground: oklch(0.99 0.004 195);
+  --secondary: oklch(0.95 0.014 200);
+  --secondary-foreground: oklch(0.3 0.05 200);
+  --muted: oklch(0.955 0.006 230);
+  --muted-foreground: oklch(0.47 0.022 245);
+  --accent: oklch(0.94 0.022 195);
+  --accent-foreground: oklch(0.3 0.06 195);
+
+  --destructive: oklch(0.52 0.19 27);
+  --destructive-foreground: oklch(0.99 0.004 27);
+  --success: oklch(0.485 0.105 160);
+  --success-foreground: oklch(0.99 0.004 160);
+  --warning: oklch(0.505 0.115 58);
+  --warning-foreground: oklch(0.99 0.004 60);
+  --info: oklch(0.5 0.12 240);
+  --info-foreground: oklch(0.99 0.004 240);
+  /* Soft violet: only for clinical or reserved zones */
+  --clinical: oklch(0.49 0.15 295);
+  --clinical-foreground: oklch(0.99 0.004 295);
+
+  --border: oklch(0.91 0.008 230);
+  --input: oklch(0.6 0.018 240);
+  --ring: oklch(0.55 0.095 195);
+
+  --chart-1: oklch(0.55 0.09 195);
+  --chart-2: oklch(0.6 0.12 160);
+  --chart-3: oklch(0.6 0.12 240);
+  --chart-4: oklch(0.7 0.13 75);
+  --chart-5: oklch(0.55 0.14 295);
+
+  --sidebar: oklch(0.975 0.006 220);
+  --sidebar-foreground: oklch(0.22 0.025 245);
+  --sidebar-primary: oklch(0.48 0.085 195);
+  --sidebar-primary-foreground: oklch(0.99 0.004 195);
+  --sidebar-accent: oklch(0.94 0.022 195);
+  --sidebar-accent-foreground: oklch(0.3 0.06 195);
+  --sidebar-border: oklch(0.91 0.008 230);
+  --sidebar-ring: oklch(0.55 0.095 195);
+}
+
+:root.dark {
+  color-scheme: dark;
+
+  --background: oklch(0.16 0.014 245);
+  --foreground: oklch(0.96 0.005 230);
+  --card: oklch(0.2 0.017 245);
+  --card-foreground: oklch(0.96 0.005 230);
+  --popover: oklch(0.22 0.018 245);
+  --popover-foreground: oklch(0.96 0.005 230);
+
+  --primary: oklch(0.74 0.11 190);
+  --primary-foreground: oklch(0.18 0.03 200);
+  --secondary: oklch(0.26 0.024 210);
+  --secondary-foreground: oklch(0.94 0.01 200);
+  --muted: oklch(0.24 0.016 245);
+  --muted-foreground: oklch(0.73 0.02 240);
+  --accent: oklch(0.28 0.035 195);
+  --accent-foreground: oklch(0.95 0.01 195);
+
+  --destructive: oklch(0.72 0.16 25);
+  --destructive-foreground: oklch(0.18 0.03 25);
+  --success: oklch(0.76 0.13 160);
+  --success-foreground: oklch(0.18 0.03 160);
+  --warning: oklch(0.8 0.13 75);
+  --warning-foreground: oklch(0.2 0.035 75);
+  --info: oklch(0.75 0.11 235);
+  --info-foreground: oklch(0.18 0.03 235);
+  --clinical: oklch(0.76 0.12 295);
+  --clinical-foreground: oklch(0.2 0.04 295);
+
+  --border: oklch(0.3 0.016 245);
+  --input: oklch(0.53 0.02 240);
+  --ring: oklch(0.74 0.11 190);
+
+  --chart-1: oklch(0.74 0.11 190);
+  --chart-2: oklch(0.76 0.13 160);
+  --chart-3: oklch(0.75 0.11 235);
+  --chart-4: oklch(0.8 0.13 75);
+  --chart-5: oklch(0.76 0.12 295);
+
+  --sidebar: oklch(0.18 0.016 245);
+  --sidebar-foreground: oklch(0.96 0.005 230);
+  --sidebar-primary: oklch(0.74 0.11 190);
+  --sidebar-primary-foreground: oklch(0.18 0.03 200);
+  --sidebar-accent: oklch(0.28 0.035 195);
+  --sidebar-accent-foreground: oklch(0.95 0.01 195);
+  --sidebar-border: oklch(0.3 0.016 245);
+  --sidebar-ring: oklch(0.74 0.11 190);
+}
+
+/* Halsa additions on top of the Spartan preset mapping. */
+@theme inline {
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-clinical: var(--clinical);
+  --color-clinical-foreground: var(--clinical-foreground);
+
+  /* Plan §8.1: controls 0.5rem (radius-md), cards 0.75rem (radius-xl). */
+  --radius-xl: 0.75rem;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: 'cv11';
+  }
+
+  /* Inputs never below 16px, so iOS doesn't zoom on focus (plan §8.1). */
+  input,
+  select,
+  textarea {
+    font-size: max(1rem, 16px);
+  }
+
+  :focus-visible {
+    @apply outline-ring outline-2 outline-offset-2;
+  }
+}
+
+/* Plan §8.1: nothing moves under prefers-reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

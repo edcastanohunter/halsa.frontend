@@ -2,7 +2,7 @@
 export type Tono =
   'neutral' | 'primary' | 'info' | 'success' | 'warning' | 'destructive' | 'clinical' | 'muted';
 
-/** Soft style: tinted background, colored text and a subtle ring. Contrast-checked in theme.css. */
+/** Soft style: tinted background, colored text and a subtle ring. Contrast-checked in tokens.css. */
 export const TONO_SUAVE: Record<Tono, string> = {
   neutral: 'bg-muted text-foreground ring-border',
   primary: 'bg-primary/12 text-primary ring-primary/25',
