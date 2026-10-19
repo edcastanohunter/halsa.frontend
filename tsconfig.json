@@ -16,6 +16,7 @@
     "paths": {
       "@halsa/ui": ["libs/ui/src/index.ts"],
       "@halsa/ui/showcase": ["libs/ui/src/showcase/ui-showcase.page.ts"],
+      "@halsa/ui/tema": ["libs/ui/src/lib/tema/tema.service.ts"],
       "@halsa/core": ["libs/core/src/index.ts"],
       "@halsa/api-types": ["libs/api-types/src/index.ts"],
       "@halsa/mocks": ["libs/mocks/src/index.ts"],

@@ -31,7 +31,7 @@ Shared code lives in `libs/ui`, `libs/core` and `libs/api-types`. The backend is
 
 ## Commands
 
-`npm run lint` · `npm run test` · `npm run build` · `npm run e2e` · `npm run api:types`
+`npm run lint` · `npm run test` · `npm run build` · `npm run e2e` · `npm run e2e:update` (refresh visual baselines) · `npm run api:types`
 
 `npm run kc:up` / `kc:down` / `kc:reset` / `kc:logs` / `kc:sync` · `npm run theme:watch` / `theme:build`
 
@@ -45,3 +45,11 @@ Dev servers:
 ## Workflow
 
 Work milestone by milestone (plan §12). Stop after each one and report in the plan §15 format.
+
+Every milestone that changes what users see ships visual evidence at 375 px and 1440 px, light and dark: a Playwright spec with `toHaveScreenshot` baselines (`e2e/<spec>.spec.ts-snapshots/`) plus report copies in `docs/reportes/<milestone>/`, linked from the §15 report. Look at the images before reporting.
+
+Visual baselines follow the styles. After changing tokens, Tailwind classes, a helm primitive or a Halsa component:
+
+1. Run `npm run e2e` and look at every diff it reports (`playwright-report/`).
+2. If the change is intended, run `npm run e2e:update`. If `libs/ui/src/tokens.css` or `keycloak-theme/` changed, also run `npm run e2e:theme -- --update-snapshots` (needs `npm run kc:up`).
+3. Commit the code, the baselines and the refreshed `docs/reportes/` images together.

@@ -9,6 +9,11 @@ export default defineConfig({
   retries: process.env['CI'] ? 2 : 0,
   workers: process.env['CI'] ? 1 : undefined,
   reporter: [['list'], ['html', { open: 'never' }]],
+  expect: {
+    // Visual baselines (e2e/*.spec.ts-snapshots/): font hinting differs slightly between runs,
+    // layout regressions are far above this. Refresh them with `npm run e2e:update`.
+    toHaveScreenshot: { maxDiffPixelRatio: 0.01 },
+  },
   use: {
     trace: 'on-first-retry',
   },

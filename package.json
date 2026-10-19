@@ -17,6 +17,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "e2e": "playwright test",
+    "e2e:update": "playwright test --update-snapshots",
     "e2e:theme": "playwright test -c playwright.keycloak.config.ts",
     "api:types": "openapi-typescript http://localhost:5600/openapi/v1.json -o libs/api-types/src/schema.d.ts",
     "api:types:yaml": "openapi-typescript ../Halsa.Backend/docs/api/atel-api.openapi.yaml -o libs/api-types/src/schema.d.ts",

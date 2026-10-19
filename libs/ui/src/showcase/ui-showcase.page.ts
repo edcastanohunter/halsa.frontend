@@ -303,3 +303,6 @@ export class UiShowcasePage {
     });
   }
 }
+
+// Second dev page, re-exported here so it shares the `@halsa/ui/showcase` entry point.
+export { UiErroresPage } from './errores.page';

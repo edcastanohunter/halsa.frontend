@@ -1,4 +1,4 @@
 <main class="bg-background text-foreground min-h-screen">
   <router-outlet />
 </main>
-<hlm-toaster position="top-center" richColors />
+<hlm-toaster position="top-center" richColors [theme]="tema.oscuro() ? 'dark' : 'light'" />

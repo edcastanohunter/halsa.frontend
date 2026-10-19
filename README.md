@@ -118,6 +118,8 @@ npm run e2e:theme     # Playwright de todas las páginas del tema contra el Keyc
 - **Importaciones:** componentes Halsa desde `@halsa/ui`; primitivas Spartan desde `@halsa/ui/helm/<nombre>` (p. ej. `HlmButtonImports` de `@halsa/ui/helm/button`).
 - **Agregar una primitiva Spartan:** `npx ng g @spartan-ng/cli:ui <nombre> --defaults` (usa `components.json`). Después revisa el código generado: textos en inglés → español, alturas táctiles (`pointer-coarse:h-11`), y que no use `new Date(string)` con fechas `YYYY-MM-DD`.
 - **Pruebas visuales:** `npx playwright test e2e/ui-showcase.spec.ts` corre axe (cero violaciones serias o críticas), revisa que no haya scroll horizontal y guarda capturas en `docs/reportes/m1/`.
+- **Errores y notificaciones:** `/_ui/errores` (en ambas apps) muestra el mensaje de cada error de la API (§4.2) y cada tipo de toast. `npx playwright test e2e/errores.spec.ts` lo compara a 375 px y 1440 px, en claro y oscuro, contra las líneas base de `e2e/errores.spec.ts-snapshots/`, y deja las capturas del reporte en `docs/reportes/m2/`.
+- **Actualizar capturas tras un cambio de estilos:** `npm run e2e` falla si una pantalla cambió. Revisa el diff en `playwright-report/`; si el cambio es intencional, corre `npm run e2e:update` (y `npm run e2e:theme -- --update-snapshots` si tocaste `tokens.css` o el tema de Keycloak) y commitea juntos el código, las líneas base y las imágenes de `docs/reportes/`.
 
 ## Reglas de Arquitectura y Seguridad
 

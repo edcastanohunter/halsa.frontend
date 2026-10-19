@@ -35,9 +35,9 @@ import { injectCopiar } from '../utils/portapapeles';
         </button>
       }
       @if (traza()) {
-        <p class="text-muted-foreground flex items-center gap-1 text-xs">
-          Código de seguimiento:
-          <code class="text-foreground font-mono">{{ traza() }}</code>
+        <p class="text-muted-foreground flex flex-wrap items-center justify-center gap-x-1 text-xs">
+          <span class="whitespace-nowrap">Código de seguimiento:</span>
+          <code class="text-foreground font-mono break-all">{{ traza() }}</code>
           <button
             type="button"
             class="hover:bg-muted hover:text-foreground relative inline-flex size-6 items-center justify-center rounded after:absolute after:-inset-2.5"
