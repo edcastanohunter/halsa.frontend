@@ -42,7 +42,8 @@ npm run format
 npm run format:check
 
 # Ejecutar pruebas end-to-end (Playwright; levanta los dev servers si no están corriendo)
-# La primera vez: npx playwright install chromium
+# La primera vez: npx playwright install chromium. Antes: npm run kc:up (el backoffice corre en
+# modo mock contra el Keycloak de Podman). HALSA_E2E_REAL=1 lo apunta al backend real.
 npm run e2e
 ```
 
@@ -96,8 +97,18 @@ npm run kc:reset
 
 - Usuarios de desarrollo (contraseña `dev`): `analista.arla`, `calificador.arla` (OTP), `privacidad.arla`, `analista.arlb`, `medico.ips` (OTP), `coordinador.ips`; en `halsa-pacientes`, `paciente.dev@halsa.dev`. Consola de administración: `http://localhost:8180/admin` (`admin`/`admin`).
 - `kc:sync` quita los clientes `int-*` y las cuentas `service-account-*` (necesitan certificados mTLS), fija el tema y el idioma `es`, y apunta `halsa-backoffice` a `http://localhost:3000`. Nunca edites a mano los archivos generados.
+- `kc:sync` también agrega el client scope `basic` de Keycloak (claims `sub` y `auth_time`), que el realm del backend no define (gap G16). Sin él los tokens no traen `sub` ni `auth_time`, que el API lee. Se quita cuando el backend lo incorpore; después de cambiar los realms corre `npm run kc:reset`.
+- El flujo `browser-loa` del backend no tiene el paso Cookie: cada step-up pide contraseña **y** código (gap G17).
 - Backoffice contra este Keycloak con el API simulado: `npm run start:mock`.
 - El issuer es `http://localhost:8180`, así que el API real rechaza estos tokens (es intencional). El portal no usa este Keycloak: su BFF apunta al Keycloak del backend.
+
+### Identidad del backoffice (M3)
+
+- OIDC + PKCE con `angular-auth-oidc-client` (`core/auth/oidc.ts`): tokens en sessionStorage de la librería, refresh tokens, sin `email`. El inicializador (`SesionService.iniciar`) resuelve el callback y carga `GET /v1/identidad/yo` antes de la primera navegación.
+- Permisos: `PermisosService`, guard `requierePermiso(...)` (→ `/acceso-denegado`), directiva `*halsaSiPuede`. La navegación se declara como datos en `shell/navegacion.ts` y se filtra en un solo lugar.
+- Step-up (`core/step-up/`): `<app-compuerta-reforzada [acr]="2" [maxAgeSeg]="900">` envuelve el contenido clínico (`*halsaContenidoReforzado`); el popup de Keycloak conserva los formularios; si el navegador lo bloquea, se ofrece continuar por redirección. Un 401 con desafío abre el mismo flujo en un diálogo y reintenta la petición una vez (`stepUpInterceptor`).
+- Ruta de prueba, solo desarrollo: `/_dev/step-up` (con `npm run start:mock`).
+- E2E: `e2e/identidad.spec.ts` (matriz §6.3 por persona, step-up con OTP real, capturas en `docs/reportes/m3/`).
 
 ### Tema de Keycloak
 

@@ -26,7 +26,8 @@ export class ContenidoReforzado {
 
 /**
  * Step-up gate (plan §5.1.4): renders the clinical content only when `satisfecha`; otherwise a
- * calm panel with "Verificar identidad". M3 wires `satisfecha` to the token's acr/auth_time.
+ * calm panel with "Verificar identidad". Presentational: the backoffice's `<app-compuerta-reforzada>`
+ * wires `satisfecha` to the token's acr/auth_time and forwards its own content as `plantilla`.
  */
 @Component({
   selector: 'halsa-verificacion-reforzada',
@@ -36,7 +37,7 @@ export class ContenidoReforzado {
   host: { class: 'block' },
   template: `
     @if (satisfecha()) {
-      <ng-container [ngTemplateOutlet]="contenido()?.template ?? null" />
+      <ng-container [ngTemplateOutlet]="plantilla() ?? contenido()?.template ?? null" />
     } @else {
       <section
         aria-labelledby="halsa-verificacion-titulo"
@@ -90,6 +91,8 @@ export class VerificacionReforzada {
   /** `{authority}/account`, for users without an OTP configured. */
   readonly urlConfigurarOtp = input<string>();
   readonly verificar = output<void>();
+  /** Gated content forwarded by a wrapper, which can't project `*halsaContenidoReforzado` through. */
+  readonly plantilla = input<TemplateRef<unknown>>();
 
   protected readonly contenido = contentChild(ContenidoReforzado);
 }

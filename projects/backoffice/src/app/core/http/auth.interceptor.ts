@@ -4,8 +4,8 @@ import { API_PREFIX, esPeticionApi } from '@halsa/core';
 import { Observable, of, switchMap, take } from 'rxjs';
 
 /**
- * Where the access token comes from. M3 binds it to the OIDC client; until then there is no
- * session and requests go out without `Authorization`.
+ * Where the access token comes from: `provideOidc` binds it to the OIDC client. The default (no
+ * token) keeps unit tests and the `/_ui` pages free of the OIDC library.
  */
 export const TOKEN_ACCESO = new InjectionToken<() => Observable<string | null>>('TOKEN_ACCESO', {
   factory: () => () => of(null),

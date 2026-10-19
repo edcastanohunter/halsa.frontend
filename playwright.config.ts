@@ -17,10 +17,12 @@ export default defineConfig({
   use: {
     trace: 'on-first-retry',
   },
-  // Starts the dev servers when they are not already running (shell smoke only needs the SPA).
+  // Starts the dev servers when they are not already running. The backoffice runs in the `mock`
+  // configuration (local Podman Keycloak on :8180 + mock API; `npm run kc:up` first) unless
+  // HALSA_E2E_REAL=1, which targets the backend's Keycloak and the real API through the proxy.
   webServer: [
     {
-      command: 'npx ng serve backoffice --port 3000',
+      command: `npx ng serve backoffice --port 3000${process.env['HALSA_E2E_REAL'] ? '' : ' --configuration mock'}`,
       url: 'http://localhost:3000',
       reuseExistingServer: !process.env['CI'],
       timeout: 180_000,

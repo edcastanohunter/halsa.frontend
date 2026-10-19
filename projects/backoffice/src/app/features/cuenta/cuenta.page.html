@@ -1,0 +1,129 @@
+@if (datos(); as s) {
+  <div class="mx-auto max-w-3xl space-y-6">
+    <header class="space-y-1">
+      <h1 class="text-2xl font-semibold tracking-tight">Mi cuenta</h1>
+      <p class="text-muted-foreground text-sm">Tus datos de acceso al backoffice.</p>
+    </header>
+
+    <section hlmCard aria-labelledby="t-datos">
+      <div hlmCardHeader>
+        <h2 hlmCardTitle id="t-datos">Datos</h2>
+      </div>
+      <dl hlmCardContent class="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+        <div>
+          <dt class="text-muted-foreground">Nombre</dt>
+          <dd class="font-medium">{{ s.nombre ?? 'No disponible' }}</dd>
+        </div>
+        <div>
+          <dt class="text-muted-foreground">Correo</dt>
+          <dd class="font-medium">{{ s.correo ?? 'No disponible' }}</dd>
+        </div>
+        <div>
+          <dt class="text-muted-foreground">Tipo de actor</dt>
+          <dd class="font-medium">{{ s.actorTipo === 'ips' ? 'IPS' : 'ARL' }}</dd>
+        </div>
+        <div>
+          <dt class="text-muted-foreground">
+            {{ s.actorTipo === 'ips' ? 'IPS (código REPS)' : 'ARL' }}
+          </dt>
+          <dd class="font-mono font-medium">
+            {{ s.actorTipo === 'ips' ? s.ipsId : s.tenantId }}
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <section hlmCard aria-labelledby="t-sub">
+      <div hlmCardHeader>
+        <h2 hlmCardTitle id="t-sub">Tu identificador de usuario</h2>
+        <p hlmCardDescription>Compártelo con el analista para que te asigne a un caso.</p>
+      </div>
+      <div hlmCardContent class="flex flex-wrap items-center gap-2">
+        <code
+          class="bg-muted rounded-md px-2.5 py-1.5 font-mono text-sm break-all"
+          data-testid="sub"
+          >{{ s.sub }}</code
+        >
+        <button hlmBtn variant="outline" size="sm" type="button" (click)="copiarSub(s.sub)">
+          <ng-icon [name]="copiado() ? 'lucideCheck' : 'lucideCopy'" aria-hidden="true" />
+          {{ copiado() ? 'Copiado' : 'Copiar' }}
+        </button>
+        <span class="sr-only" aria-live="polite">{{
+          copiado() ? 'Identificador copiado' : ''
+        }}</span>
+      </div>
+    </section>
+
+    <section hlmCard aria-labelledby="t-verificacion">
+      <div hlmCardHeader>
+        <h2 hlmCardTitle id="t-verificacion">Nivel de verificación</h2>
+      </div>
+      <div hlmCardContent class="space-y-2 text-sm" data-testid="verificacion">
+        @if (verificacion(); as v) {
+          <p class="flex items-center gap-2 font-medium">
+            <ng-icon name="lucideShieldCheck" class="text-clinical text-lg" aria-hidden="true" />
+            Verificación reforzada activa
+          </p>
+          <p class="text-muted-foreground">
+            @if (v.dictamenHasta) {
+              Para el dictamen PCL vale hasta las {{ v.dictamenHasta }}; después se pide de nuevo el
+              código.
+            } @else {
+              Para el dictamen PCL se pedirá el código de nuevo (vale 15 minutos).
+            }
+          </p>
+        } @else {
+          <p class="font-medium">Verificación con contraseña</p>
+          <p class="text-muted-foreground">
+            La información clínica te pedirá tu código de verificación antes de mostrarse.
+          </p>
+        }
+      </div>
+    </section>
+
+    <section hlmCard aria-labelledby="t-permisos">
+      <div hlmCardHeader>
+        <h2 hlmCardTitle id="t-permisos">Permisos</h2>
+        <p hlmCardDescription>Lo que tu rol te permite hacer en el backoffice.</p>
+      </div>
+      <div hlmCardContent class="space-y-4" data-testid="permisos">
+        @for (grupo of grupos(); track grupo.area) {
+          <div class="space-y-1.5">
+            <h3 class="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+              {{ grupo.area }}
+            </h3>
+            <ul class="flex flex-wrap gap-1.5">
+              @for (p of grupo.permisos; track p.codigo) {
+                <li>
+                  <span hlmBadge variant="secondary" [attr.title]="p.codigo">{{ p.etiqueta }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        } @empty {
+          <p class="text-muted-foreground text-sm">Tu usuario no tiene permisos asignados.</p>
+        }
+      </div>
+    </section>
+
+    <section hlmCard aria-labelledby="t-apariencia">
+      <div hlmCardHeader>
+        <h2 hlmCardTitle id="t-apariencia">Apariencia</h2>
+      </div>
+      <div hlmCardContent>
+        <halsa-selector-tema />
+      </div>
+    </section>
+
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <a hlmBtn variant="outline" [href]="urlCuentaKeycloak" target="_blank" rel="noopener">
+        <ng-icon name="lucideExternalLink" aria-hidden="true" />
+        Gestionar mi cuenta y código de verificación
+      </a>
+      <button hlmBtn variant="destructive" type="button" (click)="sesion.cerrarSesion()">
+        <ng-icon name="lucideLogOut" aria-hidden="true" />
+        Cerrar sesión
+      </button>
+    </div>
+  </div>
+}

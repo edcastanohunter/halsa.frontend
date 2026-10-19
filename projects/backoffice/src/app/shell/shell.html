@@ -1,0 +1,222 @@
+<a
+  href="#contenido"
+  class="bg-primary text-primary-foreground sr-only z-50 rounded-md px-3 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+  >Saltar al contenido</a
+>
+
+<div class="bg-background text-foreground flex min-h-dvh">
+  <!-- Sidebar (≥ 1024 px) -->
+  <aside
+    class="border-border bg-card sticky top-0 hidden h-dvh shrink-0 flex-col border-e transition-[width] duration-200 motion-reduce:transition-none lg:flex"
+    [class]="contraido() ? 'w-[4.5rem]' : 'w-64'"
+  >
+    <div class="flex h-14 items-center gap-2 px-4">
+      <span
+        class="bg-primary text-primary-foreground inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold"
+        aria-hidden="true"
+        >H</span
+      >
+      @if (!contraido()) {
+        <span class="text-base font-semibold tracking-tight">Halsa</span>
+      }
+    </div>
+
+    <nav aria-label="Principal" class="flex-1 overflow-y-auto px-3 py-2">
+      <ul class="space-y-1">
+        @for (item of navegacion().todos; track item.id) {
+          <li>
+            <a
+              [routerLink]="item.ruta"
+              routerLinkActive="bg-primary/10 text-primary"
+              ariaCurrentWhenActive="page"
+              class="text-muted-foreground hover:bg-muted hover:text-foreground flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium"
+              [class.justify-center]="contraido()"
+              [hlmTooltip]="item.etiqueta"
+              [tooltipDisabled]="!contraido()"
+              position="right"
+            >
+              <ng-icon [name]="item.icono" class="shrink-0 text-lg" aria-hidden="true" />
+              <span [class.sr-only]="contraido()">{{ item.etiqueta }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <div class="border-border border-t p-3">
+      <button
+        hlmBtn
+        variant="ghost"
+        type="button"
+        class="text-muted-foreground w-full"
+        [class.justify-start]="!contraido()"
+        [attr.aria-expanded]="!contraido()"
+        (click)="alternarMenu()"
+      >
+        <ng-icon
+          [name]="contraido() ? 'lucidePanelLeftOpen' : 'lucidePanelLeftClose'"
+          class="text-lg"
+          aria-hidden="true"
+        />
+        <span [class.sr-only]="contraido()">{{
+          contraido() ? 'Expandir menú' : 'Contraer menú'
+        }}</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <!-- Top bar -->
+    <header
+      class="border-border bg-background/85 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-20 border-b pt-[env(safe-area-inset-top)] backdrop-blur"
+    >
+      <div class="flex h-14 items-center gap-3 px-4 md:px-6">
+        <span
+          class="bg-primary text-primary-foreground inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold lg:hidden"
+          aria-hidden="true"
+          >H</span
+        >
+        <span class="text-base font-semibold tracking-tight lg:hidden">Halsa</span>
+        <span class="flex-1"></span>
+
+        @if (contexto(); as ctx) {
+          <span
+            class="border-border bg-muted/60 inline-flex h-8 items-center gap-1.5 rounded-full border px-3 font-mono text-xs font-medium"
+            [attr.title]="ctx.titulo"
+            data-testid="contexto"
+          >
+            <ng-icon [name]="ctx.icono" class="text-muted-foreground text-sm" aria-hidden="true" />
+            <span class="sr-only">{{ ctx.titulo }}:</span>
+            {{ ctx.etiqueta }}
+          </span>
+        }
+
+        @if (sesion.sesion(); as s) {
+          <button
+            type="button"
+            class="focus-visible:ring-ring/50 relative rounded-full outline-none after:absolute after:-inset-1.5 focus-visible:ring-3"
+            [hlmDropdownMenuTrigger]="menuCuenta"
+          >
+            <span class="sr-only">Menú de la cuenta</span>
+            <hlm-avatar class="size-9" aria-hidden="true">
+              <span hlmAvatarFallback class="text-xs font-semibold">{{ iniciales() }}</span>
+            </hlm-avatar>
+          </button>
+          <ng-template #menuCuenta>
+            <hlm-dropdown-menu class="w-64">
+              <hlm-dropdown-menu-label>
+                <span class="block truncate">{{ s.nombre ?? 'Mi cuenta' }}</span>
+                <span class="text-muted-foreground block truncate font-mono text-xs font-normal">{{
+                  contexto()?.etiqueta
+                }}</span>
+              </hlm-dropdown-menu-label>
+              <hlm-dropdown-menu-separator />
+              <a hlmDropdownMenuItem routerLink="/cuenta">
+                <ng-icon name="lucideCircleUser" aria-hidden="true" /> Cuenta
+              </a>
+              <hlm-dropdown-menu-separator />
+              <button hlmDropdownMenuItem variant="destructive" (click)="cerrarSesion()">
+                <ng-icon name="lucideLogOut" aria-hidden="true" /> Cerrar sesión
+              </button>
+            </hlm-dropdown-menu>
+          </ng-template>
+        }
+      </div>
+    </header>
+
+    <main
+      id="contenido"
+      tabindex="-1"
+      class="mx-auto w-full max-w-[1280px] flex-1 px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] outline-none md:px-6 lg:px-8 lg:pb-10"
+    >
+      @if (errorInicio(); as error) {
+        <halsa-estado-error
+          titulo="No pudimos iniciar tu sesión"
+          [mensaje]="error.mensaje"
+          [traza]="error.traza ?? undefined"
+          (reintentar)="reintentar()"
+        />
+        <div class="flex justify-center">
+          <button hlmBtn variant="ghost" type="button" (click)="cerrarSesion()">
+            Cerrar sesión
+          </button>
+        </div>
+      } @else {
+        <router-outlet />
+      }
+    </main>
+  </div>
+</div>
+
+<!-- Bottom bar (< 1024 px): at most 4 sections + "Más" -->
+<nav
+  aria-label="Principal"
+  class="border-border bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed inset-x-0 bottom-0 z-30 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+>
+  <ul class="mx-auto flex max-w-xl">
+    @for (item of navegacion().barra; track item.id) {
+      <li class="flex-1">
+        <a
+          [routerLink]="item.ruta"
+          routerLinkActive="text-primary"
+          ariaCurrentWhenActive="page"
+          [attr.aria-label]="item.etiquetaCorta ? item.etiqueta : null"
+          class="text-muted-foreground flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[0.6875rem] leading-tight font-medium"
+        >
+          <ng-icon [name]="item.icono" class="text-xl" aria-hidden="true" />
+          <span class="line-clamp-1 text-center">{{ item.etiquetaCorta ?? item.etiqueta }}</span>
+        </a>
+      </li>
+    }
+    <li class="flex-1">
+      <hlm-sheet side="bottom">
+        <button
+          hlmSheetTrigger
+          type="button"
+          class="text-muted-foreground flex min-h-14 w-full flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[0.6875rem] leading-tight font-medium"
+        >
+          <ng-icon name="lucideEllipsis" class="text-xl" aria-hidden="true" />
+          <span>Más</span>
+        </button>
+        <hlm-sheet-content
+          *hlmSheetPortal="let ctx"
+          class="rounded-t-2xl pb-[calc(1rem+env(safe-area-inset-bottom))]"
+        >
+          <hlm-sheet-header>
+            <h2 hlmSheetTitle>Más opciones</h2>
+          </hlm-sheet-header>
+          <nav aria-label="Más opciones" class="px-4">
+            <ul class="space-y-1">
+              @for (item of navegacion().mas; track item.id) {
+                <li>
+                  <a
+                    [routerLink]="item.ruta"
+                    routerLinkActive="bg-primary/10 text-primary"
+                    ariaCurrentWhenActive="page"
+                    class="hover:bg-muted flex min-h-12 items-center gap-3 rounded-md px-3 text-base font-medium"
+                    (click)="ctx.close()"
+                  >
+                    <ng-icon [name]="item.icono" class="text-xl" aria-hidden="true" />
+                    {{ item.etiqueta }}
+                  </a>
+                </li>
+              }
+              <li>
+                <button
+                  type="button"
+                  class="text-destructive hover:bg-destructive/10 flex min-h-12 w-full items-center gap-3 rounded-md px-3 text-base font-medium"
+                  (click)="cerrarSesion()"
+                >
+                  <ng-icon name="lucideLogOut" class="text-xl" aria-hidden="true" />
+                  Cerrar sesión
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </hlm-sheet-content>
+      </hlm-sheet>
+    </li>
+  </ul>
+</nav>
+
+<app-dialogo-step-up />

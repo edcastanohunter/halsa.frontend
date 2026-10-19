@@ -1,6 +1,6 @@
 # Halsa Frontend — Plan de Hitos y Seguimiento de Implementación
 
-> **Estado general:** M2 completado (2026-10-19); siguiente: M3  
+> **Estado general:** M3 completado (2026-10-19); siguiente: M4  
 > **Fecha de inicio:** 2026-10-17  
 > **Tipografía UI:** Plus Jakarta Sans (`@fontsource/plus-jakarta-sans`)  
 > **Monospace:** JetBrains Mono (`@fontsource/jetbrains-mono`)  
@@ -14,7 +14,7 @@
 - [x] **M1: Design System y Primitivas UI**
 - [x] **M1.5: Keycloak Local (Podman) y Login Theme**
 - [x] **M2: Core Plumbing (HTTP, Errores, Fechas, i18n, Mock Adapter)**
-- [ ] **M3: Backoffice Shell e Identidad (OIDC, Permisos, Layout Responsivo)**
+- [x] **M3: Backoffice Shell e Identidad (OIDC, Permisos, Layout Responsivo)**
 - [ ] **M4: Casos (Flujo Administrativo, Resumen, Equipo, Activación Paciente)**
 - [ ] **M5: Plazos (Tablero de Vencimientos y Workflow de Cumplimiento)**
 - [ ] **M6: Clínico 🔒 (Historia Clínica y Acceso de Emergencia "Break-the-Glass")**
@@ -109,7 +109,7 @@
 
 ---
 
-### [ ] M3: Backoffice Shell e Identidad
+### [x] M3: Backoffice Shell e Identidad
 - **Alcance:**
   - Configuración de `angular-auth-oidc-client` (PKCE, silent renew, popup step-up).
   - Almacenamiento seguro de tokens exclusivamente en memoria / sessionStorage (nunca localStorage).
@@ -122,6 +122,11 @@
 - **Criterios de Aceptación:**
   - Matriz de navegación de §6.3 verificada en Playwright para los cinco roles principales.
   - Flujo de elevación a `acr=2` validado con dev users de Keycloak.
+- **Notas de implementación:**
+  - `projects/backoffice/src/app/`: `core/auth` (OIDC, claims, retorno, callback), `core/sesion` (`SesionService`), `core/permisos` (servicio, guards, `*halsaSiPuede`, etiquetas), `core/step-up` (servicio, compuerta, diálogo), `core/http/step-up.interceptor.ts`, `shell/` (layout, navegación, páginas 403/404/sin acceso), `features/inicio`, `features/cuenta`.
+  - Validado con el Keycloak de Podman + API mock (el Keycloak del backend no estaba disponible). `playwright.config.ts` sirve el backoffice en modo mock salvo con `HALSA_E2E_REAL=1`.
+  - Gaps nuevos: G16 (el realm no define el scope `basic`: tokens sin `sub` ni `auth_time`; `kc:sync` lo agrega solo en local) y G17 (`browser-loa` sin paso Cookie: el step-up pide contraseña y código).
+  - Secciones de M4+ (casos, plazos, solicitudes, auditoría) responden con su guard y una página "disponible pronto".
 
 ---
 

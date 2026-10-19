@@ -16,10 +16,11 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render main outlet container', async () => {
+  it('renders the router outlet and the toaster (pages own their <main>)', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('main')).toBeTruthy();
+    expect(compiled.querySelector('router-outlet')).toBeTruthy();
+    expect(compiled.querySelector('hlm-toaster')).toBeTruthy();
   });
 });

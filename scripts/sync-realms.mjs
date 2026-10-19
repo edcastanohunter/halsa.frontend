@@ -18,6 +18,56 @@ const I18N = {
 
 const check = process.argv.includes('--check');
 
+// GAP G16 (reported in the M3 report): the backend realms don't define Keycloak 25+'s `basic`
+// client scope, so access tokens carry neither `sub` nor `auth_time`, both of which the API reads
+// (CurrentUser, StepUp). Until the backend adds it, the mock realms get Keycloak's stock
+// definition so local tokens look like the ones the API expects. Remove once the source has it.
+const BASIC_SCOPE = {
+  name: 'basic',
+  description: 'OpenID Connect scope for add all basic claims to the token',
+  protocol: 'openid-connect',
+  attributes: { 'include.in.token.scope': 'false', 'display.on.consent.screen': 'false' },
+  protocolMappers: [
+    {
+      name: 'auth_time',
+      protocol: 'openid-connect',
+      protocolMapper: 'oidc-usersessionmodel-note-mapper',
+      consentRequired: false,
+      config: {
+        'user.session.note': 'AUTH_TIME',
+        'introspection.token.claim': 'true',
+        'userinfo.token.claim': 'true',
+        'id.token.claim': 'true',
+        'lightweight.claim': 'true',
+        'access.token.claim': 'true',
+        'claim.name': 'auth_time',
+        'jsonType.label': 'long',
+      },
+    },
+    {
+      name: 'sub',
+      protocol: 'openid-connect',
+      protocolMapper: 'oidc-sub-mapper',
+      consentRequired: false,
+      config: { 'introspection.token.claim': 'true', 'access.token.claim': 'true' },
+    },
+  ],
+};
+
+function withBasicScope(realm) {
+  if ((realm.clientScopes ?? []).some((s) => s.name === 'basic')) return realm;
+  return {
+    ...realm,
+    clientScopes: [...(realm.clientScopes ?? []), BASIC_SCOPE],
+    defaultDefaultClientScopes: [...(realm.defaultDefaultClientScopes ?? []), 'basic'],
+    clients: realm.clients.map((c) =>
+      c.defaultClientScopes
+        ? { ...c, defaultClientScopes: [...c.defaultClientScopes, 'basic'] }
+        : c,
+    ),
+  };
+}
+
 const isIntegrationClient = (clientId) => clientId.startsWith('int-');
 
 function transformHalsa(realm) {
@@ -109,7 +159,9 @@ for (const { file, transform } of REALMS) {
     process.exit(1);
   }
 
-  const { realm, summary } = transform(JSON.parse(readFileSync(sourcePath, 'utf8')));
+  const { realm, summary } = transform(
+    withBasicScope(JSON.parse(readFileSync(sourcePath, 'utf8'))),
+  );
   const json = `${JSON.stringify(realm, null, 2)}\n`;
 
   // Keycloak's own expressions (e.g. `${client_id}`) are fine; our environment placeholders are not.

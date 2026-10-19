@@ -13,3 +13,12 @@ export const devRoutes: Routes = [
     loadComponent: () => import('@halsa/ui/showcase').then((m) => m.UiShowcasePage),
   },
 ];
+
+// Dev-only routes inside the authenticated shell (they need a session).
+export const devShellRoutes: Routes = [
+  {
+    path: '_dev/step-up',
+    title: 'Prueba de verificación · Halsa',
+    loadComponent: () => import('./dev/step-up.page').then((m) => m.DevStepUpPage),
+  },
+];

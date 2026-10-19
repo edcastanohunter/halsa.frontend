@@ -69,10 +69,11 @@ export interface PagedList<T> {
   hasPreviousPage: boolean;
 }
 
-// TODO(api-types): GET /v1/identidad/yo has no response schema in the OpenAPI spec; shape from plan §4.3.
+// TODO(api-types): GET /v1/identidad/yo has no response schema in the OpenAPI spec; shape from
+// Endpoints/Identidad/Yo.cs. `actorTipo` is the ActorTipo enum lowercased (`sistema` never has a token).
 export interface UsuarioYo {
   sub: string;
-  actorTipo: 'arl' | 'ips';
+  actorTipo: 'arl' | 'ips' | 'paciente' | 'integracion';
   tenantId: string | null;
   ipsId: string | null;
   permisos: string[];

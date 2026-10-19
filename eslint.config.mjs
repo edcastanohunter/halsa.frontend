@@ -89,6 +89,7 @@ export default tseslint.config(
       '**/*.spec.ts',
       'projects/*/src/mocks/**',
       'projects/*/src/app/dev.interceptors.ts',
+      'projects/*/src/app/dev/**',
       'libs/mocks/**',
       'e2e/**',
     ],

@@ -31,7 +31,7 @@ Shared code lives in `libs/ui`, `libs/core` and `libs/api-types`. The backend is
 
 ## Commands
 
-`npm run lint` · `npm run test` · `npm run build` · `npm run e2e` · `npm run e2e:update` (refresh visual baselines) · `npm run api:types`
+`npm run lint` · `npm run test` · `npm run build` · `npm run e2e` (needs `npm run kc:up`) · `npm run e2e:update` (refresh visual baselines) · `npm run api:types`
 
 `npm run kc:up` / `kc:down` / `kc:reset` / `kc:logs` / `kc:sync` · `npm run theme:watch` / `theme:build`
 
