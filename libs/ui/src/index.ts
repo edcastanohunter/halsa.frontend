@@ -12,6 +12,7 @@ export * from './lib/estado-error/estado-error';
 export * from './lib/estado-vacio/estado-vacio';
 export * from './lib/fecha-bogota/fecha-bogota';
 export * from './lib/fecha-relativa/fecha-relativa';
+export * from './lib/notificaciones/notificaciones';
 export * from './lib/page-header/page-header';
 export * from './lib/panel-no-asignado/panel-no-asignado';
 export * from './lib/radicado-chip/radicado-chip';

@@ -49,7 +49,6 @@ import { HlmSwitchImports } from '@halsa/ui/helm/switch';
 import { HlmTableImports } from '@halsa/ui/helm/table';
 import { HlmTabsImports } from '@halsa/ui/helm/tabs';
 import { HlmTextareaImports } from '@halsa/ui/helm/textarea';
-import { HlmToasterImports } from '@halsa/ui/helm/sonner';
 import { HlmTooltipImports } from '@halsa/ui/helm/tooltip';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -106,7 +105,6 @@ const enHoras = (horas: number) => new Date(Date.now() + horas * HORA).toISOStri
     HlmTableImports,
     HlmTabsImports,
     HlmTextareaImports,
-    HlmToasterImports,
     HlmTooltipImports,
     BarraDiasAcumulados,
     CodigoUnaVez,

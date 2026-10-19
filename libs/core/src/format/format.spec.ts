@@ -3,6 +3,7 @@ import {
   formatFechaCorta,
   formatFechaLarga,
   formatFechaRelativa,
+  formatMoneda,
   formatNumero,
   formatPorcentaje,
   formatTamanoArchivo,
@@ -31,6 +32,11 @@ describe('Core Formats & i18n (Bogota & es-CO)', () => {
 
   it('formats numbers with es-CO formatting', () => {
     expect(formatNumero(1000)).toBe('1.000');
+  });
+
+  it('formats Colombian pesos without decimals', () => {
+    expect(formatMoneda(1500000)).toBe('$ 1.500.000');
+    expect(formatMoneda(null)).toBe('');
   });
 
   it('provides Spanish enum labels', () => {

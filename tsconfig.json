@@ -18,6 +18,7 @@
       "@halsa/ui/showcase": ["libs/ui/src/showcase/ui-showcase.page.ts"],
       "@halsa/core": ["libs/core/src/index.ts"],
       "@halsa/api-types": ["libs/api-types/src/index.ts"],
+      "@halsa/mocks": ["libs/mocks/src/index.ts"],
       "@halsa/ui/helm/button": ["./libs/ui/src/helm/button/src/index.ts"],
       "@halsa/ui/helm/utils": ["./libs/ui/src/helm/utils/src/index.ts"],
       "@halsa/ui/helm/badge": ["./libs/ui/src/helm/badge/src/index.ts"],

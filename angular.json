@@ -59,6 +59,10 @@
                 {
                   "replace": "projects/backoffice/src/app/dev.routes.ts",
                   "with": "projects/backoffice/src/app/dev.routes.prod.ts"
+                },
+                {
+                  "replace": "projects/backoffice/src/app/dev.interceptors.ts",
+                  "with": "projects/backoffice/src/app/dev.interceptors.prod.ts"
                 }
               ]
             },
@@ -169,6 +173,10 @@
                 {
                   "replace": "projects/portal/src/app/dev.routes.ts",
                   "with": "projects/portal/src/app/dev.routes.prod.ts"
+                },
+                {
+                  "replace": "projects/portal/src/app/dev.interceptors.ts",
+                  "with": "projects/portal/src/app/dev.interceptors.prod.ts"
                 }
               ]
             },

@@ -1,6 +1,6 @@
 # Halsa Frontend — Plan de Hitos y Seguimiento de Implementación
 
-> **Estado general:** M1.5 completado (2026-10-19); siguiente: M2  
+> **Estado general:** M2 completado (2026-10-19); siguiente: M3  
 > **Fecha de inicio:** 2026-10-17  
 > **Tipografía UI:** Plus Jakarta Sans (`@fontsource/plus-jakarta-sans`)  
 > **Monospace:** JetBrains Mono (`@fontsource/jetbrains-mono`)  
@@ -13,7 +13,7 @@
 - [x] **M0: Workspace y Tooling**
 - [x] **M1: Design System y Primitivas UI**
 - [x] **M1.5: Keycloak Local (Podman) y Login Theme**
-- [ ] **M2: Core Plumbing (HTTP, Errores, Fechas, i18n, Mock Adapter)**
+- [x] **M2: Core Plumbing (HTTP, Errores, Fechas, i18n, Mock Adapter)**
 - [ ] **M3: Backoffice Shell e Identidad (OIDC, Permisos, Layout Responsivo)**
 - [ ] **M4: Casos (Flujo Administrativo, Resumen, Equipo, Activación Paciente)**
 - [ ] **M5: Plazos (Tablero de Vencimientos y Workflow de Cumplimiento)**
@@ -89,7 +89,7 @@
 
 ---
 
-### [ ] M2: Core Plumbing (HTTP, Errores, Fechas, i18n, Mock Adapter)
+### [x] M2: Core Plumbing (HTTP, Errores, Fechas, i18n, Mock Adapter)
 - **Alcance:**
   - Interceptores HTTP: inyección de Bearer token, `X-Correlation-Id`, mapeo RFC 9457 `ProblemDetails` (`errorCode ?? code`).
   - Manejo de cabecera `WWW-Authenticate` con desafío `acr_values="2"` y `max_age`.
@@ -100,6 +100,10 @@
   - Adaptador mock de desarrollo (`projects/*/src/mocks/`) para simular respuestas y errores (401 step-up, 403, 404, 409, 429).
 - **Criterios de Aceptación:**
   - Suite de pruebas unitarias en Vitest cubriendo formatters, parsing de problemas, transliteración y mapeo de enums.
+- **Notas de implementación:**
+  - `@halsa/core`: `http/problema.ts` (`ProblemaApi`, `ErrorApi`, `WWW-Authenticate` y `Retry-After`), `http/interceptores.ts` (`API_PREFIX`, `correlacionInterceptor`, `problemaInterceptor`, sin reintentos), `http/mensaje-error.ts` (error → UI en español; 404 siempre neutro, 5xx sin `detail`), `errors/manejador-errores.ts` (`ErrorHandler` global con anonimización), `format/fecha-calendario.ts` (DateOnly sin `new Date(str)`, `hoyBogota`), `format/locale.ts` (`LOCALE_ID` es-CO), `formatMoneda`, `i18n/codigos-error.ts` y mapas `Record<Union, string>` exhaustivos.
+  - Bearer: `projects/backoffice/src/app/core/http/auth.interceptor.ts` con el token `TOKEN_ACCESO` (M3 lo enlaza al cliente OIDC). Toasts: `Notificaciones` en `@halsa/ui` y `<hlm-toaster>` en el shell de ambas apps.
+  - Mock adapter: `libs/mocks` (`@halsa/mocks`, enrutador + RFC 9457) y fixtures en `projects/*/src/mocks/`. Se conecta con `dev.interceptors.ts`, que producción reemplaza por `dev.interceptors.prod.ts`. Escenarios: 401 step-up (por `acr`/`auth_time` del token), 403 `Clinico.NoAsignado` + acceso de emergencia, 404 entre tenants, 409, 429 (`/paciente/api/vinculos`), 503 (`numeroCertificado: ANTIVIRUS-503`). Sin token, el mock responde como `analista.arla`. Sesión BFF inicial del portal: `sessionStorage['halsa.mock.sesion']`.
 
 ---
 

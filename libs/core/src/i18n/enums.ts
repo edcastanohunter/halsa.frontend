@@ -1,11 +1,44 @@
-import type { Schemas } from '@halsa/api-types';
+import { isDevMode } from '@angular/core';
+import type {
+  AlertaIncapacidad,
+  CrearSolicitudCopiaHcRequest,
+  DictamenPclResponse,
+  HitoResponse,
+  IncapacidadRequest,
+  NotificarDictamenPclRequest,
+  ProximoHitoResponse,
+  RegistroClinicoResponse,
+  Schemas,
+} from '@halsa/api-types';
 
-export const TIPO_EVENTO_LABELS: Record<string, string> = {
+// One typed map per enum (plan §8.4). `Record<Union, string>` makes every map exhaustive: a new
+// backend value in the generated types fails the build until it gets a label.
+export type TipoEvento = 'AccidenteTrabajo' | 'EnfermedadLaboral';
+// TODO(api-types): `regla` is a plain string in the OpenAPI spec; known codes from plan §4.3.
+export type ReglaPlazo =
+  | 'REPORTE_FURAT'
+  | 'REPORTE_FUREP'
+  | 'INVESTIGACION_AT'
+  | 'REMISION_INVESTIGACION_GRAVE'
+  | 'CONTROVERSIA_DICTAMEN'
+  | 'TOPE_IT_180'
+  | 'SOLICITUD_COPIA_HC';
+export type CodigoAlertaIncapacidad = AlertaIncapacidad['code'];
+export type TipoIncapacidad = IncapacidadRequest['tipo'];
+export type ModalidadIncapacidad = IncapacidadRequest['modalidad'];
+export type TipoRegistroClinico = RegistroClinicoResponse['tipo'];
+export type OrigenDictamen = DictamenPclResponse['origen'];
+export type MedioNotificacion = NotificarDictamenPclRequest['medio'];
+export type MedioEntrega = CrearSolicitudCopiaHcRequest['medioEntrega'];
+export type TipoHito = HitoResponse['tipo'];
+export type TipoProximoHito = ProximoHitoResponse['tipo'];
+
+export const TIPO_EVENTO_LABELS: Record<TipoEvento, string> = {
   AccidenteTrabajo: 'Accidente de trabajo',
   EnfermedadLaboral: 'Enfermedad laboral',
 };
 
-export const REGLA_PLAZO_LABELS: Record<string, string> = {
+export const REGLA_PLAZO_LABELS: Record<ReglaPlazo, string> = {
   REPORTE_FURAT: 'Reporte del accidente (FURAT)',
   REPORTE_FUREP: 'Reporte de la enfermedad (FUREP)',
   INVESTIGACION_AT: 'Investigación del accidente',
@@ -15,14 +48,14 @@ export const REGLA_PLAZO_LABELS: Record<string, string> = {
   SOLICITUD_COPIA_HC: 'Entrega de copia de historia clínica',
 };
 
-export const ALERTA_INCAPACIDAD_LABELS: Record<string, string> = {
+export const ALERTA_INCAPACIDAD_LABELS: Record<CodigoAlertaIncapacidad, string> = {
   ACUMULADO_150_DIAS: '150 días acumulados: alerta temprana',
   ACUMULADO_180_DIAS: '180 días: requiere concepto de rehabilitación',
   ACUMULADO_540_DIAS: '540 días acumulados',
   CARGA_EXTEMPORANEA: 'Cargada de forma extemporánea',
 };
 
-export const TIPO_REGISTRO_CLINICO_LABELS: Record<string, string> = {
+export const TIPO_REGISTRO_CLINICO_LABELS: Record<TipoRegistroClinico, string> = {
   REPORTE_INICIAL: 'Reporte inicial',
   CONCEPTO_MEDICO: 'Concepto médico',
   EVOLUCION: 'Evolución',
@@ -30,25 +63,25 @@ export const TIPO_REGISTRO_CLINICO_LABELS: Record<string, string> = {
   CERTIFICADO_INCAPACIDAD: 'Certificado de incapacidad',
 };
 
-export const ORIGEN_LABELS: Record<string, string> = {
+export const ORIGEN_LABELS: Record<OrigenDictamen, string> = {
   LABORAL: 'Laboral',
   COMUN: 'Común',
   MIXTO: 'Mixto',
 };
 
-export const MEDIO_NOTIFICACION_LABELS: Record<string, string> = {
+export const MEDIO_NOTIFICACION_LABELS: Record<MedioNotificacion, string> = {
   CORREO_CERTIFICADO: 'Correo certificado',
   ELECTRONICO: 'Electrónico',
   PERSONAL: 'Personal',
 };
 
-export const MEDIO_ENTREGA_LABELS: Record<string, string> = {
+export const MEDIO_ENTREGA_LABELS: Record<MedioEntrega, string> = {
   CORREO_CERTIFICADO: 'Correo certificado',
   PRESENCIAL: 'Presencial (recoger en oficina)',
   ELECTRONICO: 'Correo electrónico',
 };
 
-export const ESTADO_CASO_STAFF_LABELS: Record<string, string> = {
+export const ESTADO_CASO_STAFF_LABELS: Record<EstadoCaso, string> = {
   Radicado: 'Radicado',
   Validado: 'Validado',
   EnAtencion: 'En atención',
@@ -58,7 +91,7 @@ export const ESTADO_CASO_STAFF_LABELS: Record<string, string> = {
   Rechazado: 'Rechazado',
 };
 
-export const ESTADO_CASO_PACIENTE_LABELS: Record<string, string> = {
+export const ESTADO_CASO_PACIENTE_LABELS: Record<EstadoCaso, string> = {
   Radicado: 'Recibimos el reporte de tu caso',
   Validado: 'Tu ARL validó el caso',
   EnAtencion: 'Estás en atención médica',
@@ -68,7 +101,7 @@ export const ESTADO_CASO_PACIENTE_LABELS: Record<string, string> = {
   Rechazado: 'El caso no fue aceptado. Comunícate con tu ARL',
 };
 
-export const HITO_PACIENTE_LABELS: Record<string, string> = {
+export const HITO_PACIENTE_LABELS: Record<TipoHito, string> = {
   RADICADO: 'Caso radicado',
   VALIDADO: 'Caso validado',
   RECHAZADO: 'Caso rechazado',
@@ -78,17 +111,27 @@ export const HITO_PACIENTE_LABELS: Record<string, string> = {
   DICTAMEN_EN_FIRME: 'El dictamen quedó en firme',
 };
 
-export const PROXIMO_HITO_LABELS: Record<string, string> = {
+export const PROXIMO_HITO_LABELS: Record<TipoProximoHito, string> = {
   FIN_INCAPACIDAD: 'Termina tu incapacidad',
   VENCE_CONTROVERSIA: 'Último día para controvertir el dictamen',
 };
 
-export function getEnumLabel(
-  map: Record<string, string>,
+/**
+ * Spanish label of an enum value. Unknown values (a backend newer than the frontend) render
+ * raw, never crash, and warn in dev builds only (plan §8.4).
+ */
+export function getEnumLabel<K extends string>(
+  map: Readonly<Record<K, string>>,
   value: string | null | undefined,
 ): string {
   if (!value) return '';
-  return map[value] ?? value;
+  const label = (map as Readonly<Record<string, string>>)[value];
+  if (label !== undefined) return label;
+  if (isDevMode()) {
+    // eslint-disable-next-line no-console -- dev-only signal for a missing label, never in prod
+    console.warn(`[halsa] Sin etiqueta para el valor "${value}"`);
+  }
+  return value;
 }
 
 // Typed against the generated API enums, so a new backend value fails the build here.
@@ -148,3 +191,51 @@ export const RESULTADO_AUDITORIA_LABELS: Record<ResultadoAuditoria, string> = {
   NoEncontrado: 'No encontrado',
   Error: 'Error',
 };
+
+// TODO(api-types): `accion` is a plain string in the API; values from the backend
+// AccionAuditoria enum. Verify the wire casing against a live response (plan §4.3).
+export type AccionAuditoria =
+  'Leer' | 'Crear' | 'Actualizar' | 'Eliminar' | 'Corregir' | 'Exportar';
+
+export const ACCION_AUDITORIA_LABELS: Record<AccionAuditoria, string> = {
+  Leer: 'Lectura',
+  Crear: 'Creación',
+  Actualizar: 'Actualización',
+  Eliminar: 'Eliminación',
+  Corregir: 'Corrección',
+  Exportar: 'Exportación',
+};
+
+export const TIPO_INCAPACIDAD_LABELS: Record<TipoIncapacidad, string> = {
+  INICIAL: 'Inicial',
+  PRORROGA: 'Prórroga',
+};
+
+export const MODALIDAD_INCAPACIDAD_LABELS: Record<ModalidadIncapacidad, string> = {
+  PRESENCIAL: 'Presencial',
+  TELEMEDICINA: 'Telemedicina',
+};
+
+/** Every map, by name, for the exhaustiveness spec and dev tooling. */
+export const ENUM_LABEL_MAPS = {
+  TIPO_EVENTO_LABELS,
+  REGLA_PLAZO_LABELS,
+  ALERTA_INCAPACIDAD_LABELS,
+  TIPO_REGISTRO_CLINICO_LABELS,
+  ORIGEN_LABELS,
+  MEDIO_NOTIFICACION_LABELS,
+  MEDIO_ENTREGA_LABELS,
+  ESTADO_CASO_STAFF_LABELS,
+  ESTADO_CASO_PACIENTE_LABELS,
+  HITO_PACIENTE_LABELS,
+  PROXIMO_HITO_LABELS,
+  ESTADO_PLAZO_LABELS,
+  ESTADO_DICTAMEN_LABELS,
+  ESTADO_SOLICITUD_COPIA_HC_LABELS,
+  ESTADO_REVISION_EMERGENCIA_LABELS,
+  CONCLUSION_REVISION_EMERGENCIA_LABELS,
+  RESULTADO_AUDITORIA_LABELS,
+  ACCION_AUDITORIA_LABELS,
+  TIPO_INCAPACIDAD_LABELS,
+  MODALIDAD_INCAPACIDAD_LABELS,
+} as const;

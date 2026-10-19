@@ -83,11 +83,24 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.spec.ts', 'projects/*/src/mocks/**', 'e2e/**'],
+    // Dev-only: mocks themselves, and the dev.* files that production builds replace
+    // (angular.json fileReplacements).
+    files: [
+      '**/*.spec.ts',
+      'projects/*/src/mocks/**',
+      'projects/*/src/app/dev.interceptors.ts',
+      'libs/mocks/**',
+      'e2e/**',
+    ],
     rules: {
       'no-restricted-imports': 'off',
       'no-console': 'off',
     },
+  },
+  {
+    // Plan §5.3.1: the global error handler is the only app code allowed to log (scrubbed).
+    files: ['libs/core/src/errors/manejador-errores.ts'],
+    rules: { 'no-console': ['error', { allow: ['error'] }] },
   },
   {
     files: ['scripts/**/*.mjs'],

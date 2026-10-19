@@ -1,3 +1,5 @@
+import { parsearFechaCalendario, ZONA_HORARIA } from './fecha-calendario';
+
 const MONTH_NAMES_ES = [
   'ene',
   'feb',
@@ -30,42 +32,18 @@ const FULL_MONTH_NAMES_ES = [
 
 /**
  * Formats a calendar DateOnly string ('YYYY-MM-DD') without passing through `new Date()`,
- * avoiding UTC-midnight date shift bugs in America/Bogota.
+ * avoiding UTC-midnight date shift bugs in America/Bogota. Invalid input is returned as is.
  */
 export function formatFechaCorta(dateOnly: string | null | undefined): string {
-  if (!dateOnly || !/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
-    return dateOnly ?? '';
-  }
-
-  const parts = dateOnly.split('-');
-  const year = parts[0];
-  const monthIdx = parseInt(parts[1]!, 10) - 1;
-  const day = parseInt(parts[2]!, 10);
-
-  if (monthIdx < 0 || monthIdx > 11) {
-    return dateOnly;
-  }
-
-  const month = MONTH_NAMES_ES[monthIdx];
-  return `${day} ${month} ${year}`;
+  const fecha = parsearFechaCalendario(dateOnly);
+  if (!fecha) return dateOnly ?? '';
+  return `${fecha.dia} ${MONTH_NAMES_ES[fecha.mes - 1]} ${fecha.anio}`;
 }
 
 export function formatFechaLarga(dateOnly: string | null | undefined): string {
-  if (!dateOnly || !/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
-    return dateOnly ?? '';
-  }
-
-  const parts = dateOnly.split('-');
-  const year = parts[0];
-  const monthIdx = parseInt(parts[1]!, 10) - 1;
-  const day = parseInt(parts[2]!, 10);
-
-  if (monthIdx < 0 || monthIdx > 11) {
-    return dateOnly;
-  }
-
-  const month = FULL_MONTH_NAMES_ES[monthIdx];
-  return `${day} de ${month} de ${year}`;
+  const fecha = parsearFechaCalendario(dateOnly);
+  if (!fecha) return dateOnly ?? '';
+  return `${fecha.dia} de ${FULL_MONTH_NAMES_ES[fecha.mes - 1]} de ${fecha.anio}`;
 }
 
 /**
@@ -78,7 +56,7 @@ export function formatFechaHoraBogota(isoString: string | null | undefined): str
     if (isNaN(d.getTime())) return isoString;
 
     return new Intl.DateTimeFormat('es-CO', {
-      timeZone: 'America/Bogota',
+      timeZone: ZONA_HORARIA,
       day: 'numeric',
       month: 'short',
       year: 'numeric',
