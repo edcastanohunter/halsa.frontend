@@ -112,6 +112,15 @@ npm run theme:watch
 npm run theme:build
 ```
 
+## Sistema de Diseño (`@halsa/ui`)
+
+- **Showcase:** `npm start` y abre `http://localhost:3000/_ui` (también existe en el portal). Muestra todas las primitivas y componentes Halsa en claro y oscuro. Es solo de desarrollo: los builds de producción reemplazan `dev.routes.ts` por `dev.routes.prod.ts` y `scripts/check-bundles.mjs` falla si el showcase llega al bundle.
+- **Tokens:** `libs/ui/src/theme.css` (OKLCH, claro y oscuro). Tras cambiar un color ejecuta `npm run check:contrast` (también corre dentro de `npm run test`): verifica WCAG 2.2 AA para cada par texto/fondo y 3:1 para controles y foco.
+- **Tema claro/oscuro:** por defecto sigue al sistema; el usuario lo cambia con `<halsa-selector-tema />` (`TemaService`) y la preferencia se guarda en `localStorage` (`halsa.tema`, solo preferencia de UI). `theme-init.js` aplica la clase `.dark` antes del primer pintado, como archivo externo porque la CSP prohíbe scripts inline.
+- **Importaciones:** componentes Halsa desde `@halsa/ui`; primitivas Spartan desde `@halsa/ui/helm/<nombre>` (p. ej. `HlmButtonImports` de `@halsa/ui/helm/button`).
+- **Agregar una primitiva Spartan:** `npx ng g @spartan-ng/cli:ui <nombre> --defaults` (usa `components.json`). Después revisa el código generado: textos en inglés → español, alturas táctiles (`pointer-coarse:h-11`), y que no use `new Date(string)` con fechas `YYYY-MM-DD`.
+- **Pruebas visuales:** `npx playwright test e2e/ui-showcase.spec.ts` corre axe (cero violaciones serias o críticas), revisa que no haya scroll horizontal y guarda capturas en `docs/reportes/m1/`.
+
 ## Reglas de Arquitectura y Seguridad
 
 1. **Aislamiento clínico:** Ningún dato clínico se persiste en `localStorage`, `sessionStorage`, `IndexedDB` ni URLs. Los estados clínicos se eliminan de la memoria al abandonar la ruta.

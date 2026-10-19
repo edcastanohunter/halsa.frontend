@@ -1,6 +1,6 @@
 // Post-build gate (plan §9, §10.1). Angular budgets measure raw size, while the plan's budgets
 // are gzip, so this script enforces them on the production output and fails on overflow.
-// It also fails if any production chunk contains the word `__mock`.
+// It also fails if any production chunk contains dev-only markers (FORBIDDEN).
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
@@ -10,6 +10,9 @@ const BUDGETS = {
   backoffice: { initial: 300 * KB, lazy: 150 * KB },
   portal: { initial: 200 * KB, lazy: 150 * KB },
 };
+
+// Dev-only code that must never reach production: mock fixtures and the /_ui showcase.
+const FORBIDDEN = ['__mock', 'halsa-ui-showcase'];
 
 const gz = (file) => gzipSync(readFileSync(file), { level: 9 }).length;
 const fmt = (bytes) => `${(bytes / KB).toFixed(1)} kB`;
@@ -37,8 +40,9 @@ for (const [app, budget] of Object.entries(BUDGETS)) {
   console.log(`${app}:`);
   for (const file of assets) {
     const path = join(dir, file);
-    if (readFileSync(path, 'utf8').includes('__mock')) {
-      fail(`${file} contains "__mock"`);
+    const content = readFileSync(path, 'utf8');
+    for (const marker of FORBIDDEN) {
+      if (content.includes(marker)) fail(`${file} contains "${marker}"`);
     }
     const size = gz(path);
     if (initial.has(file)) {
@@ -58,4 +62,4 @@ for (const [app, budget] of Object.entries(BUDGETS)) {
 if (failed) {
   process.exit(1);
 }
-console.log('Bundle budgets OK, no "__mock" in production output.');
+console.log(`Bundle budgets OK, no ${FORBIDDEN.join(' / ')} in production output.`);

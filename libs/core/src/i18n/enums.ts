@@ -1,3 +1,5 @@
+import type { Schemas } from '@halsa/api-types';
+
 export const TIPO_EVENTO_LABELS: Record<string, string> = {
   AccidenteTrabajo: 'Accidente de trabajo',
   EnfermedadLaboral: 'Enfermedad laboral',
@@ -88,3 +90,61 @@ export function getEnumLabel(
   if (!value) return '';
   return map[value] ?? value;
 }
+
+// Typed against the generated API enums, so a new backend value fails the build here.
+export type EstadoPlazo = Schemas['PlazoResponse']['estado'];
+export type EstadoDictamen = Schemas['DictamenPclResponse']['estadoNotificacion'];
+export type EstadoSolicitudCopiaHc = Schemas['SolicitudCopiaHcResponse']['estado'];
+export type EstadoRevisionEmergencia = Schemas['RevisionEmergenciaResponse']['estado'];
+export type ConclusionRevisionEmergencia = NonNullable<
+  Schemas['RevisionEmergenciaResponse']['conclusion']
+>;
+// TODO(api-types): case states and audit results are plain strings in the OpenAPI spec;
+// values from plan §4.3 / §8.3.
+export type EstadoCaso =
+  | 'Radicado'
+  | 'Validado'
+  | 'EnAtencion'
+  | 'EnCalificacionOrigen'
+  | 'EnCalificacionPcl'
+  | 'Cerrado'
+  | 'Rechazado';
+export type ResultadoAuditoria = 'Exito' | 'Denegado' | 'NoEncontrado' | 'Error';
+
+export const ESTADO_PLAZO_LABELS: Record<EstadoPlazo, string> = {
+  ABIERTO: 'Abierto',
+  CUMPLIDO: 'Cumplido',
+  VENCIDO: 'Vencido',
+  SUSPENDIDO: 'Suspendido',
+};
+
+export const ESTADO_DICTAMEN_LABELS: Record<EstadoDictamen, string> = {
+  PENDIENTE: 'Pendiente de notificar',
+  NOTIFICADO: 'Notificado',
+  EN_CONTROVERSIA: 'En controversia',
+  EN_FIRME: 'En firme',
+};
+
+export const ESTADO_SOLICITUD_COPIA_HC_LABELS: Record<EstadoSolicitudCopiaHc, string> = {
+  RECIBIDA: 'Recibida',
+  EN_TRAMITE: 'En trámite',
+  ENTREGADA: 'Entregada',
+  RECHAZADA: 'Rechazada',
+};
+
+export const ESTADO_REVISION_EMERGENCIA_LABELS: Record<EstadoRevisionEmergencia, string> = {
+  PENDIENTE: 'Pendiente',
+  CERRADA: 'Cerrada',
+};
+
+export const CONCLUSION_REVISION_EMERGENCIA_LABELS: Record<ConclusionRevisionEmergencia, string> = {
+  JUSTIFICADO: 'Justificado',
+  INJUSTIFICADO: 'Injustificado',
+};
+
+export const RESULTADO_AUDITORIA_LABELS: Record<ResultadoAuditoria, string> = {
+  Exito: 'Éxito',
+  Denegado: 'Denegado',
+  NoEncontrado: 'No encontrado',
+  Error: 'Error',
+};

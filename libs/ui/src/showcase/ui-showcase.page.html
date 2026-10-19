@@ -1,0 +1,625 @@
+<hlm-toaster position="top-center" richColors />
+
+<div class="bg-background min-h-dvh">
+  <header
+    class="border-border bg-background/85 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-20 border-b backdrop-blur"
+  >
+    <div
+      class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-8"
+    >
+      <div>
+        <p class="text-primary text-xs font-medium tracking-wide uppercase">
+          Halsa · solo desarrollo
+        </p>
+        <h1 class="text-lg font-semibold tracking-tight">Sistema de diseño</h1>
+      </div>
+      <halsa-selector-tema />
+    </div>
+    <nav aria-label="Secciones" class="mx-auto max-w-6xl overflow-x-auto px-4 pb-2 md:px-8">
+      <ul class="flex gap-1 text-sm whitespace-nowrap">
+        @for (seccion of secciones; track seccion.id) {
+          <li>
+            <a
+              class="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex h-8 items-center rounded-md px-2.5 font-medium pointer-coarse:h-11"
+              [href]="'#' + seccion.id"
+              >{{ seccion.titulo }}</a
+            >
+          </li>
+        }
+      </ul>
+    </nav>
+  </header>
+
+  <div class="mx-auto max-w-6xl space-y-16 px-4 py-8 md:px-8 md:py-12">
+    <!-- Fundamentos -->
+    <section id="fundamentos" aria-labelledby="t-fundamentos" class="scroll-mt-32 space-y-6">
+      <h2 id="t-fundamentos" class="text-2xl font-semibold tracking-tight">Fundamentos</h2>
+
+      <div class="space-y-3">
+        <h3 class="text-muted-foreground text-sm font-semibold">Color (OKLCH, AA verificado)</h3>
+        <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          @for (color of colores; track color.token) {
+            <li class="ring-border overflow-hidden rounded-xl ring-1">
+              <div class="flex h-16 items-end p-2.5" [class]="color.fondo + ' ' + color.texto">
+                <span class="text-lg font-semibold">Aa</span>
+              </div>
+              <p class="bg-card px-2.5 py-2 font-mono text-xs">{{ color.token }}</p>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div hlmCard>
+          <div hlmCardHeader>
+            <h3 hlmCardTitle>Tipografía</h3>
+            <p hlmCardDescription>Plus Jakarta Sans · JetBrains Mono para códigos</p>
+          </div>
+          <div hlmCardContent class="space-y-2">
+            <p class="text-3xl font-semibold tracking-tight">Casos ATEL</p>
+            <p class="text-xl font-semibold">Calificación de pérdida de capacidad</p>
+            <p class="text-base">
+              Texto base de 16 px: la información clínica se muestra solo a quien está asignado.
+            </p>
+            <p class="text-muted-foreground text-sm">Texto secundario · ñ á é í ó ú ü ¿ ¡</p>
+            <p class="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+              <span>Tabulares: <span class="tabular-nums">1.234.567 · 23,45 %</span></span>
+              <span class="font-mono">2026-ARLA-000123</span>
+            </p>
+          </div>
+        </div>
+        <div hlmCard>
+          <div hlmCardHeader>
+            <h3 hlmCardTitle>Radios y elevación</h3>
+            <p hlmCardDescription>Tarjetas 0,75 rem · controles 0,5 rem · borde de 1 px</p>
+          </div>
+          <div hlmCardContent class="flex flex-wrap gap-4">
+            <div class="bg-muted ring-border size-20 rounded-md ring-1"></div>
+            <div class="bg-card ring-foreground/10 size-20 rounded-xl shadow-xs ring-1"></div>
+            <div class="bg-card ring-foreground/10 size-20 rounded-xl shadow-md ring-1"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controles -->
+    <section id="controles" aria-labelledby="t-controles" class="scroll-mt-32 space-y-6">
+      <h2 id="t-controles" class="text-2xl font-semibold tracking-tight">Controles</h2>
+
+      <div hlmCard>
+        <div hlmCardHeader><h3 hlmCardTitle>Botones</h3></div>
+        <div hlmCardContent class="space-y-4">
+          <div class="flex flex-wrap gap-2">
+            <button hlmBtn>Principal</button>
+            <button hlmBtn variant="secondary">Secundario</button>
+            <button hlmBtn variant="outline">Contorno</button>
+            <button hlmBtn variant="ghost">Fantasma</button>
+            <button hlmBtn variant="destructive">Destructivo</button>
+            <button hlmBtn variant="link">Enlace</button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button hlmBtn size="sm">Pequeño</button>
+            <button hlmBtn>Normal</button>
+            <button hlmBtn size="lg">Grande</button>
+            <button hlmBtn size="icon" aria-label="Agregar"><ng-icon name="lucidePlus" /></button>
+            <button hlmBtn disabled>Deshabilitado</button>
+            <button hlmBtn disabled>
+              <hlm-spinner class="size-4" aria-hidden="true" /> Guardando…
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div hlmCard>
+        <div hlmCardHeader>
+          <h3 hlmCardTitle>Formularios</h3>
+          <p hlmCardDescription>Etiqueta, ayuda y error asociados con aria-describedby</p>
+        </div>
+        <div hlmCardContent class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <hlm-field>
+            <label hlmFieldLabel for="demo-nombre">Nombre del empleador</label>
+            <input hlmInput id="demo-nombre" [formControl]="nombre" autocomplete="organization" />
+            <p hlmFieldDescription>Como aparece en el RUT.</p>
+            <hlm-field-error validator="required">El nombre es obligatorio.</hlm-field-error>
+          </hlm-field>
+
+          <hlm-field>
+            <label hlmFieldLabel for="demo-reps">Código REPS de la IPS</label>
+            <input hlmInput id="demo-reps" inputmode="numeric" [formControl]="reps" />
+            <p hlmFieldDescription>Exactamente 12 dígitos.</p>
+            <hlm-field-error validator="pattern"
+              >El código REPS debe tener 12 dígitos.</hlm-field-error
+            >
+          </hlm-field>
+
+          <hlm-field>
+            <label hlmFieldLabel for="demo-regla">Regla del plazo</label>
+            <hlm-select [value]="regla()" (valueChange)="regla.set($any($event))">
+              <hlm-select-trigger buttonId="demo-regla" class="w-full">
+                <hlm-select-value placeholder="Selecciona una regla" />
+              </hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal>
+                @for (regla of reglas; track regla.valor) {
+                  <hlm-select-item [value]="regla.valor">{{ regla.etiqueta }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
+          </hlm-field>
+
+          <hlm-field>
+            <label hlmFieldLabel for="demo-nota">Nota</label>
+            <textarea hlmTextarea id="demo-nota" rows="3" [formControl]="nota"></textarea>
+            <p hlmFieldDescription>Entre 10 y 1.000 caracteres.</p>
+          </hlm-field>
+
+          <fieldset class="space-y-3">
+            <legend class="mb-2 text-sm font-medium">Medio de entrega</legend>
+            <hlm-radio-group
+              [value]="medio()"
+              (valueChange)="medio.set($any($event))"
+              class="gap-3"
+            >
+              @for (
+                opcion of [
+                  { valor: 'CORREO_CERTIFICADO', etiqueta: 'Correo certificado' },
+                  { valor: 'ELECTRONICO', etiqueta: 'Correo electrónico' },
+                  { valor: 'PRESENCIAL', etiqueta: 'Presencial (recoger en oficina)' },
+                ];
+                track opcion.valor
+              ) {
+                <div class="flex items-center gap-3">
+                  <hlm-radio [value]="opcion.valor" [inputId]="'demo-medio-' + opcion.valor">
+                    <hlm-radio-indicator indicator />
+                  </hlm-radio>
+                  <label hlmLabel [for]="'demo-medio-' + opcion.valor">{{ opcion.etiqueta }}</label>
+                </div>
+              }
+            </hlm-radio-group>
+          </fieldset>
+
+          <div class="space-y-4">
+            <div class="flex items-center gap-3">
+              <hlm-checkbox inputId="demo-acepta" [formControl]="acepta" />
+              <label hlmLabel for="demo-acepta">Confirmo que la información es correcta</label>
+            </div>
+            <div class="flex items-center gap-3">
+              <hlm-switch inputId="demo-notificaciones" [formControl]="notificaciones" />
+              <label hlmLabel for="demo-notificaciones">Avisarme cuando venza un plazo</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navegación -->
+    <section id="navegacion" aria-labelledby="t-navegacion" class="scroll-mt-32 space-y-6">
+      <h2 id="t-navegacion" class="text-2xl font-semibold tracking-tight">Navegación</h2>
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div hlmCard>
+          <div hlmCardHeader><h3 hlmCardTitle>Pestañas</h3></div>
+          <div hlmCardContent>
+            <div hlmTabs [tab]="pestana()" (tabActivated)="pestana.set($event)">
+              <div hlmTabsList aria-label="Secciones del caso">
+                <button hlmTabsTrigger="resumen">Resumen</button>
+                <button hlmTabsTrigger="equipo">Equipo</button>
+                <button hlmTabsTrigger="plazos">Plazos</button>
+              </div>
+              <div hlmTabsContent="resumen" class="text-muted-foreground pt-3 text-sm">
+                Evento, partes y calificación del caso.
+              </div>
+              <div hlmTabsContent="equipo" class="text-muted-foreground pt-3 text-sm">
+                Personas asignadas y remisiones vigentes.
+              </div>
+              <div hlmTabsContent="plazos" class="text-muted-foreground pt-3 text-sm">
+                Línea de tiempo de vencimientos.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div hlmCard>
+          <div hlmCardHeader><h3 hlmCardTitle>Menú y paginación</h3></div>
+          <div hlmCardContent class="space-y-6">
+            <button hlmBtn variant="outline" [hlmDropdownMenuTrigger]="menu">
+              <ng-icon name="lucideUser" />
+              Mi cuenta
+              <ng-icon name="lucideChevronDown" />
+            </button>
+            <ng-template #menu>
+              <hlm-dropdown-menu class="w-56">
+                <hlm-dropdown-menu-label>analista.arla</hlm-dropdown-menu-label>
+                <hlm-dropdown-menu-separator />
+                <button hlmDropdownMenuItem><ng-icon name="lucideSettings" /> Preferencias</button>
+                <button hlmDropdownMenuItem><ng-icon name="lucideBell" /> Notificaciones</button>
+                <hlm-dropdown-menu-separator />
+                <button hlmDropdownMenuItem variant="destructive">
+                  <ng-icon name="lucideLogOut" /> Cerrar sesión
+                </button>
+              </hlm-dropdown-menu>
+            </ng-template>
+
+            <nav hlmPagination>
+              <ul hlmPaginationContent>
+                <li hlmPaginationItem><hlm-pagination-previous link="." /></li>
+                <li hlmPaginationItem><a hlmPaginationLink link=".">1</a></li>
+                <li hlmPaginationItem><a hlmPaginationLink link="." isActive>2</a></li>
+                <li hlmPaginationItem><a hlmPaginationLink link=".">3</a></li>
+                <li hlmPaginationItem><hlm-pagination-ellipsis /></li>
+                <li hlmPaginationItem><hlm-pagination-next link="." /></li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Superposiciones -->
+    <section
+      id="superposiciones"
+      aria-labelledby="t-superposiciones"
+      class="scroll-mt-32 space-y-6"
+    >
+      <h2 id="t-superposiciones" class="text-2xl font-semibold tracking-tight">Superposiciones</h2>
+      <div hlmCard>
+        <div hlmCardContent class="flex flex-wrap gap-2">
+          <hlm-dialog>
+            <button hlmBtn variant="outline" hlmDialogTrigger>Diálogo</button>
+            <hlm-dialog-content *hlmDialogPortal="let ctx">
+              <hlm-dialog-header>
+                <h3 hlmDialogTitle>Remitir a IPS</h3>
+                <p hlmDialogDescription>El caso quedará visible para la IPS seleccionada.</p>
+              </hlm-dialog-header>
+              <hlm-field>
+                <label hlmFieldLabel for="demo-dialogo-reps">Código REPS</label>
+                <input hlmInput id="demo-dialogo-reps" inputmode="numeric" />
+              </hlm-field>
+              <hlm-dialog-footer>
+                <button hlmBtn variant="outline" hlmDialogClose>Cancelar</button>
+                <button hlmBtn hlmDialogClose>Remitir</button>
+              </hlm-dialog-footer>
+            </hlm-dialog-content>
+          </hlm-dialog>
+
+          <hlm-alert-dialog>
+            <button hlmBtn variant="outline" hlmAlertDialogTrigger>Confirmación</button>
+            <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx">
+              <hlm-alert-dialog-header>
+                <h3 hlmAlertDialogTitle>¿Revocar la remisión?</h3>
+                <p hlmAlertDialogDescription>
+                  La IPS dejará de ver el caso. Puedes remitirlo de nuevo más adelante.
+                </p>
+              </hlm-alert-dialog-header>
+              <hlm-alert-dialog-footer>
+                <button hlmAlertDialogCancel>Cancelar</button>
+                <button hlmAlertDialogAction variant="destructive">Revocar</button>
+              </hlm-alert-dialog-footer>
+            </hlm-alert-dialog-content>
+          </hlm-alert-dialog>
+
+          <hlm-sheet [side]="escritorio() ? 'right' : 'bottom'">
+            <button hlmBtn variant="outline" hlmSheetTrigger>Hoja (inferior en móvil)</button>
+            <hlm-sheet-content *hlmSheetPortal="let ctx">
+              <hlm-sheet-header>
+                <h3 hlmSheetTitle>Marcar como cumplido</h3>
+                <p hlmSheetDescription>Investigación del accidente · 2026-ARLA-000123</p>
+              </hlm-sheet-header>
+              <div class="px-4">
+                <hlm-field>
+                  <label hlmFieldLabel for="demo-sheet-nota">Nota</label>
+                  <textarea hlmTextarea id="demo-sheet-nota" rows="4"></textarea>
+                </hlm-field>
+              </div>
+              <hlm-sheet-footer>
+                <button hlmBtn hlmSheetClose>Guardar</button>
+              </hlm-sheet-footer>
+            </hlm-sheet-content>
+          </hlm-sheet>
+
+          <hlm-popover>
+            <button hlmBtn variant="outline" hlmPopoverTrigger>Popover</button>
+            <hlm-popover-content *hlmPopoverPortal="let ctx" class="w-72">
+              <hlm-popover-header>
+                <p hlmPopoverTitle>Base legal</p>
+                <p hlmPopoverDescription>Res. 1401/2007; Decreto 1072/2015, art. 2.2.4.6.32</p>
+              </hlm-popover-header>
+            </hlm-popover-content>
+          </hlm-popover>
+
+          <button hlmBtn variant="outline" hlmTooltip="Copia el radicado al portapapeles">
+            Tooltip
+          </button>
+          <button hlmBtn variant="outline" (click)="toastExito()">Toast de éxito</button>
+          <button hlmBtn variant="outline" (click)="toastError()">Toast de error</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Datos -->
+    <section id="datos" aria-labelledby="t-datos" class="scroll-mt-32 space-y-6">
+      <h2 id="t-datos" class="text-2xl font-semibold tracking-tight">Datos</h2>
+
+      <div hlmCard>
+        <div hlmCardHeader><h3 hlmCardTitle>Tabla</h3></div>
+        <div hlmCardContent>
+          <div hlmTableContainer>
+            <table hlmTable>
+              <caption hlmCaption>
+                Casos de ejemplo (datos ficticios)
+              </caption>
+              <thead hlmTHead>
+                <tr hlmTr>
+                  <th hlmTh>Radicado</th>
+                  <th hlmTh>Tipo</th>
+                  <th hlmTh>Estado</th>
+                  <th hlmTh>Fecha del evento</th>
+                  <th hlmTh>Trabajador</th>
+                </tr>
+              </thead>
+              <tbody hlmTBody>
+                @for (caso of casos; track caso.radicado) {
+                  <tr hlmTr>
+                    <td hlmTd><halsa-radicado-chip [radicado]="caso.radicado" /></td>
+                    <td hlmTd>{{ caso.tipo }}</td>
+                    <td hlmTd><halsa-estado-badge tipo="caso" [valor]="caso.estado" /></td>
+                    <td hlmTd><halsa-fecha-bogota [valor]="caso.fecha" /></td>
+                    <td hlmTd>
+                      <halsa-documento-enmascarado tipo="CC" [numero]="caso.documento" />
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div hlmCard>
+          <div hlmCardHeader><h3 hlmCardTitle>Alertas</h3></div>
+          <div hlmCardContent class="space-y-3">
+            <hlm-alert>
+              <ng-icon name="lucideInfo" />
+              <h4 hlmAlertTitle>Seed de desarrollo</h4>
+              <p hlmAlertDescription>Los casos nuevos quedan en estado Radicado.</p>
+            </hlm-alert>
+            <hlm-alert variant="destructive">
+              <ng-icon name="lucideTriangleAlert" />
+              <h4 hlmAlertTitle>Caso no encontrado</h4>
+              <p hlmAlertDescription>No existe o no está disponible para tu usuario.</p>
+            </hlm-alert>
+          </div>
+        </div>
+
+        <div hlmCard>
+          <div hlmCardHeader><h3 hlmCardTitle>Carga y progreso</h3></div>
+          <div hlmCardContent class="space-y-4">
+            <div class="flex items-center gap-3">
+              <hlm-avatar>
+                <span hlmAvatarFallback>AA</span>
+              </hlm-avatar>
+              <div class="flex-1 space-y-2">
+                <hlm-skeleton class="h-4 w-2/3" />
+                <hlm-skeleton class="h-3 w-1/3" />
+              </div>
+            </div>
+            <hlm-progress [value]="64" aria-label="Carga del soporte">
+              <hlm-progress-indicator />
+            </hlm-progress>
+            <hlm-separator />
+            <div hlmAccordion>
+              <div hlmAccordionItem>
+                <hlm-accordion-trigger>¿Qué es un dictamen en firme?</hlm-accordion-trigger>
+                <hlm-accordion-content>
+                  Cuando vence el término de controversia sin recursos, el dictamen queda en firme.
+                </hlm-accordion-content>
+              </div>
+              <div hlmAccordionItem>
+                <hlm-accordion-trigger>¿Quién ve la historia clínica?</hlm-accordion-trigger>
+                <hlm-accordion-content>
+                  Solo el personal asistencial asignado al caso, con verificación reforzada.
+                </hlm-accordion-content>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Halsa -->
+    <section id="halsa" aria-labelledby="t-halsa" class="scroll-mt-32 space-y-6">
+      <h2 id="t-halsa" class="text-2xl font-semibold tracking-tight">Componentes Halsa</h2>
+
+      <div hlmCard>
+        <div hlmCardHeader>
+          <h3 hlmCardTitle>EstadoBadge</h3>
+          <p hlmCardDescription>Un mapa tipado por enum; nunca solo color</p>
+        </div>
+        <div hlmCardContent class="space-y-4">
+          @for (grupo of estados; track grupo.tipo) {
+            <div class="space-y-2">
+              <p class="text-muted-foreground text-xs font-medium">{{ grupo.titulo }}</p>
+              <div class="flex flex-wrap gap-2">
+                @for (valor of grupo.valores; track valor) {
+                  <halsa-estado-badge [tipo]="grupo.tipo" [valor]="valor" />
+                }
+                @if (grupo.tipo === 'revisionEmergencia') {
+                  <halsa-estado-badge
+                    tipo="revisionEmergencia"
+                    valor="PENDIENTE"
+                    [vencida]="true"
+                  />
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div hlmCard>
+          <div hlmCardHeader><h3 hlmCardTitle>Identificadores y fechas</h3></div>
+          <div hlmCardContent class="space-y-3 text-sm">
+            <p class="flex flex-wrap items-center gap-2">
+              Radicado: <halsa-radicado-chip radicado="2026-ARLA-000123" />
+            </p>
+            <p class="flex flex-wrap items-center gap-2">
+              Documento: <halsa-documento-enmascarado tipo="CC" numero="1020304050" />
+            </p>
+            <p class="flex flex-wrap items-center gap-2">
+              Ya enmascarado por la API:
+              <halsa-documento-enmascarado tipo="CC" numero="******4050" [revelable]="false" />
+            </p>
+            <p>
+              Fecha (DateOnly): <halsa-fecha-bogota valor="2026-01-01" /> ·
+              <halsa-fecha-bogota valor="2026-10-17" formato="larga" />
+            </p>
+            <p>Fecha y hora: <halsa-fecha-bogota valor="2026-10-17T20:45:00Z" /></p>
+            <p>
+              Relativa: <halsa-fecha-relativa [valor]="hace3Horas" /> ·
+              <halsa-fecha-relativa [valor]="en2Dias" />
+            </p>
+          </div>
+        </div>
+
+        <div hlmCard>
+          <div hlmCardHeader>
+            <h3 hlmCardTitle>SemaforoPlazo y ContadorRegresivo</h3>
+          </div>
+          <div hlmCardContent class="space-y-3">
+            <ul class="space-y-2 text-sm">
+              @for (plazo of plazos; track plazo.titulo) {
+                <li class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="text-muted-foreground">{{ plazo.titulo }}</span>
+                  <halsa-semaforo-plazo
+                    [estado]="plazo.estado"
+                    [venceEn]="plazo.venceEn"
+                    [alertaEn]="plazo.alertaEn"
+                    [extemporaneo]="plazo.titulo === 'Cumplido'"
+                  />
+                </li>
+              }
+            </ul>
+            <hlm-separator />
+            <div class="flex flex-wrap gap-2">
+              <halsa-contador-regresivo
+                [hasta]="contadorLargo"
+                etiqueta="Verificación vigente por"
+              />
+              <halsa-contador-regresivo [hasta]="contadorCorto" etiqueta="Vence en" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div hlmCard>
+        <div hlmCardHeader><h3 hlmCardTitle>BarraDiasAcumulados</h3></div>
+        <div hlmCardContent class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <halsa-barra-dias-acumulados [dias]="90" />
+          <halsa-barra-dias-acumulados [dias]="162" />
+          <halsa-barra-dias-acumulados [dias]="214" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <halsa-seccion-clinica titulo="Historia clínica">
+          <p class="text-sm whitespace-pre-wrap">
+            Motivo: dolor lumbar tras levantar carga. Examen físico sin déficit neurológico.
+          </p>
+          <p class="mt-3 flex flex-wrap gap-1.5">
+            <span hlmBadge variant="outline" class="font-mono">CIE-10 S33.5</span>
+            <span hlmBadge variant="outline" class="font-mono">CIE-10 M54.5</span>
+          </p>
+        </halsa-seccion-clinica>
+
+        <div class="space-y-3">
+          <halsa-verificacion-reforzada
+            [satisfecha]="gateSatisfecha()"
+            [verificando]="verificando()"
+            urlConfigurarOtp="http://localhost:8180/realms/halsa/account"
+            (verificar)="simularVerificacion()"
+          >
+            <div *halsaContenidoReforzado hlmCard>
+              <div hlmCardContent class="flex items-center gap-2 text-sm">
+                <ng-icon name="lucideCircleCheck" class="text-success" />
+                Identidad verificada: el contenido clínico se crea solo ahora.
+              </div>
+            </div>
+          </halsa-verificacion-reforzada>
+          @if (gateSatisfecha()) {
+            <button hlmBtn variant="ghost" size="sm" (click)="gateSatisfecha.set(false)">
+              Restablecer verificación
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div class="space-y-3">
+          <halsa-panel-no-asignado
+            [sub]="subDemo"
+            [puedeAccesoEmergencia]="true"
+            (accesoEmergencia)="dialogoEmergencia.set(true)"
+          />
+          @if (motivoRegistrado()) {
+            <p
+              class="bg-warning/12 text-warning ring-warning/30 rounded-lg p-3 text-sm ring-1 ring-inset"
+            >
+              Acceso de emergencia activo — motivo registrado:
+              <span class="font-mono">{{ motivoRegistrado() }}</span>
+            </p>
+          }
+          <halsa-dialogo-acceso-emergencia
+            [(abierto)]="dialogoEmergencia"
+            (confirmar)="motivoRegistrado.set($event)"
+          />
+        </div>
+
+        <div hlmCard>
+          <div hlmCardHeader>
+            <h3 hlmCardTitle>SubidaPdf</h3>
+            <p hlmCardDescription>Tipo, tamaño (≤ 10 MB) y firma %PDF- antes de enviar</p>
+          </div>
+          <div hlmCardContent>
+            <halsa-subida-pdf [(archivo)]="archivo" />
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div hlmCard>
+          <div hlmCardHeader>
+            <h3 hlmCardTitle>CodigoUnaVez</h3>
+            <p hlmCardDescription>Genera un código de un solo uso para el portal del paciente</p>
+          </div>
+          <div hlmCardContent>
+            <halsa-codigo-una-vez codigo="ABC123-K7Q2M9XD4P" [expiraEn]="codigoExpira" />
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div hlmCard class="py-0">
+            <halsa-estado-vacio
+              titulo="Aún no hay dictamen registrado"
+              descripcion="Cuando registres el dictamen PCL aparecerá aquí."
+              icono="lucideFileSearch"
+            >
+              <button hlmBtn><ng-icon name="lucidePlus" /> Registrar dictamen</button>
+            </halsa-estado-vacio>
+          </div>
+          <div hlmCard class="py-0">
+            <halsa-estado-error mensaje="El servidor no respondió a tiempo." traza="4f9c1d2e7a3b" />
+          </div>
+        </div>
+      </div>
+
+      <div hlmCard class="overflow-hidden py-0">
+        <halsa-page-header titulo="Casos" subtitulo="ARL A · 3 casos" volverA="/">
+          <button hlmBtn acciones size="sm"><ng-icon name="lucidePlus" /> Nuevo</button>
+        </halsa-page-header>
+        <p class="text-muted-foreground px-4 py-6 text-sm md:px-6">
+          PageHeader: título, subtítulo, volver y acciones.
+        </p>
+      </div>
+    </section>
+  </div>
+</div>

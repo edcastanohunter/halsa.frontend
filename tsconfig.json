@@ -1,5 +1,3 @@
-/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
-/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
   "compileOnSave": false,
   "compilerOptions": {
@@ -17,8 +15,41 @@
     "baseUrl": ".",
     "paths": {
       "@halsa/ui": ["libs/ui/src/index.ts"],
+      "@halsa/ui/showcase": ["libs/ui/src/showcase/ui-showcase.page.ts"],
       "@halsa/core": ["libs/core/src/index.ts"],
-      "@halsa/api-types": ["libs/api-types/src/index.ts"]
+      "@halsa/api-types": ["libs/api-types/src/index.ts"],
+      "@halsa/ui/helm/button": ["./libs/ui/src/helm/button/src/index.ts"],
+      "@halsa/ui/helm/utils": ["./libs/ui/src/helm/utils/src/index.ts"],
+      "@halsa/ui/helm/badge": ["./libs/ui/src/helm/badge/src/index.ts"],
+      "@halsa/ui/helm/card": ["./libs/ui/src/helm/card/src/index.ts"],
+      "@halsa/ui/helm/input": ["./libs/ui/src/helm/input/src/index.ts"],
+      "@halsa/ui/helm/textarea": ["./libs/ui/src/helm/textarea/src/index.ts"],
+      "@halsa/ui/helm/label": ["./libs/ui/src/helm/label/src/index.ts"],
+      "@halsa/ui/helm/field": ["./libs/ui/src/helm/field/src/index.ts"],
+      "@halsa/ui/helm/separator": ["./libs/ui/src/helm/separator/src/index.ts"],
+      "@halsa/ui/helm/select": ["./libs/ui/src/helm/select/src/index.ts"],
+      "@halsa/ui/helm/radio-group": ["./libs/ui/src/helm/radio-group/src/index.ts"],
+      "@halsa/ui/helm/checkbox": ["./libs/ui/src/helm/checkbox/src/index.ts"],
+      "@halsa/ui/helm/switch": ["./libs/ui/src/helm/switch/src/index.ts"],
+      "@halsa/ui/helm/tabs": ["./libs/ui/src/helm/tabs/src/index.ts"],
+      "@halsa/ui/helm/dialog": ["./libs/ui/src/helm/dialog/src/index.ts"],
+      "@halsa/ui/helm/alert-dialog": ["./libs/ui/src/helm/alert-dialog/src/index.ts"],
+      "@halsa/ui/helm/sheet": ["./libs/ui/src/helm/sheet/src/index.ts"],
+      "@halsa/ui/helm/dropdown-menu": ["./libs/ui/src/helm/dropdown-menu/src/index.ts"],
+      "@halsa/ui/helm/popover": ["./libs/ui/src/helm/popover/src/index.ts"],
+      "@halsa/ui/helm/tooltip": ["./libs/ui/src/helm/tooltip/src/index.ts"],
+      "@halsa/ui/helm/table": ["./libs/ui/src/helm/table/src/index.ts"],
+      "@halsa/ui/helm/pagination": ["./libs/ui/src/helm/pagination/src/index.ts"],
+      "@halsa/ui/helm/skeleton": ["./libs/ui/src/helm/skeleton/src/index.ts"],
+      "@halsa/ui/helm/progress": ["./libs/ui/src/helm/progress/src/index.ts"],
+      "@halsa/ui/helm/avatar": ["./libs/ui/src/helm/avatar/src/index.ts"],
+      "@halsa/ui/helm/sonner": ["./libs/ui/src/helm/sonner/src/index.ts"],
+      "@halsa/ui/helm/alert": ["./libs/ui/src/helm/alert/src/index.ts"],
+      "@halsa/ui/helm/accordion": ["./libs/ui/src/helm/accordion/src/index.ts"],
+      "@halsa/ui/helm/scroll-area": ["./libs/ui/src/helm/scroll-area/src/index.ts"],
+      "@halsa/ui/helm/input-group": ["./libs/ui/src/helm/input-group/src/index.ts"],
+      "@halsa/ui/helm/spinner": ["./libs/ui/src/helm/spinner/src/index.ts"],
+      "@halsa/ui/helm/empty": ["./libs/ui/src/helm/empty/src/index.ts"]
     },
     "noUncheckedIndexedAccess": true
   },

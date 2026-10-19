@@ -94,13 +94,16 @@ export function formatFechaHoraBogota(isoString: string | null | undefined): str
 /**
  * Calculates a relative time description in Spanish (e.g. "hace 2 días", "en 3 horas").
  */
-export function formatFechaRelativa(isoString: string | null | undefined): string {
+export function formatFechaRelativa(
+  isoString: string | null | undefined,
+  ahora: number = Date.now(),
+): string {
   if (!isoString) return '';
   try {
     const d = new Date(isoString);
     if (isNaN(d.getTime())) return isoString;
 
-    const diffMs = d.getTime() - Date.now();
+    const diffMs = d.getTime() - ahora;
     const diffSec = Math.round(diffMs / 1000);
     const diffMin = Math.round(diffSec / 60);
     const diffHours = Math.round(diffMin / 60);

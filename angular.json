@@ -23,6 +23,11 @@
                 "glob": "**/*",
                 "input": "projects/backoffice/public",
                 "ignore": ["config.mock.json"]
+              },
+              {
+                "glob": "theme-init.js",
+                "input": "libs/ui/src/assets",
+                "output": "/"
               }
             ],
             "styles": ["projects/backoffice/src/styles.css"],
@@ -49,7 +54,13 @@
                 "scripts": true,
                 "styles": true,
                 "hidden": true
-              }
+              },
+              "fileReplacements": [
+                {
+                  "replace": "projects/backoffice/src/app/dev.routes.ts",
+                  "with": "projects/backoffice/src/app/dev.routes.prod.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
@@ -64,6 +75,11 @@
                 {
                   "glob": "**/*",
                   "input": "projects/backoffice/public"
+                },
+                {
+                  "glob": "theme-init.js",
+                  "input": "libs/ui/src/assets",
+                  "output": "/"
                 }
               ],
               "define": {
@@ -93,7 +109,10 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "include": ["**/*.spec.ts", "../../../libs/**/*.spec.ts"]
+          }
         }
       }
     },
@@ -114,6 +133,11 @@
                 "glob": "**/*",
                 "input": "projects/portal/public",
                 "ignore": ["config.mock.json"]
+              },
+              {
+                "glob": "theme-init.js",
+                "input": "libs/ui/src/assets",
+                "output": "/"
               }
             ],
             "styles": ["projects/portal/src/styles.css"],
@@ -140,7 +164,13 @@
                 "scripts": true,
                 "styles": true,
                 "hidden": true
-              }
+              },
+              "fileReplacements": [
+                {
+                  "replace": "projects/portal/src/app/dev.routes.ts",
+                  "with": "projects/portal/src/app/dev.routes.prod.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
@@ -155,6 +185,11 @@
                 {
                   "glob": "**/*",
                   "input": "projects/portal/public"
+                },
+                {
+                  "glob": "theme-init.js",
+                  "input": "libs/ui/src/assets",
+                  "output": "/"
                 }
               ],
               "define": {

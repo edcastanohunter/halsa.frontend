@@ -1,6 +1,6 @@
 # Halsa Frontend — Plan de Hitos y Seguimiento de Implementación
 
-> **Estado general:** M0 completado (2026-10-18); siguiente: M1  
+> **Estado general:** M1 completado (2026-10-18); siguiente: M1.5  
 > **Fecha de inicio:** 2026-10-17  
 > **Tipografía UI:** Plus Jakarta Sans (`@fontsource/plus-jakarta-sans`)  
 > **Monospace:** JetBrains Mono (`@fontsource/jetbrains-mono`)  
@@ -11,7 +11,7 @@
 ## 1. Lista de Verificación de Hitos (Checklist)
 
 - [x] **M0: Workspace y Tooling**
-- [ ] **M1: Design System y Primitivas UI**
+- [x] **M1: Design System y Primitivas UI**
 - [ ] **M1.5: Keycloak Local (Podman) y Login Theme**
 - [ ] **M2: Core Plumbing (HTTP, Errores, Fechas, i18n, Mock Adapter)**
 - [ ] **M3: Backoffice Shell e Identidad (OIDC, Permisos, Layout Responsivo)**
@@ -50,13 +50,15 @@
 
 ---
 
-### [ ] M1: Design System y Primitivas UI
+### [x] M1: Design System y Primitivas UI
 - **Alcance:**
   - Definición de tokens en `libs/ui/src/theme.css` usando `@theme` y variables OKLCH (modo claro y oscuro).
   - Integración de fuentes self-hosted: Plus Jakarta Sans y JetBrains Mono vía `@fontsource`.
   - Catálogo de componentes base Spartan helm: botones, tarjetas, inputs, textareas, selects, tabs, modales, sheets (bottom sheet en móvil), toasts (Sonner), alertas, tablas, etc.
   - Componentes de dominio Halsa: `EstadoBadge`, `RadicadoChip`, `DocumentoEnmascarado`, `FechaBogota`, `FechaRelativa`, `SemaforoPlazo`, `ContadorRegresivo`, `BarraDiasAcumulados`, `SeccionClinica`, `VerificacionReforzada`, `PanelNoAsignado`, `DialogoAccesoEmergencia`, `SubidaPdf`, `CodigoUnaVez`.
   - Ruta de demostración y validación `/_ui` (excluida de producción).
+  - Selector de tema claro/oscuro/sistema (`SelectorTema` + `TemaService`), solicitado por el usuario.
+  - Diferidos a su hito (se construyen con datos reales): calendar/date-picker (M5, con adaptador DateOnly), `BottomNav`/`SidebarNav`/`MasSheet` (M3), `ListaResponsiva`/`FiltrosColapsables` (M4), `EditorDiagnosticosCie10` (M6), `CampoMoneda`/`CampoPorcentaje` (M8).
 - **Criterios de Aceptación:**
   - Verificación de contraste WCAG 2.2 AA (ratio ≥ 4.5:1 para texto normal) en temas claro y oscuro.
   - Showcase visual navegable en 375 px y 1440 px.

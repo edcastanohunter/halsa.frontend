@@ -1,1 +1,6 @@
 @import '../../../libs/ui/src/theme.css';
+
+/* Plan §8.1: the patient portal is warm and large, with a 17 px base (everything scales in rem). */
+html {
+  font-size: 106.25%;
+}

@@ -6,6 +6,7 @@ import {
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { AppConfig, provideAppConfig } from '@halsa/core';
+import { provideSpartanHlm } from '@halsa/ui/helm/utils';
 import { routes } from './app.routes';
 
 export function appConfig(config: AppConfig): ApplicationConfig {
@@ -15,6 +16,7 @@ export function appConfig(config: AppConfig): ApplicationConfig {
       provideBrowserGlobalErrorListeners(),
       provideHttpClient(),
       provideAppConfig(config),
+      provideSpartanHlm(),
       provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
     ],
   };

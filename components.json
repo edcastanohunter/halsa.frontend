@@ -1,0 +1,5 @@
+{
+  "componentsPath": "libs/ui/src/helm",
+  "style": "vega",
+  "importAlias": "@halsa/ui/helm"
+}
