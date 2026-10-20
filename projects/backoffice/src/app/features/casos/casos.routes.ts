@@ -29,6 +29,7 @@ function pestana(ruta: string, permiso: Permiso, titulo: string) {
 export interface PestanasExternas {
   incapacidades?: LoadChildrenCallback;
   historiaClinica?: LoadChildrenCallback;
+  dictamenPcl?: LoadChildrenCallback;
 }
 
 /** A tab owned by another feature, or its "disponible pronto" page when not wired. */
@@ -64,7 +65,7 @@ export const crearRutasCasos = (externas: PestanasExternas = {}): Routes => [
       },
       pestanaExterna('incapacidades', externas.incapacidades),
       pestanaExterna('historia-clinica', externas.historiaClinica),
-      pestanaPendiente('dictamen-pcl'),
+      pestanaExterna('dictamen-pcl', externas.dictamenPcl),
       {
         ...pestana('portal-paciente', 'pacientes:activar', 'Portal paciente'),
         loadComponent: () =>

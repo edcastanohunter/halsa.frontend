@@ -58,6 +58,10 @@ export const routes: Routes = [
                 ),
               historiaClinica: () =>
                 import('./features/clinico/clinico.routes').then((c) => c.CLINICO_ROUTES),
+              dictamenPcl: () =>
+                import('./features/dictamen-pcl/dictamen-pcl.routes').then(
+                  (d) => d.DICTAMEN_PCL_ROUTES,
+                ),
             }),
           ),
       },

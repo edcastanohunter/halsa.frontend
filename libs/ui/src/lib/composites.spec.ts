@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { CampoPorcentaje } from './campo-porcentaje/campo-porcentaje';
 import { formatDuracion } from './contador-regresivo/contador-regresivo';
 import {
   DocumentoEnmascarado,
@@ -18,6 +20,59 @@ describe('formatDuracion', () => {
     expect(formatDuracion(61_500)).toBe('1:02');
     expect(formatDuracion(3_725_000)).toBe('1:02:05');
     expect(formatDuracion(-5000)).toBe('0:00');
+  });
+});
+
+describe('CampoPorcentaje', () => {
+  @Component({
+    imports: [ReactiveFormsModule, CampoPorcentaje],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `<input halsaCampoPorcentaje [formControl]="control" />`,
+  })
+  class Anfitrion {
+    readonly control = new FormControl<number | null>(23.45);
+  }
+
+  async function montar() {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    const escribir = (texto: string) => {
+      input.value = texto;
+      input.dispatchEvent(new Event('input'));
+    };
+    return { control: fixture.componentInstance.control, input, escribir };
+  }
+
+  it('shows the es-CO comma and hands the form a number', async () => {
+    const { control, input, escribir } = await montar();
+    expect(input.value).toBe('23,45');
+    expect(input.inputMode).toBe('decimal');
+    escribir('8,5');
+    expect(control.value).toBe(8.5);
+    escribir('');
+    expect(control.value).toBeNull();
+  });
+
+  it('flags text that is not a number and more than two decimals', async () => {
+    const { control, escribir } = await montar();
+    escribir('veinte');
+    expect(control.value).toBeNaN();
+    expect(control.errors).toEqual({ numero: true });
+    escribir('23,456');
+    expect(control.errors).toEqual({ decimales: { maximo: 2 } });
+    escribir('23,45');
+    expect(control.errors).toBeNull();
+  });
+
+  it('rewrites a readable number on blur, keeps a typo as typed', async () => {
+    const { input, escribir } = await montar();
+    escribir('23.5');
+    input.dispatchEvent(new Event('blur'));
+    expect(input.value).toBe('23,5');
+    escribir('23,x');
+    input.dispatchEvent(new Event('blur'));
+    expect(input.value).toBe('23,x');
   });
 });
 

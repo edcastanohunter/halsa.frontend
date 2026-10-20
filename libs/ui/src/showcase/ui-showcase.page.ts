@@ -3,6 +3,7 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { REGLA_PLAZO_LABELS } from '@halsa/core';
 import {
   BarraDiasAcumulados,
+  CampoPorcentaje,
   CodigoUnaVez,
   ContadorRegresivo,
   ContenidoReforzado,
@@ -35,6 +36,7 @@ import { HlmDialogImports } from '@halsa/ui/helm/dialog';
 import { HlmDropdownMenuImports } from '@halsa/ui/helm/dropdown-menu';
 import { HlmFieldImports } from '@halsa/ui/helm/field';
 import { HlmInputImports } from '@halsa/ui/helm/input';
+import { HlmInputGroupImports } from '@halsa/ui/helm/input-group';
 import { HlmLabelImports } from '@halsa/ui/helm/label';
 import { HlmPaginationImports } from '@halsa/ui/helm/pagination';
 import { HlmPopoverImports } from '@halsa/ui/helm/popover';
@@ -79,6 +81,8 @@ const enHoras = (horas: number) => new Date(Date.now() + horas * HORA).toISOStri
   imports: [
     ReactiveFormsModule,
     NgIcon,
+    CampoPorcentaje,
+    HlmInputGroupImports,
     HlmAccordionImports,
     HlmAlertImports,
     HlmAlertDialogImports,
@@ -262,6 +266,7 @@ export class UiShowcasePage {
     nonNullable: true,
     validators: [Validators.required],
   });
+  protected readonly porcentaje = new FormControl<number | null>(23.45);
   protected readonly reps = new FormControl('12345', {
     nonNullable: true,
     validators: [Validators.pattern(/^\d{12}$/)],

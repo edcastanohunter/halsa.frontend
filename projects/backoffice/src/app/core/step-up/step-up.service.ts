@@ -66,6 +66,21 @@ export class StepUpService {
     );
   }
 
+  /**
+   * Epoch ms when a time-windowed gate closes (`auth_time + maxAgeSeg − margin`), or `null` when
+   * the token doesn't meet the requirement now.
+   */
+  cierraEn(requisito: RequisitoVerificacion): number | null {
+    const authTime = this.sesion.sesion()?.authTime;
+    if (requisito.maxAgeSeg === undefined || !authTime || !this.cumple(requisito)) return null;
+    return (authTime + requisito.maxAgeSeg - MARGEN_VENTANA_SEG) * 1000;
+  }
+
+  /** Re-reads the clock now, so a gate closes on the second its countdown reaches zero. */
+  actualizarReloj(): void {
+    this.ahoraSeg.set(Math.floor(Date.now() / 1000));
+  }
+
   /** Proactive gate: "Verificar identidad" opens the popup right away (user activation). */
   verificar(requisito: RequisitoVerificacion): Promise<boolean> {
     return this.compartido(() => this.conPopup(requisito));

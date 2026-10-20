@@ -1,0 +1,300 @@
+<div class="max-w-3xl space-y-5">
+  <a hlmBtn variant="ghost" size="sm" class="-ms-2" routerLink="..">
+    <ng-icon name="lucideArrowLeft" aria-hidden="true" />
+    Dictamen PCL
+  </a>
+  <h3 class="text-lg font-semibold">
+    {{ corrige() ? 'Corregir dictamen' : 'Registrar dictamen' }}
+  </h3>
+
+  @if (store.emergenciaActiva()) {
+    <p class="bg-muted rounded-lg p-3 text-sm" role="alert">
+      Durante un acceso de emergencia no se puede registrar ni corregir el dictamen.
+    </p>
+  } @else if (!conflicto() && modo() === 'ya-existe') {
+    <div class="bg-muted space-y-3 rounded-lg p-4 text-sm" role="alert">
+      <p>
+        El caso ya tiene un dictamen registrado. Mientras esté pendiente de notificar, puedes
+        corregirlo desde su vista.
+      </p>
+      <a hlmBtn variant="outline" size="sm" routerLink="..">Ver el dictamen vigente</a>
+    </div>
+  } @else if (!conflicto() && modo() === 'no-corregible') {
+    <div class="bg-muted space-y-3 rounded-lg p-4 text-sm" role="alert">
+      <p>
+        Ese dictamen ya no se puede corregir: solo se corrige el vigente mientras esté pendiente de
+        notificar.
+      </p>
+      <a hlmBtn variant="outline" size="sm" routerLink="..">Ver el dictamen vigente</a>
+    </div>
+  } @else {
+    @if (conflicto(); as c) {
+      <div
+        role="alert"
+        data-error
+        tabindex="-1"
+        class="bg-warning/15 ring-warning/40 space-y-3 rounded-lg p-4 text-sm ring-1 ring-inset"
+        data-testid="conflicto"
+      >
+        <p class="flex gap-2">
+          <ng-icon
+            name="lucideTriangleAlert"
+            class="text-warning mt-0.5 shrink-0"
+            aria-hidden="true"
+          />
+          <span>
+            {{ c }} Lo que escribiste sigue aquí para que puedas copiarlo; no se volverá a enviar.
+          </span>
+        </p>
+        <a hlmBtn variant="outline" size="sm" routerLink="..">Ver el dictamen vigente</a>
+      </div>
+    } @else if (modo() === 'corregir') {
+      <p class="bg-info/10 flex gap-2 rounded-lg p-3 text-sm" data-testid="aviso-correccion">
+        <ng-icon name="lucideInfo" class="text-info mt-0.5 shrink-0" aria-hidden="true" />
+        La corrección reemplaza el dictamen pendiente de notificar por uno nuevo vinculado a él.
+      </p>
+    }
+
+    <form class="space-y-7" [formGroup]="form()" (submit)="guardar($event)" novalidate>
+      @if (error('general'); as e) {
+        <p
+          role="alert"
+          data-error
+          tabindex="-1"
+          class="bg-destructive/10 text-destructive ring-destructive/25 rounded-lg p-3 text-sm ring-1 ring-inset"
+          data-testid="error-general"
+        >
+          {{ e }}
+        </p>
+      }
+
+      <!-- Calificación -->
+      <fieldset class="space-y-5">
+        <legend class="mb-3 text-base font-semibold">Calificación</legend>
+
+        <hlm-field class="max-w-56" [forceInvalid]="!!error('porcentajePcl')">
+          <label hlmFieldLabel for="dictamen-porcentaje">Porcentaje de PCL</label>
+          <div hlmInputGroup>
+            <input
+              hlmInputGroupInput
+              halsaCampoPorcentaje
+              id="dictamen-porcentaje"
+              class="text-lg font-semibold tabular-nums"
+              placeholder="0,00"
+              formControlName="porcentajePcl"
+            />
+            <span hlmInputGroupAddon align="inline-end" aria-hidden="true">%</span>
+          </div>
+          <p hlmFieldDescription>Entre 0 y 100, con hasta dos decimales.</p>
+          <hlm-field-error validator="required">Escribe el porcentaje.</hlm-field-error>
+          <hlm-field-error validator="numero"
+            >Escribe un número, por ejemplo 23,45.</hlm-field-error
+          >
+          <hlm-field-error validator="decimales">Usa como máximo dos decimales.</hlm-field-error>
+          <hlm-field-error validator="min">No puede ser menor que 0.</hlm-field-error>
+          <hlm-field-error validator="max">No puede ser mayor que 100.</hlm-field-error>
+          @if (error('porcentajePcl'); as e) {
+            <hlm-field-error forceShow data-testid="error-porcentaje">{{ e }}</hlm-field-error>
+          }
+        </hlm-field>
+
+        <fieldset [attr.aria-describedby]="origenInvalido() ? 'error-origen' : null">
+          <legend class="mb-2 text-sm font-medium">Origen</legend>
+          <div class="grid gap-2 sm:grid-cols-3">
+            @for (o of origenes; track o) {
+              <label
+                class="ring-border has-checked:ring-primary has-checked:bg-primary/5 has-focus-visible:ring-ring flex min-h-11 cursor-pointer items-start gap-3 rounded-lg p-3 ring-1 ring-inset has-checked:ring-2"
+              >
+                <input
+                  type="radio"
+                  class="accent-primary mt-0.5 size-4 shrink-0"
+                  formControlName="origen"
+                  [value]="o"
+                />
+                <span class="min-w-0">
+                  <span class="block text-sm font-medium">{{ etiquetaOrigen(o) }}</span>
+                  <span class="text-muted-foreground block text-xs">{{
+                    descripcionOrigen[o]
+                  }}</span>
+                </span>
+              </label>
+            }
+          </div>
+          @if (origenInvalido()) {
+            <p id="error-origen" role="alert" class="text-destructive mt-2 text-sm" data-error>
+              {{ error('origen') ?? 'Elige el origen.' }}
+            </p>
+          }
+        </fieldset>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <hlm-field [forceInvalid]="!!error('fechas')">
+            <label hlmFieldLabel for="dictamen-estructuracion">Fecha de estructuración</label>
+            <input
+              hlmInput
+              id="dictamen-estructuracion"
+              type="date"
+              formControlName="fechaEstructuracion"
+              [max]="valor()?.fechaDictamen || hoy"
+            />
+            <hlm-field-error validator="required"
+              >Indica la fecha de estructuración.</hlm-field-error
+            >
+            <hlm-field-error validator="posterior"
+              >No puede ser posterior a la fecha del dictamen.</hlm-field-error
+            >
+            <hlm-field-error validator="invalida">La fecha no es válida.</hlm-field-error>
+          </hlm-field>
+          <hlm-field [forceInvalid]="!!error('fechas')">
+            <label hlmFieldLabel for="dictamen-fecha">Fecha del dictamen</label>
+            <input
+              hlmInput
+              id="dictamen-fecha"
+              type="date"
+              formControlName="fechaDictamen"
+              [max]="hoy"
+            />
+            <hlm-field-error validator="required">Indica la fecha del dictamen.</hlm-field-error>
+            <hlm-field-error validator="futura">No puede ser una fecha futura.</hlm-field-error>
+            <hlm-field-error validator="invalida">La fecha no es válida.</hlm-field-error>
+          </hlm-field>
+          @if (error('fechas'); as e) {
+            <p
+              role="alert"
+              class="text-destructive text-sm sm:col-span-2"
+              data-testid="error-fechas"
+            >
+              {{ e }}
+            </p>
+          }
+        </div>
+      </fieldset>
+
+      <!-- Componentes -->
+      <fieldset class="space-y-4">
+        <legend class="mb-3 text-base font-semibold">Componentes</legend>
+        <label class="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
+          <input type="checkbox" class="accent-primary size-4" formControlName="conComponentes" />
+          Detallar deficiencias y rol laboral (opcional)
+        </label>
+
+        @if (conComponentes()) {
+          <div class="grid gap-5 sm:grid-cols-2" formGroupName="componentes">
+            <hlm-field>
+              <label hlmFieldLabel for="dictamen-deficiencias">Deficiencias</label>
+              <div hlmInputGroup>
+                <input
+                  hlmInputGroupInput
+                  halsaCampoPorcentaje
+                  id="dictamen-deficiencias"
+                  class="tabular-nums"
+                  placeholder="0,00"
+                  formControlName="deficiencias"
+                />
+                <span hlmInputGroupAddon align="inline-end" aria-hidden="true">%</span>
+              </div>
+              <hlm-field-error validator="required">Escribe el valor.</hlm-field-error>
+              <hlm-field-error validator="numero">Escribe un número.</hlm-field-error>
+              <hlm-field-error validator="decimales"
+                >Usa como máximo dos decimales.</hlm-field-error
+              >
+              <hlm-field-error validator="min">No puede ser negativo.</hlm-field-error>
+              <hlm-field-error validator="max">No puede ser mayor que 100.</hlm-field-error>
+            </hlm-field>
+            <hlm-field>
+              <label hlmFieldLabel for="dictamen-rol">Rol laboral y otras áreas</label>
+              <div hlmInputGroup>
+                <input
+                  hlmInputGroupInput
+                  halsaCampoPorcentaje
+                  id="dictamen-rol"
+                  class="tabular-nums"
+                  placeholder="0,00"
+                  formControlName="rolLaboralYOtrasAreas"
+                />
+                <span hlmInputGroupAddon align="inline-end" aria-hidden="true">%</span>
+              </div>
+              <hlm-field-error validator="required">Escribe el valor.</hlm-field-error>
+              <hlm-field-error validator="numero">Escribe un número.</hlm-field-error>
+              <hlm-field-error validator="decimales"
+                >Usa como máximo dos decimales.</hlm-field-error
+              >
+              <hlm-field-error validator="min">No puede ser negativo.</hlm-field-error>
+              <hlm-field-error validator="max">No puede ser mayor que 100.</hlm-field-error>
+            </hlm-field>
+          </div>
+
+          <div aria-live="polite" class="text-sm" data-testid="suma-componentes">
+            @if (suma(); as s) {
+              @if (descuadre()) {
+                <p class="text-destructive flex gap-2" data-error tabindex="-1">
+                  <ng-icon name="lucideTriangleAlert" class="mt-0.5 shrink-0" aria-hidden="true" />
+                  Deficiencias y rol laboral suman {{ porcentaje(s.suma) }}, pero el total es
+                  {{ porcentaje(s.total) }}. Deben coincidir (±0,01).
+                </p>
+              } @else {
+                <p class="text-success flex gap-2">
+                  <ng-icon name="lucideCircleCheck" class="mt-0.5 shrink-0" aria-hidden="true" />
+                  Suman {{ porcentaje(s.suma) }}, igual al total.
+                </p>
+              }
+            }
+            @if (error('componentes'); as e) {
+              <p class="text-destructive mt-1" role="alert" data-testid="error-componentes">
+                {{ e }}
+              </p>
+            }
+          </div>
+        }
+      </fieldset>
+
+      <!-- Fundamentos -->
+      <hlm-field [forceInvalid]="!!error('fundamentos')">
+        <label hlmFieldLabel for="dictamen-fundamentos" class="text-base font-semibold"
+          >Fundamentos</label
+        >
+        <textarea
+          hlmTextarea
+          id="dictamen-fundamentos"
+          rows="14"
+          class="min-h-48 resize-y leading-relaxed"
+          formControlName="fundamentos"
+          [attr.maxlength]="fundamentosMax"
+        ></textarea>
+        <p hlmFieldDescription class="flex justify-between gap-2">
+          <span>Motivación clínica del dictamen. Entre 50 y 20.000 caracteres.</span>
+          <span class="shrink-0 tabular-nums" data-testid="contador-fundamentos"
+            >{{ numero(largoFundamentos()) }}/{{ numero(fundamentosMax) }}</span
+          >
+        </p>
+        <hlm-field-error validator="required">Escribe los fundamentos.</hlm-field-error>
+        <hlm-field-error validator="minlength"
+          >Escribe al menos {{ fundamentosMin }} caracteres.</hlm-field-error
+        >
+        <hlm-field-error validator="maxlength"
+          >Admite como máximo 20.000 caracteres.</hlm-field-error
+        >
+        @if (error('fundamentos'); as e) {
+          <hlm-field-error forceShow data-testid="error-fundamentos">{{ e }}</hlm-field-error>
+        }
+      </hlm-field>
+
+      <halsa-editor-diagnosticos-cie10
+        idPrefijo="dictamen-dx"
+        [minimo]="1"
+        [diagnosticos]="form().controls.diagnosticos"
+        [error]="errorDiagnosticos()"
+      />
+
+      <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <button hlmBtn variant="outline" type="button" (click)="cancelar()">Cancelar</button>
+        <button hlmBtn type="submit" [disabled]="enviando() || !!conflicto()">
+          @if (enviando()) {
+            <hlm-spinner class="size-4" aria-hidden="true" />
+          }
+          {{ modo() === 'corregir' ? 'Guardar corrección' : 'Registrar dictamen' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

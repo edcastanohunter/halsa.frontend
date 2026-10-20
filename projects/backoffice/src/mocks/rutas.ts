@@ -630,40 +630,32 @@ export function crearRutasBackoffice(
             if (!body) return problema(400, 'General.Validation', 'El cuerpo es obligatorio.');
             const actual = vigente(db.dictamenes, c.detalle.resumen.id);
             if (actual && !body.corrigeA) {
-              return problema(409, 'Dictamen.YaExiste', 'El caso ya tiene un dictamen registrado.');
+              return problema(
+                409,
+                'Dictamen.YaExiste',
+                'El caso ya tiene un dictamen vigente. Para corregirlo, indique su id en corrigeA.',
+              );
             }
             if (
               body.corrigeA &&
               (actual?.id !== body.corrigeA || actual.estadoNotificacion !== 'PENDIENTE')
             ) {
-              return problema(
-                409,
-                'Dictamen.CorrigeANoVigente',
-                'Solo se corrige el dictamen vigente sin notificar.',
-              );
+              return actual?.id === body.corrigeA
+                ? problema(
+                    409,
+                    'Dictamen.YaNotificado',
+                    'El dictamen ya se notificó y no admite correcciones.',
+                  )
+                : problema(
+                    409,
+                    'Dictamen.CorrigeANoVigente',
+                    'Solo se corrige el dictamen vigente sin notificar.',
+                  );
             }
-            if (!(body.porcentajePcl >= 0 && body.porcentajePcl <= 100)) {
-              return problema(
-                400,
-                'Dictamen.PorcentajeFueraDeRango',
-                'El porcentaje debe estar entre 0 y 100.',
-              );
-            }
-            if (body.fechaEstructuracion > body.fechaDictamen) {
-              return problema(
-                400,
-                'Dictamen.FechasInvalidas',
-                'La fecha de estructuración no puede ser posterior al dictamen.',
-              );
-            }
-            if (!textoEntre(body.fundamentos, 50, 20_000)) {
+            const errores = validarDictamen(body, diaBogota(ahora()));
+            if (errores.length) {
               return problema(400, 'General.Validation', 'Uno o más datos no son válidos.', {
-                errors: [
-                  {
-                    code: 'fundamentos',
-                    description: 'Los fundamentos deben tener entre 50 y 20 000 caracteres.',
-                  },
-                ],
+                errors: errores,
               });
             }
             const nuevo: DictamenPclResponse = {
@@ -690,8 +682,10 @@ export function crearRutasBackoffice(
               corrigeA: body.corrigeA ?? null,
             };
             db.dictamenes.push(nuevo);
+            // Same transaction as the backend: the case's calificación and its state.
             c.detalle.resumen.tieneCalificacion = true;
             c.detalle.resumen.porcentajePcl = nuevo.porcentajePcl;
+            c.detalle.resumen.estado = 'EnCalificacionPcl';
             return creado(nuevo);
           },
         ),
@@ -712,18 +706,46 @@ export function crearRutasBackoffice(
               return problema(409, 'Dictamen.YaNotificado', 'El dictamen ya fue notificado.');
             }
             const body = await cuerpoJson<NotificarDictamenPclRequest>(p.req);
-            const notificadoEn = Date.parse(body?.notificadoEn ?? '');
-            if (!Number.isFinite(notificadoEn) || notificadoEn > ahora()) {
+            if (!body?.medio || !MEDIOS_NOTIFICACION.has(body.medio)) {
+              return problema(400, 'General.Validation', 'Uno o más datos no son válidos.', {
+                errors: [
+                  {
+                    code: 'Dictamen.MedioInvalido',
+                    description: 'Debe ser CORREO_CERTIFICADO, ELECTRONICO o PERSONAL.',
+                  },
+                ],
+              });
+            }
+            const notificadoEn = Date.parse(body.notificadoEn ?? '');
+            if (
+              !Number.isFinite(notificadoEn) ||
+              notificadoEn > ahora() ||
+              diaBogota(notificadoEn) < d.fechaDictamen
+            ) {
               return problema(
                 400,
                 'Dictamen.NotificacionFueraDeRango',
-                'La fecha de notificación no es válida.',
+                'La notificación no puede ser futura ni anterior a la fecha del dictamen.',
               );
             }
             d.estadoNotificacion = 'NOTIFICADO';
-            d.venceControversiaEn = new Date(notificadoEn + 10 * 86_400_000)
-              .toISOString()
-              .slice(0, 10);
+            // The backend opens CONTROVERSIA_DICTAMEN from the outbox event: 10 days here.
+            const vence = notificadoEn + 10 * DIA_MS;
+            d.venceControversiaEn = diaBogota(vence);
+            db.plazos.push({
+              id: crypto.randomUUID(),
+              casoId: c.detalle.resumen.id,
+              radicado: c.detalle.resumen.radicado,
+              regla: 'CONTROVERSIA_DICTAMEN',
+              baseLegal: 'Decreto 1352 de 2013',
+              referenciaId: d.id,
+              iniciaEn: new Date(notificadoEn).toISOString(),
+              venceEn: new Date(vence).toISOString(),
+              alertaEn: new Date(vence - 3 * DIA_MS).toISOString(),
+              estado: 'ABIERTO',
+              extemporaneo: false,
+              cumplidoEn: null,
+            });
             return sinContenido();
           },
         ),
@@ -863,6 +885,65 @@ export function crearRutasBackoffice(
     },
   ];
   return rutas;
+}
+
+const MEDIOS_NOTIFICACION = new Set(['CORREO_CERTIFICADO', 'ELECTRONICO', 'PERSONAL']);
+
+/** The calendar day in Colombia (UTC−5, no DST) of an instant. */
+function diaBogota(ms: number): string {
+  return new Date(ms - 5 * 3_600_000).toISOString().slice(0, 10);
+}
+
+/** `RegistrarDictamenPclCommandValidator`: the same codes, as `errors: [{ code, description }]`. */
+function validarDictamen(
+  body: RegistrarDictamenPclRequest,
+  hoy: string,
+): { code: string; description: string }[] {
+  const errores: { code: string; description: string }[] = [];
+  const p = body.porcentajePcl;
+  const dosDecimales = (n: number) => Math.abs(n * 100 - Math.round(n * 100)) < 1e-6;
+  if (typeof p !== 'number' || p < 0 || p > 100 || !dosDecimales(p)) {
+    errores.push({
+      code: 'Dictamen.PorcentajeFueraDeRango',
+      description: 'El porcentaje de PCL va de 0 a 100, con dos decimales como máximo.',
+    });
+  }
+  if (!['LABORAL', 'COMUN', 'MIXTO'].includes(body.origen)) {
+    errores.push({
+      code: 'Dictamen.OrigenInvalido',
+      description: 'Debe ser LABORAL, COMUN o MIXTO.',
+    });
+  }
+  const { fechaEstructuracion: e, fechaDictamen: d } = body;
+  if (e && d && (e > d || d > hoy)) {
+    errores.push({
+      code: 'Dictamen.FechasInvalidas',
+      description:
+        'La fecha de estructuración no puede ser posterior a la del dictamen, ni la del dictamen futura.',
+    });
+  }
+  const c = body.componentes;
+  if (c && typeof p === 'number' && Math.abs(c.deficiencias + c.rolLaboralYOtrasAreas - p) > 0.01) {
+    errores.push({
+      code: 'Dictamen.ComponentesNoSuman',
+      description:
+        'deficiencias + rolLaboralYOtrasAreas debe ser igual al porcentaje de PCL (±0,01).',
+    });
+  }
+  const largo = typeof body.fundamentos === 'string' ? body.fundamentos.length : 0;
+  if (!body.fundamentos?.trim() || largo < 50 || largo > 20_000) {
+    errores.push({
+      code: 'Dictamen.FundamentosLongitud',
+      description: 'Debe tener entre 50 y 20000 caracteres.',
+    });
+  }
+  if (!body.diagnosticos?.length) {
+    errores.push({
+      code: 'Dictamen.DiagnosticoRequerido',
+      description: 'Se requiere al menos un diagnóstico CIE-10.',
+    });
+  }
+  return errores;
 }
 
 /** The current dictamen of a case: the latest one that no other dictamen corrects. */

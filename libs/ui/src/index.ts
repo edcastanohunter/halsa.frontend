@@ -3,6 +3,7 @@
 export { hlm } from '@halsa/ui/helm/utils';
 
 export * from './lib/barra-dias-acumulados/barra-dias-acumulados';
+export * from './lib/campo-porcentaje/campo-porcentaje';
 export * from './lib/codigo-una-vez/codigo-una-vez';
 export * from './lib/contador-regresivo/contador-regresivo';
 export * from './lib/dialogo-acceso-emergencia/dialogo-acceso-emergencia';

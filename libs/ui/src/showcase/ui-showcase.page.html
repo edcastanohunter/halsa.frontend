@@ -131,6 +131,23 @@
           </hlm-field>
 
           <hlm-field>
+            <label hlmFieldLabel for="demo-porcentaje">Porcentaje de PCL</label>
+            <div hlmInputGroup>
+              <input
+                hlmInputGroupInput
+                halsaCampoPorcentaje
+                id="demo-porcentaje"
+                placeholder="0,00"
+                [formControl]="porcentaje"
+              />
+              <span hlmInputGroupAddon align="inline-end" aria-hidden="true">%</span>
+            </div>
+            <p hlmFieldDescription>es-CO con coma; el formulario recibe {{ porcentaje.value }}.</p>
+            <hlm-field-error validator="numero">Escribe un número.</hlm-field-error>
+            <hlm-field-error validator="decimales">Máximo dos decimales.</hlm-field-error>
+          </hlm-field>
+
+          <hlm-field>
             <label hlmFieldLabel for="demo-regla">Regla del plazo</label>
             <hlm-select [value]="regla()" (valueChange)="regla.set($any($event))">
               <hlm-select-trigger buttonId="demo-regla" class="w-full">

@@ -4,11 +4,14 @@ import {
   formatFechaDiaBogota,
   formatFechaHoraBogota,
   formatFechaLarga,
+  formatDecimalEditable,
   formatFechaRelativa,
   formatMoneda,
   formatNumero,
   formatPorcentaje,
   formatTamanoArchivo,
+  parsearDecimal,
+  tieneMaxDecimales,
   TIPO_EVENTO_LABELS,
 } from '@halsa/core';
 
@@ -76,5 +79,39 @@ describe('formatTamanoArchivo', () => {
     expect(formatTamanoArchivo(512)).toBe('512 B');
     expect(formatTamanoArchivo(2.5 * 1024 * 1024)).toBe('2,5 MB');
     expect(formatTamanoArchivo(300 * 1024)).toBe('300 KB');
+  });
+});
+
+describe('es-CO decimals typed by the user (dictamen percentages)', () => {
+  it('reads a comma or a dot as the decimal separator', () => {
+    expect(parsearDecimal('23,45')).toBe(23.45);
+    expect(parsearDecimal('23.45')).toBe(23.45);
+    expect(parsearDecimal(' 8 % ')).toBe(8);
+    expect(parsearDecimal('23,')).toBe(23);
+    expect(parsearDecimal(',5')).toBe(0.5);
+    expect(parsearDecimal('-1')).toBe(-1);
+  });
+
+  it('empty is null; anything else that is not one number is NaN', () => {
+    expect(parsearDecimal('')).toBeNull();
+    expect(parsearDecimal('  ')).toBeNull();
+    expect(parsearDecimal(null)).toBeNull();
+    for (const malo of ['abc', '1.000,5', '1,2,3', '12a', ',', '1e3']) {
+      expect(parsearDecimal(malo)).toBeNaN();
+    }
+  });
+
+  it('checks two decimals by value, like the backend', () => {
+    expect(tieneMaxDecimales(23.45)).toBe(true);
+    expect(tieneMaxDecimales(0.1 + 0.2)).toBe(true);
+    expect(tieneMaxDecimales(23.456)).toBe(false);
+    expect(tieneMaxDecimales(100)).toBe(true);
+  });
+
+  it('writes back with a comma and without grouping or trailing zeros', () => {
+    expect(formatDecimalEditable(23.45)).toBe('23,45');
+    expect(formatDecimalEditable(8)).toBe('8');
+    expect(formatDecimalEditable(1234.5)).toBe('1234,5');
+    expect(formatDecimalEditable(null)).toBe('');
   });
 });

@@ -1,6 +1,6 @@
 # Halsa Frontend — Plan de Hitos y Seguimiento de Implementación
 
-> **Estado general:** M7 completado (2026-10-20); siguiente: M8  
+> **Estado general:** M8 completado (2026-10-20); siguiente: M9  
 > **Fecha de inicio:** 2026-10-17  
 > **Tipografía UI:** Plus Jakarta Sans (`@fontsource/plus-jakarta-sans`)  
 > **Monospace:** JetBrains Mono (`@fontsource/jetbrains-mono`)  
@@ -19,7 +19,7 @@
 - [x] **M5: Plazos (Tablero de Vencimientos y Workflow de Cumplimiento)**
 - [x] **M6: Clínico 🔒 (Historia Clínica y Acceso de Emergencia "Break-the-Glass")**
 - [x] **M7: Incapacidades (Listado, Barra Acumulada, Carga Multipart con Soporte PDF)**
-- [ ] **M8: Dictamen PCL 🔒 (Dictamen, Notificación y Ventana de 15 Minutos)**
+- [x] **M8: Dictamen PCL 🔒 (Dictamen, Notificación y Ventana de 15 Minutos)**
 - [ ] **M9: Privacidad (Bandeja Solicitudes Copia HC, Auditoría de Accesos, Revisiones de Emergencia)**
 - [ ] **M10: Portal del Paciente (BFF, Sesión por Cookie, Línea de Tiempo, Solicitudes)**
 - [ ] **M11: Hardening y Entrega (Dockerfiles, Nginx con CSP/Trusted Types, CI GitHub Actions)**
@@ -224,7 +224,7 @@
 
 ---
 
-### [ ] M8: Dictamen PCL 🔒
+### [x] M8: Dictamen PCL 🔒
 - **Alcance:**
   - Consulta de dictamen con compuerta de seguridad estricta: `acr=2` y `auth_time` ≤ 15 minutos.
   - Contador regresivo de vigencia de la sesión y re-elevación preventiva mediante popup cuando resten < 2 minutos.
@@ -237,6 +237,18 @@
 - **Criterios de Aceptación:**
   - E2E de calificador registrando y notificando dictamen.
   - Supervivencia verificada de formularios extensos sin guardado en storage tras re-autenticación por popup.
+- **Notas de implementación:**
+  - `features/dictamen-pcl/`: `dictamen-pcl.routes.ts` (vista y `registrar[?corrige=<id>]` con `pcl:dictamen:write`), montado desde `app.routes.ts` con `crearRutasCasos({ dictamenPcl })`. `DictamenPclApi` y `DictamenPclStore` los provee la página **por encima** de la compuerta `acr=2` + `maxAgeSeg=900`: el dictamen y el borrador del formulario viven ahí, en memoria.
+  - Ventana de 15 minutos: cuando faltan menos de 2 min la compuerta se cierra y destruye la vista, pero el `FormGroup` es del store (`store.formulario(clave)`), así que al verificar de nuevo vuelve el mismo formulario con todo lo escrito. Nada va a storage. "Cancelar" y el 201 descartan el borrador; salir de la pestaña también.
+  - `core/step-up/vigencia-verificacion.ts`: chip "Verificación vigente por mm:ss" (cuenta hasta el cierre de la compuerta, `auth_time + 900 − 120`) y "Renovar verificación" (popup `acr_values=2&max_age=780`). Al llegar a cero llama a `StepUpService.actualizarReloj()` para que la compuerta cierre en ese segundo y no en el siguiente tick de 15 s. `StepUpService.cierraEn()` es nuevo.
+  - Comprobado contra Keycloak real (script de sondeo con PKCE): una re-verificación dentro de la ventana pide **solo el OTP** y **renueva `auth_time`** (el nivel 2 tiene `loa-max-age: 0`); con la ventana vencida, `max_age` obliga a contraseña + OTP.
+  - Formulario: `CampoPorcentaje` (nuevo en `@halsa/ui`: directiva CVA + validador sobre el `<input hlmInput>`, muestra "23,45", entrega `23.45`; `parsearDecimal`, `tieneMaxDecimales` y `formatDecimalEditable` en `@halsa/core`), origen en tarjetas de radio, fechas estructuración ≤ dictamen ≤ hoy en Bogotá, componentes opcionales con la suma ±0,01 en vivo, fundamentos 50–20 000 con contador, `EditorDiagnosticosCie10` con `minimo=1`. Errores por código del backend (`Dictamen.*` en `errors[]` o en `errorCode`) a su campo; sin RETHUS, aviso general.
+  - Vista: cifra grande es-CO, origen, estado, fechas, manual, barra apilada de componentes, diagnósticos, calificador (documento enmascarado) y fundamentos. Stepper Pendiente → Notificado → (En controversia) → En firme; con NOTIFICADO, días para controvertir, o "aún no está disponible" mientras el backend abre el plazo (ver G20).
+  - "Registrar notificación": hoja inferior/lateral, `notificadoEn` ≤ ahora y ≥ fecha del dictamen (Bogotá), medio en tarjetas de radio.
+  - Desviaciones del plan §7.7: "Renovar verificación" se ofrece siempre y pasa a primario en los últimos 2 minutos (el plan lo ofrecía solo entonces), para reiniciar la ventana antes de escribir un dictamen largo. Ante un 409 (`YaExiste`, `YaNotificado`, `CorrigeANoVigente`) el formulario **no** se cierra: se explica arriba, se deshabilita el envío y se recarga el dictamen, para no perder hasta 20 000 caracteres escritos. `CampoMoneda` no se construyó: ningún endpoint maneja dinero todavía.
+  - Acceso de emergencia también en la lectura del dictamen (la API lo acepta): panel "No estás asignado", motivo ASCII solo en el GET y escrituras ocultas mientras esté activo, como en M6.
+  - Mock alineado con el backend: validación con `General.Validation` + `errors[{ code, description }]` (`PorcentajeFueraDeRango` también por decimales, `FechasInvalidas` también por dictamen futuro, `ComponentesNoSuman`, `FundamentosLongitud`, `DiagnosticoRequerido`), el caso pasa a `EnCalificacionPcl`, `NotificacionFueraDeRango` (400) antes de la fecha del dictamen, `MedioInvalido`, y al notificar se abre el plazo `CONTROVERSIA_DICTAMEN`.
+  - Evidencia: `dictamen-pcl.spec.ts` (25 tests: modelo, mapeo de errores, compuerta sin peticiones con `acr=1`, con `auth_time` de 16 min y con menos de 2 min de ventana; el borrador de >5 000 caracteres sobrevive al cierre de la compuerta y a la verificación por popup sin tocar storage; registrar, corregir, notificar, el error del medio que se limpia al elegirlo, 409, emergencia, sin escritura). `CampoPorcentaje` y los decimales en sus specs. `e2e/dictamen.spec.ts` con Keycloak real: calificador registra con >5 000 caracteres de fundamentos, renueva la verificación por popup OTP con el formulario lleno (sigue intacto y nada en storage), registra y notifica; corrección con la suma en vivo; analista sin pestaña. Capturas 375/1440 claro y oscuro con axe en `docs/reportes/m8/`.
 
 ---
 
@@ -296,7 +308,7 @@
 | **OBS-2** | Podman en Windows | Keycloak local para M1.5. | `podman-machine-default` se iniciará (`podman machine start`) antes de ejecutar scripts `kc:*`. Verificado: los bind mounts relativos funcionan; `podman compose` delega en `docker-compose.exe`. En esta máquina `host.containers.internal` resuelve al router (192.168.1.1), no al host: no depender de él. |
 | **OBS-3** | Generación OpenAPI (M0) | API backend fuera de línea al inicio. | Uso del script alternativo `npm run api:types:yaml` apuntando a `../Halsa.Backend/docs/api/atel-api.openapi.yaml`. |
 | **OBS-5** | Umbral de las líneas base visuales | `maxDiffPixelRatio: 0.01` con el umbral por píxel por defecto deja pasar contenido nuevo en páginas claras grandes (tarjetas blancas sobre fondo casi blanco: solo cuentan los glifos). | Detectado en M4: la línea base de escritorio de `/inicio` (M3) no fallaba con los widgets nuevos. Se regeneraron desde cero las afectadas y los specs esperan los datos antes de capturar. Pendiente para M11: evaluar un umbral más estricto. |
-| **OBS-6** | Presupuesto del portal | El bundle inicial del portal mide 468 kB sin comprimir (presupuesto de aviso de 400 kB en `angular.json`), ya desde antes de M4 (464,5 kB en el commit de M3). Comprimido son 109 kB, dentro del objetivo de 200 kB del plan. | Revisar en M10/M11. |
+| **OBS-6** | Presupuesto del portal | El bundle inicial del portal mide 468 kB sin comprimir (presupuesto de aviso de 400 kB en `angular.json`), ya desde antes de M4 (464,5 kB en el commit de M3). Comprimido son 109 kB, dentro del objetivo de 200 kB del plan. Al cierre de M8 mide 476,8 kB (109,4 kB comprimido); M8 no le suma nada (medido sin sus cambios). | Revisar en M10/M11. |
 | **OBS-4** | Compatibilidad Spartan UI | Soporte sobre Angular 21 zoneless. | Si `@spartan-ng/*` presenta conflicto en v21, se aplicará el fallback documentado en `@angular/cdk` + `cva` + `tailwind-merge`. |
 | **G1** | Falta de CORS en Backend API | Afecta llamadas directas cross-origin. | En desarrollo se usa el proxy local (`proxy.backoffice.json`). Para despliegue se documentan cabeceras requeridas en `deploy/README.md`. |
 | **G3** | Falta de Redirect URI en BFF | Bloquea login local del portal en `:4300`. | Desarrollo inicial del portal (M10) sobre el adaptador mock; posterior validación E2E con BFF tras actualización del realm. |
@@ -307,6 +319,8 @@
 | **G13** | Discrepancia ProblemDetails | OpenAPI especifica `code`, implementación usa `errorCode`. | Lectura defensiva en interceptores y mappers: `errorCode ?? code`. |
 | **G18** | `IncapacidadResponse` sin `prorrogaDe` | La lista no sabe a qué incapacidad prorroga cada prórroga. | El frontend infiere las cadenas (`agruparCadenas`): una prórroga va con la cadena cuyo último certificado termina justo antes de su inicio, lo que el backend garantiza (solo se prorroga la última de la cadena, sin solapes, ≤ 30 días de separación). Pedir al backend que exponga `prorrogaDe`. |
 | **G19** | Reglas 422 de incapacidades sin prefijo | Las reglas de la SPEC 07 responden con el código tal cual (`INCAPACIDAD_SOLAPADA`, `PRORROGA_NO_ES_ULTIMA`, …), no `Incapacidades.*`, y el plan §4.2 no las lista. `Incapacidades.DiasFueraDeRango` e `InicialConProrrogaDe` son guardas que el validador ya impide (llegan como `errors` de `datos.*`). | Mapeo explícito de esas reglas a su campo en `erroresDeCarga`. |
+| **G20** | Plazo de controversia asíncrono | `POST …/dictamen-pcl/notificar` responde 204, pero `CONTROVERSIA_DICTAMEN` se abre desde el evento del outbox: justo después, `GET` puede traer `NOTIFICADO` con `venceControversiaEn: null` (también es nulo para un actor IPS). | La vista dice "El plazo para controvertir aún no está disponible" en lugar de una fecha vacía. Si el backend quiere la fecha en la respuesta, podría devolver `DictamenPclResponse` en vez de 204. |
+| **OBS-7** | Ventana de 15 min en E2E | No se puede simular un `auth_time` viejo en Playwright: adelantar el reloj del navegador rompe la validación del id_token al renovar (`iat`/`exp`) y reescribir el access token falla el `at_hash`. | El E2E prueba la supervivencia del formulario con una re-verificación real por popup ("Renovar verificación"); el cierre y la reapertura de la compuerta por tiempo se prueban en el spec unitario con la compuerta real y el popup simulado. |
 
 ---
 

@@ -44,6 +44,16 @@ export async function ingresar(page: Page, username: string, destino = '/inicio'
 // worker deletes it, so every lock operation retries.
 const DIR_OTP = path.join(os.tmpdir(), 'halsa-e2e-otp');
 
+/**
+ * Waits in the OTP queue. Every OTP test shares it, so the wait isn't the test's own time: the
+ * test's timeout grows by the same amount, before waiting.
+ */
+async function esperarTurno(ms: number) {
+  const info = test.info();
+  info.setTimeout(info.timeout + ms);
+  await new Promise((r) => setTimeout(r, ms));
+}
+
 async function conCandado<T>(nombre: string, hacer: () => Promise<T>): Promise<T> {
   fs.mkdirSync(DIR_OTP, { recursive: true });
   const candado = path.join(DIR_OTP, `${nombre}.lock`);
@@ -59,7 +69,7 @@ async function conCandado<T>(nombre: string, hacer: () => Promise<T>): Promise<T
       } catch {
         // Being deleted by its owner right now: try again.
       }
-      await new Promise((r) => setTimeout(r, 200));
+      await esperarTurno(200);
     }
   }
   try {
@@ -76,13 +86,14 @@ async function conCandado<T>(nombre: string, hacer: () => Promise<T>): Promise<T
   }
 }
 
+/** A TOTP code nobody used yet; waiting for the lock or a fresh window extends the timeout. */
 export async function codigoOtp(secreto: string): Promise<string> {
   return conCandado(secreto, async () => {
     const archivo = path.join(DIR_OTP, `${secreto}.ventana`);
     const usada = Number(fs.existsSync(archivo) ? fs.readFileSync(archivo, 'utf8') : -1);
     let ventana = Math.floor(Date.now() / 30_000);
     if (usada >= ventana) {
-      await new Promise((r) => setTimeout(r, 30_000 - (Date.now() % 30_000) + 250));
+      await esperarTurno(30_000 - (Date.now() % 30_000) + 250);
       ventana = Math.floor(Date.now() / 30_000);
     }
     fs.writeFileSync(archivo, String(ventana));
