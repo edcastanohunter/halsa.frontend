@@ -19,7 +19,8 @@ export default defineConfig({
   },
   // Starts the dev servers when they are not already running. The backoffice runs in the `mock`
   // configuration (local Podman Keycloak on :8180 + mock API; `npm run kc:up` first) unless
-  // HALSA_E2E_REAL=1, which targets the backend's Keycloak and the real API through the proxy.
+  // HALSA_E2E_REAL=1, which targets the backend's Keycloak and the real API (and BFF) through the
+  // proxies.
   webServer: [
     {
       command: `npx ng serve backoffice --port 3000${process.env['HALSA_E2E_REAL'] ? '' : ' --configuration mock'}`,
@@ -27,8 +28,9 @@ export default defineConfig({
       reuseExistingServer: !process.env['CI'],
       timeout: 180_000,
     },
+    // The portal runs against the mock BFF (gap G3: the BFF can't log in from :4300 yet).
     {
-      command: 'npx ng serve portal --port 4300 --ssl',
+      command: `npx ng serve portal --port 4300 --ssl${process.env['HALSA_E2E_REAL'] ? '' : ' --configuration mock'}`,
       url: 'https://localhost:4300',
       ignoreHTTPSErrors: true,
       reuseExistingServer: !process.env['CI'],

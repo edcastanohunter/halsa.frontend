@@ -1,0 +1,172 @@
+{
+  "metodo": "Lighthouse 12.8.2, mobile (simulated slow 4G, 4x CPU), Chromium 1248 headless; optimized mock build (ng build portal -c mock --optimization) served with gzip + SPA fallback; mocked BFF session seeded in sessionStorage. Two runs: mock latency 350 ms (default) and 0 ms.",
+  "fecha": "2026-10-20",
+  "corridas": {
+    "latencia350ms": [
+      {
+        "pagina": "bienvenida",
+        "performance": 91,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "2.9 s",
+        "tbt": "110 ms",
+        "cls": "0"
+      },
+      {
+        "pagina": "activar",
+        "performance": 82,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.7 s",
+        "tbt": "50 ms",
+        "cls": "0.001"
+      },
+      {
+        "pagina": "inicio",
+        "performance": 83,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.7 s",
+        "tbt": "170 ms",
+        "cls": "0"
+      },
+      {
+        "pagina": "casos",
+        "performance": 85,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.5 s",
+        "tbt": "110 ms",
+        "cls": "0"
+      },
+      {
+        "pagina": "caso",
+        "performance": 82,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.9 s",
+        "tbt": "150 ms",
+        "cls": "0"
+      },
+      {
+        "pagina": "solicitar-copia",
+        "performance": 81,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.9 s",
+        "tbt": "190 ms",
+        "cls": "0"
+      },
+      {
+        "pagina": "incapacidades",
+        "performance": 85,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.5 s",
+        "tbt": "160 ms",
+        "cls": "0"
+      },
+      {
+        "pagina": "solicitudes",
+        "performance": 85,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.4 s",
+        "tbt": "170 ms",
+        "cls": "0.007"
+      },
+      {
+        "pagina": "cuenta",
+        "performance": 88,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.2 s",
+        "tbt": "150 ms",
+        "cls": "0.001"
+      }
+    ],
+    "latencia0ms": [
+      {
+        "pagina": "bienvenida",
+        "performance": 87,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.2 s",
+        "tbt": "170 ms",
+        "cls": "0"
+      },
+      {
+        "pagina": "activar",
+        "performance": 84,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.6 s",
+        "tbt": "70 ms",
+        "cls": "0"
+      },
+      {
+        "pagina": "inicio",
+        "performance": 82,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.7 s",
+        "tbt": "180 ms",
+        "cls": "0"
+      },
+      {
+        "pagina": "casos",
+        "performance": 82,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.7 s",
+        "tbt": "150 ms",
+        "cls": "0"
+      },
+      {
+        "pagina": "caso",
+        "performance": 81,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.9 s",
+        "tbt": "130 ms",
+        "cls": "0"
+      },
+      {
+        "pagina": "solicitar-copia",
+        "performance": 79,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.8 s",
+        "tbt": "250 ms",
+        "cls": "0"
+      },
+      {
+        "pagina": "incapacidades",
+        "performance": 83,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.6 s",
+        "tbt": "180 ms",
+        "cls": "0.001"
+      },
+      {
+        "pagina": "solicitudes",
+        "performance": 83,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.6 s",
+        "tbt": "160 ms",
+        "cls": "0.007"
+      },
+      {
+        "pagina": "cuenta",
+        "performance": 88,
+        "accesibilidad": 100,
+        "buenasPracticas": 100,
+        "lcp": "3.1 s",
+        "tbt": "150 ms",
+        "cls": "0.001"
+      }
+    ]
+  }
+}

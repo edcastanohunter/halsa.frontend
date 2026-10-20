@@ -1,0 +1,101 @@
+<a
+  href="#contenido"
+  class="bg-primary text-primary-foreground sr-only z-50 rounded-md px-3 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+  >Saltar al contenido</a
+>
+
+<div class="bg-background text-foreground flex min-h-dvh flex-col">
+  <header
+    class="border-border bg-background/85 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-20 border-b pt-[env(safe-area-inset-top)] backdrop-blur"
+  >
+    <div class="mx-auto flex h-14 w-full max-w-5xl items-center gap-3 px-4 lg:h-16 lg:px-8">
+      <a
+        [routerLink]="navegacion().length ? '/inicio' : '/activar'"
+        class="focus-visible:ring-ring/50 flex items-center gap-2 rounded-md outline-none focus-visible:ring-3"
+      >
+        <span
+          class="bg-primary text-primary-foreground inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold"
+          aria-hidden="true"
+          >H</span
+        >
+        <span class="leading-tight">
+          <span class="block text-base font-semibold tracking-tight">Halsa</span>
+          <span class="text-muted-foreground block text-xs">Portal del paciente</span>
+        </span>
+      </a>
+      <span class="flex-1"></span>
+
+      @if (navegacion().length) {
+        <nav aria-label="Principal" class="hidden lg:block">
+          <ul class="flex items-center gap-1">
+            @for (item of navegacion(); track item.id) {
+              <li>
+                <a
+                  [routerLink]="item.ruta"
+                  routerLinkActive="bg-primary/10 text-primary"
+                  ariaCurrentWhenActive="page"
+                  class="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 flex h-10 items-center gap-2 rounded-md px-3 text-sm font-medium outline-none focus-visible:ring-3"
+                >
+                  <ng-icon [name]="item.icono" class="text-lg" aria-hidden="true" />
+                  {{ item.etiqueta }}
+                </a>
+              </li>
+            }
+          </ul>
+        </nav>
+      } @else if (sesion.estado() !== 'anonima') {
+        <button hlmBtn variant="ghost" type="button" (click)="cerrarSesion()">
+          <ng-icon name="lucideLogOut" aria-hidden="true" />
+          Cerrar sesión
+        </button>
+      }
+    </div>
+  </header>
+
+  <main
+    id="contenido"
+    tabindex="-1"
+    class="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 outline-none lg:px-8 lg:pt-8 lg:pb-12"
+    [class]="navegacion().length ? 'pb-[calc(6rem+env(safe-area-inset-bottom))]' : 'pb-10'"
+  >
+    @if (errorInicio(); as error) {
+      <h1 class="sr-only">No pudimos abrir tu sesión</h1>
+      <halsa-estado-error
+        titulo="No pudimos abrir tu sesión"
+        [mensaje]="error.mensaje"
+        [traza]="error.traza ?? undefined"
+        (reintentar)="reintentar()"
+      />
+      <div class="flex justify-center">
+        <button hlmBtn variant="ghost" type="button" (click)="cerrarSesion()">Cerrar sesión</button>
+      </div>
+    } @else {
+      <router-outlet />
+    }
+  </main>
+</div>
+
+@if (navegacion().length) {
+  <!-- Bottom tab bar (< 1024 px) -->
+  <nav
+    aria-label="Principal"
+    class="border-border bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed inset-x-0 bottom-0 z-30 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+  >
+    <ul class="mx-auto flex max-w-xl">
+      @for (item of navegacion(); track item.id) {
+        <li class="min-w-0 flex-1">
+          <a
+            [routerLink]="item.ruta"
+            routerLinkActive="text-primary"
+            ariaCurrentWhenActive="page"
+            class="text-muted-foreground flex min-h-16 flex-col items-center justify-center gap-1 py-2 text-[0.625rem] leading-tight font-medium tracking-tight"
+          >
+            <ng-icon [name]="item.icono" class="text-[1.375rem]" aria-hidden="true" />
+            <!-- "Incapacidades" fits a fifth of 375 px at this size; no truncation. -->
+            <span class="whitespace-nowrap">{{ item.etiqueta }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+}

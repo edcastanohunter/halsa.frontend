@@ -2,8 +2,12 @@ import type { BooleanInput, NumberInput } from '@angular/cdk/coercion';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
   booleanAttribute,
   computed,
+  inject,
   input,
   numberAttribute,
 } from '@angular/core';
@@ -137,4 +141,20 @@ export class HlmToaster {
   );
 
   protected readonly _computedClass = computed(() => hlm('toaster group', this.userClass()));
+
+  constructor() {
+    // Halsa: brain renders a `brn-sonner-toast` element between the toaster's <ol> and each <li>,
+    // which axe reports as a serious `list` violation. The wrapper takes the listitem role.
+    const host: HTMLElement = inject(ElementRef).nativeElement;
+    const destroyRef = inject(DestroyRef);
+    afterNextRender(() => {
+      const marcar = () =>
+        host
+          .querySelectorAll('brn-sonner-toast:not([role])')
+          .forEach((toast) => toast.setAttribute('role', 'listitem'));
+      const observer = new MutationObserver(marcar);
+      observer.observe(host, { childList: true, subtree: true });
+      destroyRef.onDestroy(() => observer.disconnect());
+    });
+  }
 }

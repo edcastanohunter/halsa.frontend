@@ -59,6 +59,9 @@ export const CODIGOS_ERROR = [
   'SolicitudCopiaHc.NoEncontrada',
   'Plazo.NotaRequerida',
   'Plazo.NotaDemasiadoLarga',
+  // SPEC 12: the redeem limits (5 failed attempts per code, and per patient in 24 h).
+  'Paciente.CodigoBloqueado',
+  'Paciente.DemasiadosIntentos',
 ] as const;
 
 export type CodigoError = (typeof CODIGOS_ERROR)[number];

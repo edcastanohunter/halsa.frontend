@@ -3,8 +3,10 @@ import { TestBed } from '@angular/core/testing';
 import { API_PREFIX, ErrorApi, problemaInterceptor, ProblemaApi } from '@halsa/core';
 import { crearInterceptorMock } from '@halsa/mocks';
 import { firstValueFrom } from 'rxjs';
+import { csrfInterceptor } from '../app/core/http/interceptores';
 import {
   CASO_PACIENTE,
+  CODIGO_BLOQUEADO,
   CODIGO_OTRO_DOCUMENTO,
   CODIGO_VALIDO,
   crearRutasPortal,
@@ -22,6 +24,7 @@ describe('portal mock adapter (BFF)', () => {
         { provide: API_PREFIX, useValue: '/paciente/' },
         provideHttpClient(
           withInterceptors([
+            csrfInterceptor,
             problemaInterceptor,
             crearInterceptorMock(
               crearRutasPortal(sesion, () => reloj),
@@ -61,6 +64,41 @@ describe('portal mock adapter (BFF)', () => {
     await expect(firstValueFrom(http.get('/paciente/bff/usuario'))).resolves.toMatchObject({
       vinculado: true,
     });
+  });
+
+  it('reads codes like the server: spaces, lowercase and O/I/L confusables', async () => {
+    configurar('sin-vinculo');
+    // `l` reads as `1`; the hyphen is required (TryLeer splits on it).
+    await expect(canjear(' abcl23-k7q2 m9xd4p ')).resolves.toBeTruthy();
+  });
+
+  it('a locked code is a 423 Paciente.CodigoBloqueado (SPEC 12)', async () => {
+    configurar('sin-vinculo');
+    const p = await error(canjear(CODIGO_BLOQUEADO));
+    expect(p).toMatchObject({ status: 423, errorCode: 'Paciente.CodigoBloqueado' });
+  });
+
+  it('without X-Halsa-Csrf the API and the logout answer 403 (GuardasBff)', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: API_PREFIX, useValue: '/paciente/' },
+        provideHttpClient(
+          withInterceptors([
+            problemaInterceptor,
+            crearInterceptorMock(crearRutasPortal('vinculada'), {
+              prefijo: '/paciente/',
+              retardoMs: 0,
+            }),
+          ]),
+        ),
+      ],
+    });
+    http = TestBed.inject(HttpClient);
+    expect((await error(firstValueFrom(http.get('/paciente/api/mis-casos')))).status).toBe(403);
+    expect((await error(firstValueFrom(http.post('/paciente/bff/logout', null)))).status).toBe(403);
+    // bff/usuario is a plain GET of the BFF itself: no header needed.
+    await expect(firstValueFrom(http.get('/paciente/bff/usuario'))).resolves.toBeTruthy();
   });
 
   it('activation is rate limited to 5/min with Retry-After', async () => {

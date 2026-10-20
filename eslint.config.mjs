@@ -91,6 +91,8 @@ export default tseslint.config(
       'projects/*/src/mocks/**',
       'projects/*/src/app/dev.interceptors.ts',
       'projects/*/src/app/dev/**',
+      // Spec-only helpers (the portal's mounts the whole app against the mock BFF).
+      'projects/*/src/app/testing/**',
       'libs/mocks/**',
       'e2e/**',
     ],

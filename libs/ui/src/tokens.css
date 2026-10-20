@@ -182,3 +182,23 @@
     animation: none !important;
   }
 }
+
+/*
+ * Sonner's `richColors` palette (#008a2e on #ecfdf3 is 4.25:1, below AA) replaced by the same
+ * tinted status pairs as the badges (TONO_SUAVE), which are contrast-checked in both themes.
+ * Three attributes so it outranks sonner's per-theme `[data-sonner-toaster][data-theme=…]`.
+ */
+[data-sonner-toaster][data-theme][data-rich-colors='true'] {
+  --success-bg: color-mix(in oklab, var(--success) 12%, var(--popover));
+  --success-border: color-mix(in oklab, var(--success) 25%, var(--popover));
+  --success-text: var(--success);
+  --info-bg: color-mix(in oklab, var(--info) 12%, var(--popover));
+  --info-border: color-mix(in oklab, var(--info) 25%, var(--popover));
+  --info-text: var(--info);
+  --warning-bg: color-mix(in oklab, var(--warning) 12%, var(--popover));
+  --warning-border: color-mix(in oklab, var(--warning) 30%, var(--popover));
+  --warning-text: var(--warning);
+  --error-bg: color-mix(in oklab, var(--destructive) 12%, var(--popover));
+  --error-border: color-mix(in oklab, var(--destructive) 25%, var(--popover));
+  --error-text: var(--destructive);
+}

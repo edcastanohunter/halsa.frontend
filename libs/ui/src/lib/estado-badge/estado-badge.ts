@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import {
   CONCLUSION_REVISION_EMERGENCIA_LABELS,
   ConclusionRevisionEmergencia,
+  ESTADO_CASO_PACIENTE_LABELS,
   ESTADO_CASO_STAFF_LABELS,
   ESTADO_DICTAMEN_LABELS,
   ESTADO_PLAZO_LABELS,
@@ -20,6 +21,8 @@ import { TONO_CONTORNO, TONO_SUAVE, Tono } from '../utils/tono';
 
 export type TipoEstado =
   | 'caso'
+  /** The same states in the patient's plain language (plan §8.4). */
+  | 'casoPaciente'
   | 'plazo'
   | 'dictamen'
   | 'solicitudCopiaHc'
@@ -82,6 +85,7 @@ interface EntradaCatalogo {
 
 const CATALOGO: Record<TipoEstado, EntradaCatalogo> = {
   caso: { estilos: CASO, etiquetas: ESTADO_CASO_STAFF_LABELS },
+  casoPaciente: { estilos: CASO, etiquetas: ESTADO_CASO_PACIENTE_LABELS },
   plazo: { estilos: PLAZO, etiquetas: ESTADO_PLAZO_LABELS },
   dictamen: { estilos: DICTAMEN, etiquetas: ESTADO_DICTAMEN_LABELS },
   solicitudCopiaHc: { estilos: SOLICITUD, etiquetas: ESTADO_SOLICITUD_COPIA_HC_LABELS },
@@ -129,6 +133,8 @@ export class EstadoBadge {
     return hlm(
       'inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-xs font-medium ring-1 ring-inset',
       estilo.contorno ? TONO_CONTORNO[estilo.tono] : TONO_SUAVE[estilo.tono],
+      // Patient labels are whole sentences: they wrap instead of overflowing a 375 px card.
+      this.tipo() === 'casoPaciente' && 'h-auto min-h-6 whitespace-normal py-0.5',
     );
   });
 }
