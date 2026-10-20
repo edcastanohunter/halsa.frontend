@@ -97,8 +97,11 @@ npm run kc:reset
 
 - Usuarios de desarrollo (contraseña `dev`): `analista.arla`, `calificador.arla` (OTP), `privacidad.arla`, `analista.arlb`, `medico.ips` (OTP), `coordinador.ips`; en `halsa-pacientes`, `paciente.dev@halsa.dev`. Consola de administración: `http://localhost:8180/admin` (`admin`/`admin`).
 - `kc:sync` quita los clientes `int-*` y las cuentas `service-account-*` (necesitan certificados mTLS), fija el tema y el idioma `es`, y apunta `halsa-backoffice` a `http://localhost:3000`. Nunca edites a mano los archivos generados.
-- `kc:sync` también agrega el client scope `basic` de Keycloak (claims `sub` y `auth_time`), que el realm del backend no define (gap G16). Sin él los tokens no traen `sub` ni `auth_time`, que el API lee. Se quita cuando el backend lo incorpore; después de cambiar los realms corre `npm run kc:reset`.
-- El flujo `browser-loa` del backend no tiene el paso Cookie: cada step-up pide contraseña **y** código (gap G17).
+- `kc:sync` aplica a los realms mock dos cambios que el backend tiene pendientes, con la misma forma que tendrán en prod (detalle en [docs/backend/realm-g16-g17.md](docs/backend/realm-g16-g17.md)):
+  - G16: el client scope `basic` de Keycloak, para que los tokens traigan `sub` y `auth_time`, que el API lee.
+  - G17: el paso Cookie al inicio de `browser-loa`, para que el step-up pida solo el código y no la contraseña otra vez.
+
+  Cuando el backend los incorpore, `kc:sync` deja de aplicarlos solo. Después de cambiar los realms corre `npm run kc:reset`.
 - Backoffice contra este Keycloak con el API simulado: `npm run start:mock`.
 - El issuer es `http://localhost:8180`, así que el API real rechaza estos tokens (es intencional). El portal no usa este Keycloak: su BFF apunta al Keycloak del backend.
 

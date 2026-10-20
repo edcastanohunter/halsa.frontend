@@ -18,10 +18,12 @@ const I18N = {
 
 const check = process.argv.includes('--check');
 
-// GAP G16 (reported in the M3 report): the backend realms don't define Keycloak 25+'s `basic`
-// client scope, so access tokens carry neither `sub` nor `auth_time`, both of which the API reads
-// (CurrentUser, StepUp). Until the backend adds it, the mock realms get Keycloak's stock
-// definition so local tokens look like the ones the API expects. Remove once the source has it.
+// Realm fixes the backend still has to apply to docker/keycloak/halsa-realm.json and
+// deploy/keycloak/halsa.prod.json (gaps G16 and G17, docs/backend/realm-g16-g17.md). They are applied
+// here exactly as they would be in prod, and are no-ops once the source has them; remove them then.
+//
+// G16: Keycloak 25+'s `basic` client scope is missing, so tokens carry neither `sub` nor
+// `auth_time`, both of which the API reads (CurrentUser, StepUp).
 const BASIC_SCOPE = {
   name: 'basic',
   description: 'OpenID Connect scope for add all basic claims to the token',
@@ -64,6 +66,37 @@ function withBasicScope(realm) {
       c.defaultClientScopes
         ? { ...c, defaultClientScopes: [...c.defaultClientScopes, 'basic'] }
         : c,
+    ),
+  };
+}
+
+// G17: `browser-loa` starts at the level subflows, so a step-up can't see the existing session and
+// asks for the password again before the OTP. Keycloak's step-up flow puts Cookie first, as an
+// alternative to the level subflows: Cookie skips the login while the session meets the requested
+// level, and otherwise `loa-nivel-1` (10 h) lets the subflows ask only for the OTP.
+const COOKIE_STEP = {
+  authenticator: 'auth-cookie',
+  requirement: 'ALTERNATIVE',
+  priority: 10,
+  authenticatorFlow: false,
+  autheticatorFlow: false,
+  userSetupAllowed: false,
+};
+
+function withCookieStep(realm) {
+  const flujo = (realm.authenticationFlows ?? []).find((f) => f.alias === realm.browserFlow);
+  if (!flujo || flujo.authenticationExecutions.some((e) => e.authenticator === 'auth-cookie')) {
+    return realm;
+  }
+  const niveles = flujo.authenticationExecutions.map((e) => ({
+    ...e,
+    requirement: 'ALTERNATIVE',
+    priority: e.priority + COOKIE_STEP.priority,
+  }));
+  return {
+    ...realm,
+    authenticationFlows: realm.authenticationFlows.map((f) =>
+      f === flujo ? { ...f, authenticationExecutions: [COOKIE_STEP, ...niveles] } : f,
     ),
   };
 }
@@ -160,7 +193,7 @@ for (const { file, transform } of REALMS) {
   }
 
   const { realm, summary } = transform(
-    withBasicScope(JSON.parse(readFileSync(sourcePath, 'utf8'))),
+    withCookieStep(withBasicScope(JSON.parse(readFileSync(sourcePath, 'utf8')))),
   );
   const json = `${JSON.stringify(realm, null, 2)}\n`;
 

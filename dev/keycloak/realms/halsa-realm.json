@@ -29,9 +29,17 @@
       "builtIn": false,
       "authenticationExecutions": [
         {
-          "flowAlias": "browser-loa niveles",
-          "requirement": "REQUIRED",
+          "authenticator": "auth-cookie",
+          "requirement": "ALTERNATIVE",
           "priority": 10,
+          "authenticatorFlow": false,
+          "autheticatorFlow": false,
+          "userSetupAllowed": false
+        },
+        {
+          "flowAlias": "browser-loa niveles",
+          "requirement": "ALTERNATIVE",
+          "priority": 20,
           "authenticatorFlow": true,
           "autheticatorFlow": true,
           "userSetupAllowed": false

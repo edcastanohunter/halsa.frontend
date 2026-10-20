@@ -61,9 +61,10 @@ async function codigoOtp(secreto: string): Promise<string> {
   return generate({ secret: secreto });
 }
 
-/** Completes the OTP page in the step-up popup the click opens. */
-// The backend's `browser-loa` flow has no Cookie step, so the step-up asks for the password again
-// before the OTP (gap reported in the M3 report).
+/**
+ * Completes the step-up popup the click opens. The Keycloak session already meets level 1, so the
+ * Cookie step (G17) leaves only the OTP page.
+ */
 async function verificarEnPopup(
   context: BrowserContext,
   page: Page,
@@ -72,9 +73,7 @@ async function verificarEnPopup(
 ) {
   const [popup] = await Promise.all([context.waitForEvent('page'), clic()]);
   await popup.waitForURL((url) => url.href.startsWith(KEYCLOAK));
-  await popup.locator('#username').fill(usuario.username);
-  await popup.locator('#password').fill('dev');
-  await popup.locator('#kc-login').click();
+  await expect(popup.locator('#password')).toHaveCount(0);
   await popup.locator('#otp').fill(await codigoOtp(usuario.otp));
   await Promise.all([
     popup.waitForEvent('close'),

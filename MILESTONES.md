@@ -125,7 +125,7 @@
 - **Notas de implementación:**
   - `projects/backoffice/src/app/`: `core/auth` (OIDC, claims, retorno, callback), `core/sesion` (`SesionService`), `core/permisos` (servicio, guards, `*halsaSiPuede`, etiquetas), `core/step-up` (servicio, compuerta, diálogo), `core/http/step-up.interceptor.ts`, `shell/` (layout, navegación, páginas 403/404/sin acceso), `features/inicio`, `features/cuenta`.
   - Validado con el Keycloak de Podman + API mock (el Keycloak del backend no estaba disponible). `playwright.config.ts` sirve el backoffice en modo mock salvo con `HALSA_E2E_REAL=1`.
-  - Gaps nuevos: G16 (el realm no define el scope `basic`: tokens sin `sub` ni `auth_time`; `kc:sync` lo agrega solo en local) y G17 (`browser-loa` sin paso Cookie: el step-up pide contraseña y código).
+  - Gaps nuevos: G16 (el realm no define el scope `basic`: tokens sin `sub` ni `auth_time`; `kc:sync` lo agrega solo en local) y G17 (`browser-loa` sin paso Cookie: el step-up pedía contraseña y código). Los dos se aplican a los realms mock como en prod desde `kc:sync`; el cambio para el backend está en `docs/backend/realm-g16-g17.md`.
   - Secciones de M4+ (casos, plazos, solicitudes, auditoría) responden con su guard y una página "disponible pronto".
 
 ---
