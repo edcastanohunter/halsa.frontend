@@ -1,6 +1,7 @@
 import { expect, type Page, test, type TestInfo } from '@playwright/test';
 import {
   capturar as capturarEn,
+  cargarDiferidos,
   esEscritorio,
   ingresar,
   sinViolacionesGraves,
@@ -164,6 +165,7 @@ test.describe('analista.arla (plan §11)', () => {
 
   test('inicio shows the case widgets', async ({ page }) => {
     await ingresar(page, 'analista.arla');
+    await cargarDiferidos(page);
     const porEstado = page.getByTestId('casos-por-estado');
     await expect(porEstado.getByRole('link', { name: 'Radicado: 1' })).toBeVisible();
     await expect(porEstado.getByRole('link', { name: 'Validado: 5' })).toBeVisible();
@@ -246,6 +248,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
 
     test('analista: inicio with the case widgets', async ({ page }, testInfo) => {
       await ingresar(page, 'analista.arla');
+      await cargarDiferidos(page);
       await expect(page.getByTestId('casos-recientes').getByRole('link')).toHaveCount(5);
       await expect(page.getByTestId('casos-por-estado')).toContainText('5');
       await capturar(page, testInfo, `inicio-${colorScheme}`);

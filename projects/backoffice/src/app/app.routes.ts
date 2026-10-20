@@ -50,7 +50,11 @@ export const routes: Routes = [
         canActivate: [requierePermiso('casos:read')],
         loadChildren: () => import('./features/casos/casos.routes').then((m) => m.CASOS_ROUTES),
       },
-      seccionPendiente('plazos', 'Plazos', 'plazos:read'),
+      {
+        path: 'plazos',
+        canActivate: [requierePermiso('plazos:read')],
+        loadChildren: () => import('./features/plazos/plazos.routes').then((m) => m.PLAZOS_ROUTES),
+      },
       seccionPendiente(
         'solicitudes-copia-hc',
         'Solicitudes de copia HC',

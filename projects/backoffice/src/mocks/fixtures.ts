@@ -214,6 +214,8 @@ export function crearDatosBackoffice(ahora: number = Date.now()): DatosBackoffic
       regla: 'REPORTE_FURAT',
       estado: 'CUMPLIDO',
       extemporaneo: true,
+      iniciaEn: iso(-75 * DIA),
+      alertaEn: iso(-62 * DIA),
       venceEn: iso(-60 * DIA),
       cumplidoEn: iso(-58 * DIA),
     }),

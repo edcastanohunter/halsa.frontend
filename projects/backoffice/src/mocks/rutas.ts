@@ -315,9 +315,19 @@ export function crearRutasBackoffice(
           if (!plazo) return noEncontrado('Plazo.NoEncontrado', 'El plazo no existe.');
           const body = await cuerpoJson<CumplirPlazoRequest>(p.req);
           if (!textoEntre(body?.nota, 10, 1000)) {
+            // Like CumplirPlazoCommandValidator: FluentValidation codes in `errors`.
+            const larga = String(body?.nota ?? '').length > 1000;
             return problema(400, 'General.Validation', 'Uno o más datos no son válidos.', {
               errors: [
-                { code: 'nota', description: 'La nota debe tener entre 10 y 1000 caracteres.' },
+                larga
+                  ? {
+                      code: 'Plazo.NotaDemasiadoLarga',
+                      description: 'Admite como máximo 1000 caracteres.',
+                    }
+                  : {
+                      code: 'Plazo.NotaRequerida',
+                      description: 'Debe tener al menos 10 caracteres.',
+                    },
               ],
             });
           }

@@ -1,6 +1,7 @@
 import { expect, type Page, test, type TestInfo } from '@playwright/test';
 import {
   capturar as capturarEn,
+  cargarDiferidos,
   esEscritorio,
   ingresar,
   KEYCLOAK,
@@ -97,7 +98,9 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await expect(
         page.getByRole('heading', { level: 1, name: 'Hola, Analista ARL-A' }),
       ).toBeVisible();
-      // The case widgets (M4) load on their own; capture them with data, not skeletons.
+      // The widgets load on their own when scrolled into view; capture them with data.
+      await cargarDiferidos(page);
+      await expect(page.getByTestId('plazos-por-vencer').getByRole('link')).toHaveCount(2);
       await expect(page.getByTestId('casos-recientes').getByRole('link')).toHaveCount(5);
       await expect(page.getByTestId('casos-por-estado')).toContainText('5');
       await capturar(page, testInfo, `inicio-analista-${colorScheme}`);

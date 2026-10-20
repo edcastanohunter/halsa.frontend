@@ -8,11 +8,18 @@ import { SesionService } from '../../core/sesion/sesion.service';
 import { ICONOS_NAVEGACION, NAVEGACION } from '../../shell/navegacion';
 import { WidgetCasosPorEstado } from './widgets/casos-por-estado.widget';
 import { WidgetCasosRecientes } from './widgets/casos-recientes.widget';
+import { WidgetPlazosPorVencer } from './widgets/plazos-por-vencer.widget';
+import { WidgetPlazosVencidos } from './widgets/plazos-vencidos.widget';
 
-type IdWidget = 'casos-por-estado' | 'casos-recientes';
+type IdWidget = 'plazos-por-vencer' | 'plazos-vencidos' | 'casos-por-estado' | 'casos-recientes';
 
-/** Plan §7.2: every widget declares its permission; plazos (M5) and privacidad (M9) follow. */
+/**
+ * Plan §7.2: every widget declares its permission, deadlines first (they're time-bound);
+ * privacidad's arrive in M9.
+ */
 const WIDGETS: readonly (ConPermiso & { id: IdWidget })[] = [
+  { id: 'plazos-por-vencer', permiso: 'plazos:read' },
+  { id: 'plazos-vencidos', permiso: 'plazos:read' },
   { id: 'casos-por-estado', permiso: 'casos:read' },
   { id: 'casos-recientes', permiso: 'casos:read' },
 ];
@@ -23,7 +30,15 @@ const WIDGETS: readonly (ConPermiso & { id: IdWidget })[] = [
  */
 @Component({
   selector: 'app-inicio',
-  imports: [RouterLink, NgIcon, HlmSkeletonImports, WidgetCasosPorEstado, WidgetCasosRecientes],
+  imports: [
+    RouterLink,
+    NgIcon,
+    HlmSkeletonImports,
+    WidgetCasosPorEstado,
+    WidgetCasosRecientes,
+    WidgetPlazosPorVencer,
+    WidgetPlazosVencidos,
+  ],
   providers: [provideIcons({ ...ICONOS_NAVEGACION, lucideChevronRight })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -37,6 +52,20 @@ const WIDGETS: readonly (ConPermiso & { id: IdWidget })[] = [
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           @for (w of widgets(); track w.id) {
             @switch (w.id) {
+              @case ('plazos-por-vencer') {
+                @defer (on viewport) {
+                  <app-widget-plazos-por-vencer class="xl:col-span-2" />
+                } @placeholder {
+                  <hlm-skeleton class="block h-56 rounded-xl xl:col-span-2" />
+                }
+              }
+              @case ('plazos-vencidos') {
+                @defer (on viewport) {
+                  <app-widget-plazos-vencidos />
+                } @placeholder {
+                  <hlm-skeleton class="block h-56 rounded-xl" />
+                }
+              }
               @case ('casos-por-estado') {
                 @defer (on viewport) {
                   <app-widget-casos-por-estado />

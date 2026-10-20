@@ -1,0 +1,318 @@
+<div class="space-y-5">
+  <header class="flex items-start justify-between gap-3">
+    <div class="min-w-0 space-y-1">
+      <h1 class="text-2xl font-semibold tracking-tight">Plazos</h1>
+      <p class="text-muted-foreground text-sm" aria-live="polite">
+        @if (fase() === 'listo') {
+          {{ resumenTotal() }}
+        } @else {
+          &nbsp;
+        }
+      </p>
+    </div>
+    <button
+      hlmBtn
+      variant="outline"
+      size="icon"
+      type="button"
+      aria-label="Actualizar"
+      [disabled]="fase() === 'cargando'"
+      (click)="recargar()"
+    >
+      <ng-icon name="lucideRotateCw" aria-hidden="true" />
+    </button>
+  </header>
+
+  <section aria-label="Filtros" class="grid gap-3 sm:grid-cols-3">
+    <hlm-field>
+      <label hlmFieldLabel for="filtro-estado">Estado</label>
+      <hlm-select
+        [value]="filtroEstado() ?? todos"
+        [itemToString]="etiquetaFiltroEstado"
+        (valueChange)="filtrarEstado($any($event))"
+      >
+        <hlm-select-trigger buttonId="filtro-estado" class="w-full">
+          <hlm-select-value />
+        </hlm-select-trigger>
+        <hlm-select-content *hlmSelectPortal>
+          @for (e of estados; track e) {
+            <hlm-select-item [value]="e">{{ etiquetaEstado(e) }}</hlm-select-item>
+          }
+          <hlm-select-item [value]="todos">Todos los estados</hlm-select-item>
+        </hlm-select-content>
+      </hlm-select>
+    </hlm-field>
+    <hlm-field>
+      <label hlmFieldLabel for="filtro-regla">Regla</label>
+      <hlm-select
+        [value]="filtroRegla() ?? todos"
+        [itemToString]="etiquetaFiltroRegla"
+        (valueChange)="filtrarRegla($any($event))"
+      >
+        <hlm-select-trigger buttonId="filtro-regla" class="w-full">
+          <hlm-select-value />
+        </hlm-select-trigger>
+        <hlm-select-content *hlmSelectPortal>
+          <hlm-select-item [value]="todos">Todas las reglas</hlm-select-item>
+          @for (r of reglas; track r) {
+            <hlm-select-item [value]="r">{{ etiquetaRegla(r) }}</hlm-select-item>
+          }
+        </hlm-select-content>
+      </hlm-select>
+    </hlm-field>
+    <hlm-field>
+      <label hlmFieldLabel for="filtro-fecha">Vence antes de</label>
+      <input
+        hlmInput
+        id="filtro-fecha"
+        type="date"
+        [value]="filtroFecha() ?? ''"
+        (change)="filtrarFecha($event)"
+      />
+      <p hlmFieldDescription>Incluye todo ese día (hora de Bogotá).</p>
+    </hlm-field>
+  </section>
+  @if (hayFiltrosExtra()) {
+    <button hlmBtn variant="ghost" size="sm" type="button" (click)="limpiarFiltros()">
+      <ng-icon name="lucideX" aria-hidden="true" />
+      Quitar filtros de regla y fecha
+    </button>
+  }
+
+  @switch (fase()) {
+    @case ('cargando') {
+      <div aria-busy="true" aria-label="Cargando plazos" class="space-y-3">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="bg-card ring-border space-y-3 rounded-xl p-4 ring-1">
+            <div class="flex justify-between gap-2">
+              <hlm-skeleton class="h-5 w-48" />
+              <hlm-skeleton class="h-6 w-28 rounded-full" />
+            </div>
+            <hlm-skeleton class="h-4 w-32" />
+            <hlm-skeleton class="h-4 w-2/3" />
+          </div>
+        }
+      </div>
+    }
+    @case ('error') {
+      <halsa-estado-error
+        [titulo]="error()?.titulo ?? 'No pudimos cargar los plazos'"
+        [mensaje]="error()?.mensaje"
+        [traza]="error()?.traza ?? undefined"
+        (reintentar)="recargar()"
+      />
+    }
+    @default {
+      @if (!items().length) {
+        <halsa-estado-vacio
+          icono="lucideCalendarClock"
+          titulo="No hay plazos con estos filtros"
+          descripcion="Cambia el estado, la regla o la fecha para ver otros plazos."
+        />
+      } @else {
+        <!-- Mobile: grouped cards (plan §7.8). -->
+        <div class="space-y-6 md:hidden" data-testid="plazos-movil">
+          @if (grupos(); as gs) {
+            @for (g of gs; track g.id) {
+              <section [attr.aria-labelledby]="'grupo-' + g.id" class="space-y-3">
+                <h2
+                  [id]="'grupo-' + g.id"
+                  class="text-muted-foreground flex items-center justify-between text-sm font-semibold"
+                >
+                  {{ g.titulo }}
+                  <span class="tabular-nums">{{ g.plazos.length }}</span>
+                </h2>
+                <ul class="space-y-3">
+                  @for (p of g.plazos; track p.id) {
+                    <li class="bg-card ring-border rounded-xl p-4 ring-1">
+                      <app-tarjeta-plazo
+                        [plazo]="p"
+                        [enlaceCaso]="enlaceCaso()"
+                        [puedeCumplir]="cumplible(p)"
+                        (cumplir)="enCumplimiento.set($event)"
+                      />
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+          } @else {
+            <ul class="space-y-3">
+              @for (p of ordenados(); track p.id) {
+                <li class="bg-card ring-border rounded-xl p-4 ring-1">
+                  <app-tarjeta-plazo
+                    [plazo]="p"
+                    [enlaceCaso]="enlaceCaso()"
+                    [puedeCumplir]="cumplible(p)"
+                    (cumplir)="enCumplimiento.set($event)"
+                  />
+                </li>
+              }
+            </ul>
+          }
+          @if (ultima()?.hasNextPage) {
+            <button
+              hlmBtn
+              variant="outline"
+              class="w-full"
+              type="button"
+              [disabled]="cargandoMas()"
+              (click)="cargarMas()"
+            >
+              @if (cargandoMas()) {
+                <hlm-spinner class="size-4" aria-hidden="true" />
+                Cargando…
+              } @else {
+                Cargar más
+              }
+            </button>
+          }
+        </div>
+
+        <!-- Desktop table -->
+        <div class="bg-card ring-border hidden rounded-xl ring-1 md:block">
+          <div hlmTableContainer>
+            <table hlmTable>
+              <caption class="sr-only">
+                Plazos
+              </caption>
+              <thead hlmTHead>
+                <tr hlmTr>
+                  <th hlmTh scope="col">Caso</th>
+                  <th hlmTh scope="col">Regla</th>
+                  <th
+                    hlmTh
+                    scope="col"
+                    [attr.aria-sort]="ascendente() ? 'ascending' : 'descending'"
+                  >
+                    <button
+                      type="button"
+                      class="hover:text-foreground focus-visible:ring-ring -mx-1 inline-flex items-center gap-1 rounded px-1 outline-none focus-visible:ring-2"
+                      (click)="ascendente.set(!ascendente())"
+                    >
+                      Vence
+                      <ng-icon
+                        [name]="ascendente() ? 'lucideArrowUp' : 'lucideArrowDown'"
+                        aria-hidden="true"
+                      />
+                      <span class="sr-only">{{
+                        ascendente() ? '(más próximos primero)' : '(más lejanos primero)'
+                      }}</span>
+                    </button>
+                  </th>
+                  <th hlmTh scope="col">Estado</th>
+                  <th hlmTh scope="col"><span class="sr-only">Acciones</span></th>
+                </tr>
+              </thead>
+              <tbody hlmTBody>
+                @for (p of ordenados(); track p.id) {
+                  <tr hlmTr>
+                    <td hlmTd>
+                      @if (enlaceCaso()) {
+                        <a
+                          class="text-primary font-mono text-sm font-medium underline-offset-4 hover:underline"
+                          [routerLink]="['/casos', p.casoId, 'plazos']"
+                          >{{ p.radicado }}</a
+                        >
+                      } @else {
+                        <span class="font-mono text-sm">{{ p.radicado }}</span>
+                      }
+                    </td>
+                    <td hlmTd class="whitespace-normal">
+                      <span
+                        class="decoration-muted-foreground/50 underline decoration-dotted underline-offset-4"
+                        [hlmTooltip]="p.baseLegal"
+                        tabindex="0"
+                        [attr.aria-label]="etiquetaRegla(p.regla) + '. Base legal: ' + p.baseLegal"
+                        >{{ etiquetaRegla(p.regla) }}</span
+                      >
+                    </td>
+                    <td hlmTd>
+                      <halsa-fecha-bogota [valor]="p.venceEn" />
+                      <span class="text-muted-foreground block text-xs">
+                        <halsa-fecha-relativa [valor]="p.venceEn" />
+                      </span>
+                    </td>
+                    <td hlmTd>
+                      <halsa-semaforo-plazo
+                        [estado]="p.estado"
+                        [venceEn]="p.venceEn"
+                        [alertaEn]="p.alertaEn"
+                        [extemporaneo]="p.extemporaneo"
+                      />
+                    </td>
+                    <td hlmTd class="text-end">
+                      @if (cumplible(p)) {
+                        <button
+                          hlmBtn
+                          variant="ghost"
+                          size="sm"
+                          type="button"
+                          [attr.aria-label]="
+                            'Cumplir: ' + etiquetaRegla(p.regla) + ', ' + p.radicado
+                          "
+                          (click)="enCumplimiento.set(p)"
+                        >
+                          <ng-icon name="lucideCircleCheck" aria-hidden="true" />
+                          Cumplir
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        @if (totalPaginas() > 1) {
+          <nav hlmPagination class="hidden md:flex" aria-label="Paginación de plazos">
+            <ul hlmPaginationContent>
+              @if (pagina() > 1) {
+                <li hlmPaginationItem>
+                  <hlm-pagination-previous
+                    link="."
+                    [queryParams]="{ page: pagina() - 1 }"
+                    queryParamsHandling="merge"
+                  />
+                </li>
+              }
+              @for (entrada of entradasPaginacion(); track $index) {
+                <li hlmPaginationItem>
+                  @if (entrada === 'hueco') {
+                    <hlm-pagination-ellipsis />
+                  } @else {
+                    <a
+                      hlmPaginationLink
+                      link="."
+                      [queryParams]="{ page: entrada }"
+                      queryParamsHandling="merge"
+                      [isActive]="entrada === pagina()"
+                      [attr.aria-label]="'Página ' + entrada"
+                      >{{ entrada }}</a
+                    >
+                  }
+                </li>
+              }
+              @if (pagina() < totalPaginas()) {
+                <li hlmPaginationItem>
+                  <hlm-pagination-next
+                    link="."
+                    [queryParams]="{ page: pagina() + 1 }"
+                    queryParamsHandling="merge"
+                  />
+                </li>
+              }
+            </ul>
+          </nav>
+        }
+      }
+    }
+  }
+</div>
+
+<app-dialogo-cumplir-plazo
+  [plazo]="enCumplimiento()"
+  (cumplido)="alCumplir()"
+  (cerrado)="enCumplimiento.set(null)"
+/>

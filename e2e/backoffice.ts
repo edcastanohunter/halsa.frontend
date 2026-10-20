@@ -94,6 +94,21 @@ export async function capturar(
   });
 }
 
+/**
+ * Scrolls down in steps so every `@defer (on viewport)` block below the fold loads (a jump to the
+ * bottom could skip the ones in between), then back to the top.
+ */
+export async function cargarDiferidos(page: Page) {
+  await page.evaluate(async () => {
+    const paso = Math.round(window.innerHeight * 0.6);
+    for (let y = 0; y < document.documentElement.scrollHeight; y += paso) {
+      window.scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 120));
+    }
+    window.scrollTo(0, 0);
+  });
+}
+
 export async function sinViolacionesGraves(page: Page) {
   const axe = await new AxeBuilder({ page }).analyze();
   const graves = axe.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');

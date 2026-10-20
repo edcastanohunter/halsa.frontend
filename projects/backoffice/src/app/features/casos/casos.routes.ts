@@ -45,7 +45,10 @@ export const CASOS_ROUTES: Routes = [
         ...pestana('equipo', 'casos:read', 'Equipo'),
         loadComponent: () => import('./pages/equipo.page').then((m) => m.EquipoPage),
       },
-      pestanaPendiente('plazos'),
+      {
+        ...pestana('plazos', 'plazos:read', 'Plazos'),
+        loadComponent: () => import('./pages/plazos.page').then((m) => m.PlazosCasoPage),
+      },
       pestanaPendiente('incapacidades'),
       pestanaPendiente('historia-clinica'),
       pestanaPendiente('dictamen-pcl'),

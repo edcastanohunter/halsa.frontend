@@ -1,6 +1,6 @@
 # Halsa Frontend — Plan de Hitos y Seguimiento de Implementación
 
-> **Estado general:** M4 completado (2026-10-19); siguiente: M5  
+> **Estado general:** M5 completado (2026-10-19); siguiente: M6  
 > **Fecha de inicio:** 2026-10-17  
 > **Tipografía UI:** Plus Jakarta Sans (`@fontsource/plus-jakarta-sans`)  
 > **Monospace:** JetBrains Mono (`@fontsource/jetbrains-mono`)  
@@ -16,7 +16,7 @@
 - [x] **M2: Core Plumbing (HTTP, Errores, Fechas, i18n, Mock Adapter)**
 - [x] **M3: Backoffice Shell e Identidad (OIDC, Permisos, Layout Responsivo)**
 - [x] **M4: Casos (Flujo Administrativo, Resumen, Equipo, Activación Paciente)**
-- [ ] **M5: Plazos (Tablero de Vencimientos y Workflow de Cumplimiento)**
+- [x] **M5: Plazos (Tablero de Vencimientos y Workflow de Cumplimiento)**
 - [ ] **M6: Clínico 🔒 (Historia Clínica y Acceso de Emergencia "Break-the-Glass")**
 - [ ] **M7: Incapacidades (Listado, Barra Acumulada, Carga Multipart con Soporte PDF)**
 - [ ] **M8: Dictamen PCL 🔒 (Dictamen, Notificación y Ventana de 15 Minutos)**
@@ -152,7 +152,7 @@
 
 ---
 
-### [ ] M5: Plazos (Tablero y Workflow)
+### [x] M5: Plazos (Tablero y Workflow)
 - **Alcance:**
   - Tablero central de plazos `/plazos` con filtros de estado y reglas legales.
   - Agrupación visual en móvil (Vencidos, Hoy, Esta semana, Próximos) y tabla ordenable en escritorio.
@@ -162,6 +162,15 @@
 - **Criterios de Aceptación:**
   - Sincronización bidireccional de filtros con la URL.
   - Mapeo adecuado de estados y alertas de extemporaneidad.
+- **Notas de implementación:**
+  - `features/plazos/`: tablero `/plazos` con filtros `estado` (por defecto `ABIERTO`; `?estado=todos` para todos), `regla` y `venceAntesDe` (fecha calendario = hasta el fin de ese día en Bogotá) en la URL. Móvil: tarjetas agrupadas en Vencidos / Hoy / Esta semana / Más adelante (día calendario de Bogotá); escritorio: tabla ordenable por `venceEn` (`aria-sort`).
+  - Pestaña Plazos del caso (`features/casos/pages/plazos.page.ts`): línea de tiempo por `venceEn` con el semáforo como punto.
+  - `shared/plazos/`: `PlazosApi`, `DialogoCumplirPlazo` (hoja inferior en móvil, lateral en escritorio; nota 10–1000 con contador, `cumplidoEn` opcional como `datetime-local` en hora de Bogotá), `TarjetaPlazo` y `agruparPlazos`. Los usan el tablero, la pestaña del caso y `/inicio`.
+  - `/inicio`: widgets "Plazos por vencer (7 días)" y "Plazos vencidos".
+  - `@halsa/core`: `bogotaLocalAIso`, `aBogotaLocal` y `finDelDiaBogota` (Colombia es UTC−5 fijo, sin horario de verano).
+  - "Cumplir" se ofrece para `ABIERTO` **y `VENCIDO`**: el backend (`Plazo.Cumplir`) admite ambos; el plan decía solo `ABIERTO`. Errores mapeados: `Plazo.NotaRequerida`/`Plazo.NotaDemasiadoLarga` bajo la nota, `Plazo.CumplidoEnFuturo` bajo la fecha, `Plazo.NoCumplible` y el resto dentro de la hoja.
+  - Fecha "Vence antes de": `<input type="date">` nativo (el calendario de Spartan no se generó): accesible y con el selector del sistema en móvil.
+  - Evidencia: `e2e/plazos.spec.ts` (URL ↔ filtros incluido "Atrás", orden, cumplir desde el tablero y desde el caso, widgets, calificador sin `plazos:write`), capturas en `docs/reportes/m5/`. `cargarDiferidos()` en `e2e/backoffice.ts` hace scroll para que carguen los widgets `@defer (on viewport)`.
 
 ---
 

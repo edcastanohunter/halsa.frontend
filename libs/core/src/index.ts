@@ -3,6 +3,7 @@ export * from './errors/manejador-errores';
 export * from './file/validar-pdf';
 export * from './format/date-format';
 export * from './format/fecha-calendario';
+export * from './format/hora-bogota';
 export * from './format/locale';
 export * from './format/number-format';
 export * from './http/interceptores';

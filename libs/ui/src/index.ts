@@ -23,6 +23,7 @@ export * from './lib/semaforo-plazo/semaforo-plazo';
 export * from './lib/subida-pdf/subida-pdf';
 export * from './lib/tema/tema.service';
 export * from './lib/utils/ahora';
+export * from './lib/utils/media';
 export * from './lib/utils/portapapeles';
 export * from './lib/utils/tono';
 export * from './lib/verificacion-reforzada/verificacion-reforzada';
