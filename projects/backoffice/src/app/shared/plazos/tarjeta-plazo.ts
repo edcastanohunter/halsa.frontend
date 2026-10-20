@@ -44,7 +44,10 @@ import { lucideCircleCheck } from '@ng-icons/lucide';
           <p class="font-mono text-sm font-medium">{{ p.radicado }}</p>
         }
       }
-      <dl class="text-muted-foreground grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:text-sm">
+      <!-- One column on phones: a date never wraps, so the card keeps its height. -->
+      <dl
+        class="text-muted-foreground grid gap-x-4 gap-y-1 text-xs sm:grid-cols-2 sm:text-sm [&_dd]:whitespace-nowrap"
+      >
         <div>
           <dt>Inicia</dt>
           <dd class="text-foreground"><halsa-fecha-bogota [valor]="p.iniciaEn" /></dd>

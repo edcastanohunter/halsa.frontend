@@ -29,6 +29,8 @@ import { CasoMock, DatosBackoffice, SUB } from './fixtures';
 
 /** Dictamen PCL policy: `acr=2` and `auth_time` within 15 minutes (plan §5.1.4). */
 const MAX_AGE_DICTAMEN_SEG = 900;
+/** Tolerance of `atendidoEn` before the event (backend `ToleranciaFechaEvento`). */
+const DIA_MS = 86_400_000;
 
 const PERMISOS_ANALISTA = [
   'casos:read',
@@ -543,7 +545,30 @@ export function crearRutasBackoffice(
             return problema(
               400,
               'Clinico.AtendidoEnFuturo',
-              'La fecha de atención no puede ser futura.',
+              'El momento de la atención no puede ser futuro.',
+            );
+          }
+          // Backend `RegistroClinicoEscritura.AdmiteRegistro` and the token's professional identity.
+          if (!a.claims['rethus'] || !a.claims['tipo_documento'] || !a.claims['numero_documento']) {
+            return problema(
+              403,
+              'Clinico.ProfesionalSinRegistro',
+              'El token no trae la identidad del profesional (rethus, tipo_documento y numero_documento).',
+            );
+          }
+          const estado = c.detalle.resumen.estado;
+          if (estado === 'Rechazado' || estado === 'Cerrado') {
+            return problema(
+              409,
+              'Clinico.CasoNoAdmiteRegistros',
+              'El caso está rechazado o cerrado y no admite registros clínicos nuevos.',
+            );
+          }
+          if (Date.parse(body.atendidoEn) < Date.parse(c.detalle.resumen.fechaEvento) - DIA_MS) {
+            return problema(
+              400,
+              'Clinico.FechaAtencionAnteriorAlEvento',
+              'El momento de la atención es anterior a la fecha del evento del caso.',
             );
           }
           const registradoEn = iso();

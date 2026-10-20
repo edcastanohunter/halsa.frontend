@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import { LoadChildrenCallback, Routes } from '@angular/router';
 import { Permiso } from '../../core/permisos/permisos';
 import { PESTANAS_CASO, requierePestana } from './pestanas';
 
@@ -25,8 +25,20 @@ function pestana(ruta: string, permiso: Permiso, titulo: string) {
   return { path: ruta, title: `${titulo} · Caso · Halsa`, canActivate: [requierePestana(permiso)] };
 }
 
+/** Tabs owned by other features, wired by the app routes (features never import each other). */
+export interface PestanasExternas {
+  historiaClinica?: LoadChildrenCallback;
+}
+
+/** A tab owned by another feature, or its "disponible pronto" page when not wired. */
+function pestanaExterna(ruta: string, cargar: LoadChildrenCallback | undefined) {
+  if (!cargar) return pestanaPendiente(ruta);
+  const p = PESTANAS_CASO.find((x) => x.ruta === ruta)!;
+  return { path: ruta, canActivate: [requierePestana(p.permiso)], loadChildren: cargar };
+}
+
 // Plan §6.2. The parent route already requires `casos:read`.
-export const CASOS_ROUTES: Routes = [
+export const crearRutasCasos = (externas: PestanasExternas = {}): Routes => [
   {
     path: '',
     title: 'Casos · Halsa',
@@ -50,7 +62,7 @@ export const CASOS_ROUTES: Routes = [
         loadComponent: () => import('./pages/plazos.page').then((m) => m.PlazosCasoPage),
       },
       pestanaPendiente('incapacidades'),
-      pestanaPendiente('historia-clinica'),
+      pestanaExterna('historia-clinica', externas.historiaClinica),
       pestanaPendiente('dictamen-pcl'),
       {
         ...pestana('portal-paciente', 'pacientes:activar', 'Portal paciente'),

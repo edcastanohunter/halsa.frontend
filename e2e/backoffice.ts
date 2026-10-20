@@ -7,6 +7,9 @@ import {
   test,
   type TestInfo,
 } from '@playwright/test';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { generate } from 'otplib';
 
 // Shared helpers of the backoffice specs: real Keycloak login (Podman, `npm run kc:up`), OTP
@@ -36,15 +39,55 @@ export async function ingresar(page: Page, username: string, destino = '/inicio'
 }
 
 // Keycloak rejects a TOTP code that was already used, so each secret gets a fresh 30 s window.
-const ultimaVentana = new Map<string, number>();
-export async function codigoOtp(secreto: string): Promise<string> {
-  let ventana = Math.floor(Date.now() / 30_000);
-  if (ultimaVentana.get(secreto) === ventana) {
-    await new Promise((r) => setTimeout(r, 30_000 - (Date.now() % 30_000) + 250));
-    ventana = Math.floor(Date.now() / 30_000);
+// Workers run in parallel processes: the last window per secret lives in a file, guarded by a
+// lock file created with `wx` (fails if it exists). Windows can answer EPERM/EBUSY while another
+// worker deletes it, so every lock operation retries.
+const DIR_OTP = path.join(os.tmpdir(), 'halsa-e2e-otp');
+
+async function conCandado<T>(nombre: string, hacer: () => Promise<T>): Promise<T> {
+  fs.mkdirSync(DIR_OTP, { recursive: true });
+  const candado = path.join(DIR_OTP, `${nombre}.lock`);
+  for (;;) {
+    try {
+      fs.closeSync(fs.openSync(candado, 'wx'));
+      break;
+    } catch {
+      try {
+        // A lock older than a minute belongs to a crashed worker.
+        const edad = Date.now() - (fs.statSync(candado, { throwIfNoEntry: false })?.mtimeMs ?? 0);
+        if (edad > 60_000) fs.rmSync(candado, { force: true });
+      } catch {
+        // Being deleted by its owner right now: try again.
+      }
+      await new Promise((r) => setTimeout(r, 200));
+    }
   }
-  ultimaVentana.set(secreto, ventana);
-  return generate({ secret: secreto });
+  try {
+    return await hacer();
+  } finally {
+    for (let i = 0; i < 10; i++) {
+      try {
+        fs.rmSync(candado, { force: true });
+        break;
+      } catch {
+        await new Promise((r) => setTimeout(r, 100));
+      }
+    }
+  }
+}
+
+export async function codigoOtp(secreto: string): Promise<string> {
+  return conCandado(secreto, async () => {
+    const archivo = path.join(DIR_OTP, `${secreto}.ventana`);
+    const usada = Number(fs.existsSync(archivo) ? fs.readFileSync(archivo, 'utf8') : -1);
+    let ventana = Math.floor(Date.now() / 30_000);
+    if (usada >= ventana) {
+      await new Promise((r) => setTimeout(r, 30_000 - (Date.now() % 30_000) + 250));
+      ventana = Math.floor(Date.now() / 30_000);
+    }
+    fs.writeFileSync(archivo, String(ventana));
+    return generate({ secret: secreto });
+  });
 }
 
 /**

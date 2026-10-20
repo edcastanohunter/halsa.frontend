@@ -10,7 +10,7 @@ import { CASO, crearDatosBackoffice, crearRutasBackoffice, IPS_DEV, SUB } from '
 import { filtrarPorPermiso } from '../../core/permisos/permisos';
 import { PERSONAS } from '../../testing/personas';
 import { sesionFalsa } from '../../testing/sesion-falsa';
-import { CASOS_ROUTES } from './casos.routes';
+import { crearRutasCasos } from './casos.routes';
 import { PESTANAS_CASO } from './pestanas';
 import { normalizarReps, validarReps, validarSub } from './validacion';
 
@@ -84,7 +84,7 @@ describe('case screens against the mock API', () => {
         ),
         provideRouter(
           [
-            { path: 'casos', children: CASOS_ROUTES },
+            { path: 'casos', children: crearRutasCasos() },
             { path: '**', children: [] },
           ],
           withComponentInputBinding(),

@@ -48,7 +48,14 @@ export const routes: Routes = [
       {
         path: 'casos',
         canActivate: [requierePermiso('casos:read')],
-        loadChildren: () => import('./features/casos/casos.routes').then((m) => m.CASOS_ROUTES),
+        // The case shell hosts tabs of other features; they are composed here, not imported there.
+        loadChildren: () =>
+          import('./features/casos/casos.routes').then((m) =>
+            m.crearRutasCasos({
+              historiaClinica: () =>
+                import('./features/clinico/clinico.routes').then((c) => c.CLINICO_ROUTES),
+            }),
+          ),
       },
       {
         path: 'plazos',

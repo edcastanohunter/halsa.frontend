@@ -1,0 +1,161 @@
+<div class="space-y-5">
+  <a hlmBtn variant="ghost" size="sm" class="-ms-2" routerLink="..">
+    <ng-icon name="lucideArrowLeft" aria-hidden="true" />
+    Historia clínica
+  </a>
+  <h3 class="text-lg font-semibold">
+    {{ esCorreccion() ? 'Corregir registro clínico' : 'Nuevo registro clínico' }}
+  </h3>
+
+  @if (store.emergenciaActiva()) {
+    <p class="bg-muted rounded-lg p-3 text-sm" role="alert">
+      Durante un acceso de emergencia no se pueden crear ni corregir registros.
+    </p>
+  } @else {
+    @switch (fase()) {
+      @case ('cargando-original') {
+        <div class="space-y-3" aria-busy="true" aria-label="Cargando el registro original">
+          <hlm-skeleton class="block h-10 w-72" />
+          <hlm-skeleton class="block h-32" />
+        </div>
+      }
+      @case ('error-original') {
+        <halsa-estado-error
+          titulo="No pudimos cargar el registro a corregir"
+          [mensaje]="errorOriginal()?.mensaje"
+          [traza]="errorOriginal()?.traza ?? undefined"
+          (reintentar)="cargarOriginal(corrige()!)"
+        />
+      }
+      @default {
+        @if (esCorreccion()) {
+          <p class="bg-info/10 flex gap-2 rounded-lg p-3 text-sm" data-testid="aviso-correccion">
+            <ng-icon name="lucideInfo" class="text-info mt-0.5 shrink-0" aria-hidden="true" />
+            Los registros no se modifican: la corrección crea un registro nuevo vinculado al
+            original.
+          </p>
+        }
+
+        <form class="space-y-6" [formGroup]="form" (submit)="guardar($event)" novalidate>
+          @if (errorGeneral(); as e) {
+            <p
+              role="alert"
+              data-error
+              tabindex="-1"
+              class="bg-destructive/10 text-destructive ring-destructive/25 rounded-lg p-3 text-sm ring-1 ring-inset"
+              data-testid="error-general"
+            >
+              {{ e }}
+            </p>
+          }
+
+          <fieldset>
+            <legend class="mb-2 text-sm font-medium">Tipo de registro</legend>
+            <div
+              class="bg-muted inline-flex w-full flex-wrap gap-1 rounded-lg p-1 sm:w-auto"
+              role="radiogroup"
+              aria-label="Tipo de registro"
+            >
+              @for (t of tipos; track t) {
+                <label
+                  class="has-checked:bg-card has-checked:text-foreground has-focus-visible:ring-ring text-muted-foreground flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium has-checked:shadow-xs has-focus-visible:ring-2 sm:flex-none"
+                >
+                  <input type="radio" class="sr-only" formControlName="tipo" [value]="t" />
+                  {{ etiquetaTipo(t) }}
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          <hlm-field class="max-w-xs" [forceInvalid]="!!errorFecha()">
+            <label hlmFieldLabel for="registro-atendido">Fecha y hora de la atención</label>
+            <input
+              hlmInput
+              id="registro-atendido"
+              type="datetime-local"
+              formControlName="atendidoEn"
+              [max]="maximo()"
+              (input)="errorFecha.set(null)"
+            />
+            <p hlmFieldDescription>Hora de Bogotá.</p>
+            <hlm-field-error validator="required">Indica cuándo fue la atención.</hlm-field-error>
+            <hlm-field-error validator="futura">No puede ser una fecha futura.</hlm-field-error>
+            <hlm-field-error validator="invalida">La fecha no es válida.</hlm-field-error>
+            @if (errorFecha(); as e) {
+              <hlm-field-error forceShow data-testid="error-fecha">{{ e }}</hlm-field-error>
+            }
+          </hlm-field>
+
+          <fieldset
+            formGroupName="nota"
+            class="space-y-4"
+            [attr.aria-describedby]="notaInvalida() ? 'error-nota' : null"
+          >
+            <legend class="mb-1 text-sm font-medium">Nota clínica</legend>
+            <p class="text-muted-foreground text-sm">Escribe al menos uno de estos campos.</p>
+            @if (notaInvalida()) {
+              <p
+                id="error-nota"
+                role="alert"
+                class="text-destructive text-sm"
+                data-error
+                tabindex="-1"
+              >
+                {{
+                  errorNota() ??
+                    'Escribe al menos uno: motivo, anamnesis, examen físico, análisis o plan.'
+                }}
+              </p>
+            }
+            @for (campo of campos; track campo) {
+              <hlm-field>
+                <label hlmFieldLabel [for]="'registro-' + campo">{{ etiquetas[campo] }}</label>
+                <textarea
+                  hlmTextarea
+                  class="field-sizing-content min-h-20"
+                  [id]="'registro-' + campo"
+                  [formControlName]="campo"
+                  [attr.maxlength]="textoMax"
+                  (input)="errorNota.set(null)"
+                ></textarea>
+                <p hlmFieldDescription class="text-end tabular-nums">
+                  {{ largos()[campo] }}/{{ textoMax }}
+                </p>
+              </hlm-field>
+            }
+          </fieldset>
+
+          <halsa-editor-diagnosticos-cie10
+            idPrefijo="registro-dx"
+            [diagnosticos]="form.controls.diagnosticos"
+            [error]="errorDiagnosticos()"
+          />
+
+          <hlm-field>
+            <label hlmFieldLabel for="registro-observaciones">Observaciones (opcional)</label>
+            <textarea
+              hlmTextarea
+              class="field-sizing-content min-h-16"
+              id="registro-observaciones"
+              formControlName="observaciones"
+              [attr.maxlength]="textoMax"
+            ></textarea>
+            <p hlmFieldDescription class="text-end tabular-nums">
+              {{ largos()['observaciones'] }}/{{ textoMax }}
+            </p>
+          </hlm-field>
+
+          <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <a hlmBtn variant="outline" routerLink="..">Cancelar</a>
+            <button hlmBtn type="submit" [disabled]="enviando()">
+              @if (enviando()) {
+                <hlm-spinner class="size-4" aria-hidden="true" />
+              }
+              {{ esCorreccion() ? 'Guardar corrección' : 'Guardar registro' }}
+            </button>
+          </div>
+        </form>
+      }
+    }
+  }
+</div>

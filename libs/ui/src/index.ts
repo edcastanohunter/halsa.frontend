@@ -7,6 +7,7 @@ export * from './lib/codigo-una-vez/codigo-una-vez';
 export * from './lib/contador-regresivo/contador-regresivo';
 export * from './lib/dialogo-acceso-emergencia/dialogo-acceso-emergencia';
 export * from './lib/documento-enmascarado/documento-enmascarado';
+export * from './lib/editor-diagnosticos-cie10/editor-diagnosticos-cie10';
 export * from './lib/estado-badge/estado-badge';
 export * from './lib/estado-error/estado-error';
 export * from './lib/estado-vacio/estado-vacio';

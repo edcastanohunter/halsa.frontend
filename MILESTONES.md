@@ -1,6 +1,6 @@
 # Halsa Frontend — Plan de Hitos y Seguimiento de Implementación
 
-> **Estado general:** M5 completado (2026-10-19); siguiente: M6  
+> **Estado general:** M6 completado (2026-10-20); siguiente: M7  
 > **Fecha de inicio:** 2026-10-17  
 > **Tipografía UI:** Plus Jakarta Sans (`@fontsource/plus-jakarta-sans`)  
 > **Monospace:** JetBrains Mono (`@fontsource/jetbrains-mono`)  
@@ -17,7 +17,7 @@
 - [x] **M3: Backoffice Shell e Identidad (OIDC, Permisos, Layout Responsivo)**
 - [x] **M4: Casos (Flujo Administrativo, Resumen, Equipo, Activación Paciente)**
 - [x] **M5: Plazos (Tablero de Vencimientos y Workflow de Cumplimiento)**
-- [ ] **M6: Clínico 🔒 (Historia Clínica y Acceso de Emergencia "Break-the-Glass")**
+- [x] **M6: Clínico 🔒 (Historia Clínica y Acceso de Emergencia "Break-the-Glass")**
 - [ ] **M7: Incapacidades (Listado, Barra Acumulada, Carga Multipart con Soporte PDF)**
 - [ ] **M8: Dictamen PCL 🔒 (Dictamen, Notificación y Ventana de 15 Minutos)**
 - [ ] **M9: Privacidad (Bandeja Solicitudes Copia HC, Auditoría de Accesos, Revisiones de Emergencia)**
@@ -174,7 +174,7 @@
 
 ---
 
-### [ ] M6: Clínico 🔒 (Historia Clínica y Acceso de Emergencia)
+### [x] M6: Clínico 🔒 (Historia Clínica y Acceso de Emergencia)
 - **Alcance:**
   - Aislamiento estricto de datos clínicos: sin persistencia en storage, eliminación al abandonar la ruta, banners de reserva legal (Res. 1995/1999).
   - Listado cronológico de registros clínicos con filtro para ocultar versiones superadas por corrección.
@@ -185,6 +185,17 @@
 - **Criterios de Aceptación:**
   - Flujo E2E de calificador (`calificador.arla`) con elevación OTP.
   - Validación automatizada de vaciado de memoria y storages al salir de la historia clínica.
+- **Notas de implementación:**
+  - `features/clinico/`: `clinico.routes.ts` (lista, `nuevo` con `clinico:write`, `:registroId`), `data-access/clinico-api.service.ts` y `historia-clinica.store.ts` **provistos por la página** (no en `root`): los registros y el motivo de emergencia se descartan al salir de la historia clínica. `formulario.ts` concentra el modelo del formulario, el mapeo a `RegistroClinicoRequest` y el de errores.
+  - La pestaña la monta `app.routes.ts` con `crearRutasCasos({ historiaClinica })`: la composición vive en la raíz y `features/casos` no importa `features/clinico`.
+  - Compuerta antes de todo: el contenido clínico solo se instancia con `acr=2`, así que ninguna petición clínica sale antes del step-up (test unitario).
+  - Acceso de emergencia: el motivo (ASCII, G10) viaja en `Halsa-Motivo-Acceso` solo en las **lecturas** de ese caso y mientras se está en la historia clínica; las escrituras se ocultan con la franja ámbar activa.
+  - "Corregir": cualquier registro vigente salvo `CERTIFICADO_INCAPACIDAD` (nace de la carga del PDF, M7). El backend no exige conservar el tipo, así que un reporte inicial se corrige con un concepto médico.
+  - `@halsa/core`: validador CIE-10 (`PATRON_CIE10`, mismo patrón que el backend). `@halsa/ui`: `EditorDiagnosticosCie10` (reutilizable en M8).
+  - Mock: añade `Clinico.CasoNoAdmiteRegistros`, `Clinico.FechaAtencionAnteriorAlEvento` (1 día de tolerancia) y `Clinico.ProfesionalSinRegistro`, como el backend.
+  - E2E: `e2e/clinico.spec.ts` (step-up OTP real, lista con versiones corregidas, corrección, concepto nuevo con CIE-10, acceso de emergencia con motivo transliterado que se borra al salir, y revisión de `localStorage`/`sessionStorage`/IndexedDB sin datos clínicos). Capturas en `docs/reportes/m6/` (calificador en escritorio, medico.ips en móvil).
+  - El mock es un interceptor dentro de la app, así que Playwright no ve las cabeceras: que toda petición clínica lleve `acr=2` se comprueba porque el mock responde 401 con desafío si no (y en el test unitario de la compuerta), y la cabecera del motivo en un test unitario.
+  - `e2e/backoffice.ts`: el control de ventanas TOTP ahora es entre procesos (archivo de bloqueo), porque los workers en paralelo reutilizaban el mismo código y Keycloak lo rechazaba.
 
 ---
 

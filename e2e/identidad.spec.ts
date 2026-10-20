@@ -147,6 +147,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
 }
 
 test.describe('step-up to acr=2 (plan §5.1.4)', () => {
+  // The OTP helper may wait for a fresh 30 s window another worker's step-up just used.
+  test.describe.configure({ timeout: 120_000 });
   test.beforeEach(({}, testInfo) => {
     // One run per user: a TOTP code can't be used twice.
     test.skip(!esEscritorio(testInfo), 'desktop only');

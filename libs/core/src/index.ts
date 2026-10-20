@@ -12,3 +12,4 @@ export * from './http/problema';
 export * from './i18n/codigos-error';
 export * from './i18n/enums';
 export * from './text/ascii';
+export * from './validation/cie10';
