@@ -1,4 +1,4 @@
-import { parsearFechaCalendario, ZONA_HORARIA } from './fecha-calendario';
+import { fechaCalendarioBogota, parsearFechaCalendario, ZONA_HORARIA } from './fecha-calendario';
 
 const MONTH_NAMES_ES = [
   'ene',
@@ -46,27 +46,30 @@ export function formatFechaLarga(dateOnly: string | null | undefined): string {
   return `${fecha.dia} de ${FULL_MONTH_NAMES_ES[fecha.mes - 1]} de ${fecha.anio}`;
 }
 
+const horaBogota = new Intl.DateTimeFormat('es-CO', {
+  timeZone: ZONA_HORARIA,
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true,
+});
+
 /**
- * Formats an ISO datetime string in America/Bogota time zone.
+ * An ISO datetime in America/Bogota, e.g. "17 oct 2026, 3:45 p. m." (plan §8.5): the day in the
+ * same short style as DateOnly values, and a time that never wraps inside "p. m.".
  */
 export function formatFechaHoraBogota(isoString: string | null | undefined): string {
   if (!isoString) return '';
-  try {
-    const d = new Date(isoString);
-    if (isNaN(d.getTime())) return isoString;
+  const ms = Date.parse(isoString);
+  const dia = fechaCalendarioBogota(ms);
+  if (!dia) return isoString;
+  return `${formatFechaCorta(dia)}, ${horaBogota.format(ms).replace(/\s/g, '\u00a0')}`;
+}
 
-    return new Intl.DateTimeFormat('es-CO', {
-      timeZone: ZONA_HORARIA,
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    }).format(d);
-  } catch {
-    return isoString;
-  }
+/** The calendar day of an ISO datetime in America/Bogota, e.g. "17 oct 2026". */
+export function formatFechaDiaBogota(isoString: string | null | undefined): string {
+  if (!isoString) return '';
+  const dia = fechaCalendarioBogota(isoString);
+  return dia ? formatFechaCorta(dia) : isoString;
 }
 
 /**

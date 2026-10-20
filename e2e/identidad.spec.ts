@@ -1,13 +1,21 @@
-import AxeBuilder from '@axe-core/playwright';
-import { type BrowserContext, expect, type Page, test, type TestInfo } from '@playwright/test';
-import { generate } from 'otplib';
+import { expect, type Page, test, type TestInfo } from '@playwright/test';
+import {
+  capturar as capturarEn,
+  esEscritorio,
+  ingresar,
+  KEYCLOAK,
+  sinViolacionesGraves,
+  soloBackoffice,
+  verificarEnPopup,
+} from './backoffice';
 
 // M3 (plan §6.3, §5.1): backoffice identity and shell against the local Podman Keycloak
 // (`npm run kc:up`) with the mock API (`ng serve backoffice --configuration mock`, started by
 // playwright.config.ts). Real login, real OTP step-up, real tokens; the mock reads their claims.
 // Visual baselines in `e2e/identidad.spec.ts-snapshots/`, report copies in `docs/reportes/m3/`.
 const REPORTE_DIR = 'docs/reportes/m3';
-const KEYCLOAK = 'http://localhost:8180/realms/halsa';
+const capturar = (page: Page, testInfo: TestInfo, nombre: string, completa = true) =>
+  capturarEn(REPORTE_DIR, page, testInfo, nombre, completa);
 
 const USUARIOS = {
   analista: { username: 'analista.arla', sub: '01999000-0000-7000-8000-000000000a01' },
@@ -30,80 +38,7 @@ const MATRIZ: Record<keyof typeof USUARIOS, { barra: string[]; mas: string[]; ch
   coordinadorIps: { barra: ['Inicio', 'Casos'], mas: ['Cuenta'], chip: 'IPS 110011234501' },
 };
 
-const esEscritorio = (testInfo: TestInfo) => testInfo.project.name.endsWith('desktop');
-
-test.beforeEach(({}, testInfo) => {
-  test.skip(!testInfo.project.name.startsWith('backoffice'), 'backoffice only');
-});
-
-/** Keycloak password login from a protected URL; returns once the app shows the shell. */
-async function ingresar(page: Page, username: string, destino = '/inicio') {
-  await page.goto(destino);
-  await page.waitForURL((url) => url.href.startsWith(`${KEYCLOAK}/protocol/openid-connect/auth`));
-  await page.locator('#username').fill(username);
-  await page.locator('#password').fill('dev');
-  await page.locator('#kc-login').click();
-  await page.waitForURL(
-    (url) => url.origin === 'http://localhost:3000' && !url.pathname.startsWith('/auth'),
-  );
-  await expect(page.locator('main#contenido')).toBeVisible();
-}
-
-// Keycloak rejects a TOTP code that was already used, so each secret gets a fresh 30 s window.
-const ultimaVentana = new Map<string, number>();
-async function codigoOtp(secreto: string): Promise<string> {
-  let ventana = Math.floor(Date.now() / 30_000);
-  if (ultimaVentana.get(secreto) === ventana) {
-    await new Promise((r) => setTimeout(r, 30_000 - (Date.now() % 30_000) + 250));
-    ventana = Math.floor(Date.now() / 30_000);
-  }
-  ultimaVentana.set(secreto, ventana);
-  return generate({ secret: secreto });
-}
-
-/**
- * Completes the step-up popup the click opens. The Keycloak session already meets level 1, so the
- * Cookie step (G17) leaves only the OTP page.
- */
-async function verificarEnPopup(
-  context: BrowserContext,
-  page: Page,
-  clic: () => Promise<void>,
-  usuario: { username: string; otp: string },
-) {
-  const [popup] = await Promise.all([context.waitForEvent('page'), clic()]);
-  await popup.waitForURL((url) => url.href.startsWith(KEYCLOAK));
-  await expect(popup.locator('#password')).toHaveCount(0);
-  await popup.locator('#otp').fill(await codigoOtp(usuario.otp));
-  await Promise.all([
-    popup.waitForEvent('close'),
-    popup.getByRole('button', { name: 'Verificar' }).click(),
-  ]);
-  await page.bringToFront();
-}
-
-/** Full page on desktop; the viewport on mobile, where the fixed bottom bar would float mid-page. */
-async function capturar(page: Page, testInfo: TestInfo, nombre: string, completa = true) {
-  const fullPage = completa && esEscritorio(testInfo);
-  await page.evaluate(() => document.fonts.ready);
-  await expect(page).toHaveScreenshot(`${nombre}.png`, { fullPage });
-  const ancho = esEscritorio(testInfo) ? 1440 : 375;
-  await page.screenshot({
-    path: `${REPORTE_DIR}/${nombre}-${ancho}.jpg`,
-    fullPage,
-    type: 'jpeg',
-    quality: 80,
-    animations: 'disabled',
-  });
-}
-
-async function sinViolacionesGraves(page: Page) {
-  const axe = await new AxeBuilder({ page }).analyze();
-  const graves = axe.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
-  expect(
-    graves.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`),
-  ).toEqual([]);
-}
+soloBackoffice();
 
 /** Accessible names: the bottom bar shows short labels but keeps the full one as aria-label. */
 const nombres = (enlaces: ReturnType<Page['getByRole']>) =>
@@ -162,6 +97,9 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await expect(
         page.getByRole('heading', { level: 1, name: 'Hola, Analista ARL-A' }),
       ).toBeVisible();
+      // The case widgets (M4) load on their own; capture them with data, not skeletons.
+      await expect(page.getByTestId('casos-recientes').getByRole('link')).toHaveCount(5);
+      await expect(page.getByTestId('casos-por-estado')).toContainText('5');
       await capturar(page, testInfo, `inicio-analista-${colorScheme}`);
       await sinViolacionesGraves(page);
 

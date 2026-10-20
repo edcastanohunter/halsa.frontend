@@ -3,7 +3,7 @@ import { crearInterceptorMock } from '@halsa/mocks';
 import { crearDatosBackoffice } from './fixtures';
 import { crearRutasBackoffice } from './rutas';
 
-export { CASO, IPS_DEV, SUB, crearDatosBackoffice } from './fixtures';
+export { CASO, CASOS_HISTORICOS, IPS_DEV, SUB, crearDatosBackoffice } from './fixtures';
 export { crearRutasBackoffice } from './rutas';
 
 /** The backoffice API (`/v1`) served from in-memory fixtures. State resets on reload. */

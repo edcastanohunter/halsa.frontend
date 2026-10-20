@@ -168,7 +168,9 @@ export function crearRutasBackoffice(
         const visibles = db.casos
           .filter((c) => casoVisible(a, c))
           .filter((c) => !estado || c.detalle.resumen.estado === estado)
-          .map((c) => c.detalle.resumen);
+          .map((c) => c.detalle.resumen)
+          // The API orders by `RadicadoEn` descending; the event date stands in for it here.
+          .sort((a, b) => b.fechaEvento.localeCompare(a.fechaEvento));
         return ok(paginar(visibles, p.query));
       },
     },

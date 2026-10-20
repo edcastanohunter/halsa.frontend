@@ -1,6 +1,6 @@
 # Halsa Frontend — Plan de Hitos y Seguimiento de Implementación
 
-> **Estado general:** M3 completado (2026-10-19); siguiente: M4  
+> **Estado general:** M4 completado (2026-10-19); siguiente: M5  
 > **Fecha de inicio:** 2026-10-17  
 > **Tipografía UI:** Plus Jakarta Sans (`@fontsource/plus-jakarta-sans`)  
 > **Monospace:** JetBrains Mono (`@fontsource/jetbrains-mono`)  
@@ -15,7 +15,7 @@
 - [x] **M1.5: Keycloak Local (Podman) y Login Theme**
 - [x] **M2: Core Plumbing (HTTP, Errores, Fechas, i18n, Mock Adapter)**
 - [x] **M3: Backoffice Shell e Identidad (OIDC, Permisos, Layout Responsivo)**
-- [ ] **M4: Casos (Flujo Administrativo, Resumen, Equipo, Activación Paciente)**
+- [x] **M4: Casos (Flujo Administrativo, Resumen, Equipo, Activación Paciente)**
 - [ ] **M5: Plazos (Tablero de Vencimientos y Workflow de Cumplimiento)**
 - [ ] **M6: Clínico 🔒 (Historia Clínica y Acceso de Emergencia "Break-the-Glass")**
 - [ ] **M7: Incapacidades (Listado, Barra Acumulada, Carga Multipart con Soporte PDF)**
@@ -130,7 +130,7 @@
 
 ---
 
-### [ ] M4: Casos (Flujo Administrativo)
+### [x] M4: Casos (Flujo Administrativo)
 - **Alcance:**
   - Listado de casos `/casos` con filtros por `estado` sincronizados a la URL (sin caja de búsqueda de texto inexistente).
   - Shell del caso `/casos/:casoId` con tabs filtrados por permisos.
@@ -141,6 +141,14 @@
 - **Criterios de Aceptación:**
   - Flujos E2E de analista completados (asignar calificador, remitir a IPS, generar código de activación).
   - Respuestas 404 neutras para casos fuera del tenant.
+- **Notas de implementación:**
+  - `features/casos/`: `casos.routes.ts`, `pestanas.ts` (pestañas por permiso + guard `requierePestana`, que vuelve al resumen con un aviso), `validacion.ts` (REPS de 12 dígitos, `sub` UUID), `data-access/caso.store.ts` (detalle del caso con alcance de ruta: lo provee el shell del caso), `pages/` (lista, shell, resumen, equipo, portal-paciente). Las pestañas de M5–M8 ya existen con su guard y una página "disponible pronto".
+  - `shared/casos/casos-api.service.ts` (`CasosApi`): compartido porque los widgets de `/inicio` leen el mismo listado y las features no se importan entre sí. `shared/paginacion.ts` y `shared/refresco.ts` (recarga al volver a la pestaña si los datos tienen más de 60 s).
+  - `/inicio`: los widgets se declaran con su `permiso` y cargan con `@defer (on viewport)`; M4 trae "Casos por estado" y "Casos recientes".
+  - `sub` abreviado como `01999000…0a01` (primeros 8 + últimos 4): son UUID v7 ordenados por tiempo y las cuentas creadas a la vez comparten el prefijo (ver G4).
+  - `formatFechaHoraBogota` ahora sigue §8.5 ("17 oct 2026, 3:45 p. m.", sin cortes dentro de "p. m."); nuevo `formatFechaDiaBogota` y `<halsa-fecha-bogota [conHora]="false">` para el día de un datetime.
+  - Mock: 20 casos históricos de ARL_A para paginar, orden "más reciente primero" como la API, y cuerpos JSON clonados en cada respuesta (antes compartía referencias con los fixtures y dejaba `computed` desactualizados).
+  - Evidencia: `e2e/casos.spec.ts` (flujos de analista y coordinador IPS, 404 entre tenants, redirección de pestaña clínica, paginación, widgets; capturas 375/1440 claro/oscuro con axe). Líneas base en `e2e/casos.spec.ts-snapshots/` (fechas enmascaradas: los fixtures son relativos a hoy), capturas del reporte en `docs/reportes/m4/`. Helpers comunes de los specs del backoffice en `e2e/backoffice.ts`.
 
 ---
 
@@ -258,10 +266,12 @@
 | **OBS-1** | Tipografía | Legibilidad e identidad clínica. | **Plus Jakarta Sans** seleccionada como fuente principal de UI; **JetBrains Mono** para radicados y códigos. |
 | **OBS-2** | Podman en Windows | Keycloak local para M1.5. | `podman-machine-default` se iniciará (`podman machine start`) antes de ejecutar scripts `kc:*`. Verificado: los bind mounts relativos funcionan; `podman compose` delega en `docker-compose.exe`. En esta máquina `host.containers.internal` resuelve al router (192.168.1.1), no al host: no depender de él. |
 | **OBS-3** | Generación OpenAPI (M0) | API backend fuera de línea al inicio. | Uso del script alternativo `npm run api:types:yaml` apuntando a `../Halsa.Backend/docs/api/atel-api.openapi.yaml`. |
+| **OBS-5** | Umbral de las líneas base visuales | `maxDiffPixelRatio: 0.01` con el umbral por píxel por defecto deja pasar contenido nuevo en páginas claras grandes (tarjetas blancas sobre fondo casi blanco: solo cuentan los glifos). | Detectado en M4: la línea base de escritorio de `/inicio` (M3) no fallaba con los widgets nuevos. Se regeneraron desde cero las afectadas y los specs esperan los datos antes de capturar. Pendiente para M11: evaluar un umbral más estricto. |
+| **OBS-6** | Presupuesto del portal | El bundle inicial del portal mide 468 kB sin comprimir (presupuesto de aviso de 400 kB en `angular.json`), ya desde antes de M4 (464,5 kB en el commit de M3). Comprimido son 109 kB, dentro del objetivo de 200 kB del plan. | Revisar en M10/M11. |
 | **OBS-4** | Compatibilidad Spartan UI | Soporte sobre Angular 21 zoneless. | Si `@spartan-ng/*` presenta conflicto en v21, se aplicará el fallback documentado en `@angular/cdk` + `cva` + `tailwind-merge`. |
 | **G1** | Falta de CORS en Backend API | Afecta llamadas directas cross-origin. | En desarrollo se usa el proxy local (`proxy.backoffice.json`). Para despliegue se documentan cabeceras requeridas en `deploy/README.md`. |
 | **G3** | Falta de Redirect URI en BFF | Bloquea login local del portal en `:4300`. | Desarrollo inicial del portal (M10) sobre el adaptador mock; posterior validación E2E con BFF tras actualización del realm. |
-| **G4** | Sin directorio de usuarios | Asignaciones usan UUIDs crudos (`sub`). | Se implementa botón "Asignarme", copia de `sub` en Cuenta y presentación abreviada (8 caracteres con tooltip). |
+| **G4** | Sin directorio de usuarios | Asignaciones usan UUIDs crudos (`sub`). | Botón "Asignarme", asignación por identificador, copia de `sub` en Cuenta y presentación abreviada con tooltip. Se muestran los primeros 8 **y los últimos 4** caracteres (`01999000…0a01`): con UUID v7 los primeros 8 se repiten entre cuentas creadas juntas. |
 | **G6** | Sin búsqueda de texto en `/casos` | No existe búsqueda por radicado o cédula. | No se renderiza buscador de texto falso; se filtran casos únicamente por estado. |
 | **G8** | Sin endpoint de exportación | Permiso `auditoria:export` sin backend. | Se oculta el botón de exportación en la pantalla de auditoría. |
 | **G10** | Motivo de emergencia en ASCII | Kestrel rechaza caracteres diacríticos en cabeceras HTTP. | Transliteración automática a ASCII antes del envío (`ñ→n`, acentos removidos) y visualización en vivo del texto resultante. |

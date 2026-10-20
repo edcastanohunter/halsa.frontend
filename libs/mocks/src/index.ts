@@ -220,10 +220,28 @@ function compilar(ruta: RutaMock): RutaCompilada {
   return { ...ruta, patron: new RegExp(`^${fuente}/?$`), nombres };
 }
 
+/**
+ * Like a real response, every JSON body is a fresh object: handlers return fixture references,
+ * and sharing them would let a later mutation leak into data the app already holds.
+ */
+function copiaJson(body: unknown): unknown {
+  const esJson =
+    Array.isArray(body) ||
+    (typeof body === 'object' && body !== null && Object.getPrototypeOf(body) === Object.prototype);
+  return esJson ? structuredClone(body) : body;
+}
+
 function responder(req: HttpRequest<unknown>, r: RespuestaMock): Observable<HttpEvent<unknown>> {
   const headers = new HttpHeaders({ ...CABECERA_ORIGEN_MOCK, ...r.headers });
   if (r.status < 400) {
-    return of(new HttpResponse({ status: r.status, body: r.body ?? null, headers, url: req.url }));
+    return of(
+      new HttpResponse({
+        status: r.status,
+        body: copiaJson(r.body) ?? null,
+        headers,
+        url: req.url,
+      }),
+    );
   }
   return throwError(
     () => new HttpErrorResponse({ status: r.status, error: r.body, headers, url: req.url }),

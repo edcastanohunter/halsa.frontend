@@ -10,7 +10,14 @@ import {
 } from '@halsa/core';
 import { ClaimsMock, crearInterceptorMock } from '@halsa/mocks';
 import { firstValueFrom } from 'rxjs';
-import { CASO, crearDatosBackoffice, crearRutasBackoffice, IPS_DEV, SUB } from '.';
+import {
+  CASO,
+  CASOS_HISTORICOS,
+  crearDatosBackoffice,
+  crearRutasBackoffice,
+  IPS_DEV,
+  SUB,
+} from '.';
 
 const base64Url = (s: string) => btoa(s).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
 const jwt = (claims: ClaimsMock) =>
@@ -87,7 +94,10 @@ describe('backoffice mock adapter (plan §9)', () => {
     const pagina = await firstValueFrom(
       http.get<PagedList<CasoResumenResponse>>('/v1/casos?pageSize=2'),
     );
-    expect(pagina).toMatchObject({ totalCount: 4, totalPages: 2, hasNextPage: true });
+    const total = 4 + CASOS_HISTORICOS;
+    expect(pagina).toMatchObject({ totalCount: total, totalPages: total / 2, hasNextPage: true });
+    // Newest first, like the API (`RadicadoEn` descending).
+    expect(pagina.items.map((c) => c.id)).toEqual([CASO.radicado, CASO.noAsignado]);
     expect(pagina.items.every((c) => c.radicado.includes('ARLA'))).toBe(true);
   });
 

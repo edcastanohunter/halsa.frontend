@@ -90,6 +90,30 @@ function caso(
   };
 }
 
+const ESTADOS_HISTORICO = ['Cerrado', 'EnAtencion', 'Validado', 'Cerrado', 'Rechazado'] as const;
+
+/** Older ARL_A cases with no other data, so the list paginates (page size 20, plan §7.3). */
+function historicoArlA(iso: (deltaMs: number) => string): CasoMock[] {
+  return Array.from({ length: CASOS_HISTORICOS }, (_, i) => {
+    const n = String(i + 1).padStart(3, '0');
+    return caso(
+      `0199a100-0000-7000-8000-000000000${n}`,
+      'ARL_A',
+      `2026-ARLA-000${String(i + 1).padStart(3, '0')}`,
+      {
+        estado: ESTADOS_HISTORICO[i % ESTADOS_HISTORICO.length],
+        tipoEvento: i % 3 === 0 ? 'EnfermedadLaboral' : 'AccidenteTrabajo',
+        trabajadorDocumento: `CC ${String(52_000_000 + i * 7_919)}`,
+      },
+      {},
+      iso(-(220 + i * 9) * DIA),
+    );
+  });
+}
+
+/** How many filler cases `historicoArlA` adds (all ARL_A, older than the scenario cases). */
+export const CASOS_HISTORICOS = 20;
+
 /** A fresh, mutable data set. Timestamps are relative to `ahora` so deadlines stay meaningful. */
 export function crearDatosBackoffice(ahora: number = Date.now()): DatosBackoffice {
   const iso = (deltaMs: number) => new Date(ahora + deltaMs).toISOString();
@@ -137,6 +161,7 @@ export function crearDatosBackoffice(ahora: number = Date.now()): DatosBackoffic
       iso(-10 * DIA),
     ),
     caso(CASO.arlB, 'ARL_B', '2026-ARLB-000201', {}, {}, iso(-3 * DIA)),
+    ...historicoArlA(iso),
   ];
 
   const plazo = (p: Partial<PlazoResponse> & Pick<PlazoResponse, 'id' | 'casoId' | 'regla'>) => {

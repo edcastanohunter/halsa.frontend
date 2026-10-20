@@ -1,0 +1,249 @@
+<div class="grid gap-4 lg:grid-cols-2">
+  <section hlmCard aria-labelledby="t-equipo">
+    <div hlmCardHeader>
+      <h2 hlmCardTitle id="t-equipo">Equipo asignado</h2>
+      <p hlmCardDescription>Profesionales que pueden atender el caso.</p>
+    </div>
+    <div hlmCardContent class="space-y-5">
+      @if (equipo().length) {
+        <ul
+          class="divide-border divide-y"
+          aria-label="Profesionales asignados"
+          data-testid="equipo"
+        >
+          @for (sub of equipo(); track sub) {
+            <li class="flex min-h-12 items-center gap-3 py-2">
+              <span
+                class="bg-muted text-muted-foreground inline-flex size-9 shrink-0 items-center justify-center rounded-full"
+                aria-hidden="true"
+              >
+                <ng-icon name="lucideUsers" />
+              </span>
+              <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+                <code
+                  class="font-mono text-sm"
+                  [hlmTooltip]="sub"
+                  tabindex="0"
+                  [attr.aria-label]="'Identificador ' + sub"
+                  >{{ corto(sub) }}</code
+                >
+                @if (sub === miSub()) {
+                  <span
+                    class="bg-primary/12 text-primary rounded-full px-2 py-0.5 text-xs font-medium"
+                    >Tú</span
+                  >
+                }
+              </div>
+              @if (puedeAsignar()) {
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon"
+                  type="button"
+                  [attr.aria-label]="
+                    'Retirar a ' + (sub === miSub() ? 'ti' : corto(sub)) + ' del caso'
+                  "
+                  [disabled]="!!ocupado()"
+                  (click)="pedirConfirmacion({ tipo: 'desasignar', sub })"
+                >
+                  <ng-icon name="lucideUserMinus" aria-hidden="true" />
+                </button>
+              }
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-muted-foreground text-sm">Nadie está asignado todavía.</p>
+      }
+
+      @if (puedeAsignar()) {
+        <div class="border-border space-y-4 border-t pt-5">
+          @if (!estoyAsignado()) {
+            <button
+              hlmBtn
+              variant="outline"
+              type="button"
+              class="w-full sm:w-auto"
+              [disabled]="!!ocupado()"
+              (click)="asignarme()"
+            >
+              @if (ocupado() === 'asignarme') {
+                <hlm-spinner class="size-4" aria-hidden="true" />
+              } @else {
+                <ng-icon name="lucideUserPlus" aria-hidden="true" />
+              }
+              Asignarme
+            </button>
+          }
+
+          <form class="space-y-3" (submit)="asignarPorIdentificador($event)" novalidate>
+            <hlm-field [forceInvalid]="!!errorSub()">
+              <label hlmFieldLabel for="asignar-sub">Asignar por identificador</label>
+              <input
+                hlmInput
+                id="asignar-sub"
+                [formControl]="sub"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                class="font-mono"
+                placeholder="01999000-0000-7000-8000-000000000000"
+                (input)="errorSub.set(null)"
+              />
+              <p hlmFieldDescription>
+                La persona lo encuentra en «Mi cuenta» como «Tu identificador de usuario».
+              </p>
+              <hlm-field-error validator="required">Escribe el identificador.</hlm-field-error>
+              <hlm-field-error validator="sub"
+                >El identificador tiene el formato
+                01999000-0000-7000-8000-000000000a01.</hlm-field-error
+              >
+              @if (errorSub(); as e) {
+                <hlm-field-error forceShow>{{ e }}</hlm-field-error>
+              }
+            </hlm-field>
+            <button hlmBtn type="submit" class="w-full sm:w-auto" [disabled]="!!ocupado()">
+              @if (ocupado() === 'asignar') {
+                <hlm-spinner class="size-4" aria-hidden="true" />
+              }
+              Asignar
+            </button>
+          </form>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section hlmCard aria-labelledby="t-remisiones">
+    <div hlmCardHeader>
+      <h2 hlmCardTitle id="t-remisiones">Remisiones vigentes</h2>
+      <p hlmCardDescription>IPS que atienden al trabajador en este caso.</p>
+    </div>
+    <div hlmCardContent class="space-y-5">
+      @if (remisiones().length) {
+        <ul
+          class="divide-border divide-y"
+          aria-label="Remisiones vigentes"
+          data-testid="remisiones"
+        >
+          @for (r of remisiones(); track r.id) {
+            <li class="flex min-h-12 items-center gap-3 py-2">
+              <span
+                class="bg-muted text-muted-foreground inline-flex size-9 shrink-0 items-center justify-center rounded-full"
+                aria-hidden="true"
+              >
+                <ng-icon name="lucideBuilding2" />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="font-mono text-sm font-medium">IPS {{ r.ipsId }}</p>
+                <p class="text-muted-foreground text-xs">
+                  Remitido el <halsa-fecha-bogota [valor]="r.remitidoEn" />
+                </p>
+              </div>
+              @if (puedeRemitir()) {
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="sm"
+                  type="button"
+                  [attr.aria-label]="'Revocar la remisión a la IPS ' + r.ipsId"
+                  [disabled]="!!ocupado()"
+                  (click)="pedirConfirmacion({ tipo: 'revocar', remision: r })"
+                >
+                  <ng-icon name="lucideX" aria-hidden="true" />
+                  Revocar
+                </button>
+              }
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="text-muted-foreground text-sm">El caso no está remitido a ninguna IPS.</p>
+      }
+
+      @if (puedeRemitir()) {
+        <form class="border-border space-y-3 border-t pt-5" (submit)="remitir($event)" novalidate>
+          <hlm-field [forceInvalid]="!!errorReps()">
+            <label hlmFieldLabel for="remitir-reps">Remitir a IPS</label>
+            <input
+              hlmInput
+              id="remitir-reps"
+              [formControl]="reps"
+              inputmode="numeric"
+              autocomplete="off"
+              maxlength="14"
+              class="font-mono tracking-wider"
+              placeholder="110011234501"
+              (input)="normalizarReps()"
+            />
+            <p hlmFieldDescription>Código REPS de la IPS: 12 dígitos.</p>
+            <hlm-field-error validator="required">Escribe el código REPS.</hlm-field-error>
+            <hlm-field-error validator="reps"
+              >El código REPS debe tener exactamente 12 dígitos.</hlm-field-error
+            >
+            @if (errorReps(); as e) {
+              <hlm-field-error forceShow data-testid="error-reps">{{ e }}</hlm-field-error>
+            }
+          </hlm-field>
+          <button hlmBtn type="submit" class="w-full sm:w-auto" [disabled]="!!ocupado()">
+            @if (ocupado() === 'remitir') {
+              <hlm-spinner class="size-4" aria-hidden="true" />
+            }
+            Remitir
+          </button>
+        </form>
+      }
+    </div>
+  </section>
+</div>
+
+<hlm-alert-dialog [state]="confirmacion() ? 'open' : 'closed'" (closed)="cancelarConfirmacion()">
+  <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx">
+    @if (confirmacion(); as c) {
+      <hlm-alert-dialog-header>
+        @if (c.tipo === 'desasignar') {
+          <h2 hlmAlertDialogTitle>
+            {{ c.sub === miSub() ? '¿Retirarte del caso?' : '¿Retirar al profesional del caso?' }}
+          </h2>
+          <p hlmAlertDialogDescription>
+            @if (c.sub === miSub()) {
+              Dejarás de tener acceso a la información del caso que depende de tu asignación.
+            } @else {
+              <code class="font-mono">{{ c.sub }}</code> dejará de tener acceso a la información del
+              caso que depende de su asignación.
+            }
+          </p>
+        } @else {
+          <h2 hlmAlertDialogTitle>¿Revocar la remisión?</h2>
+          <p hlmAlertDialogDescription>
+            La IPS <span class="font-mono">{{ c.remision.ipsId }}</span> dejará de ver el caso.
+            Puedes remitirlo de nuevo más adelante.
+          </p>
+        }
+      </hlm-alert-dialog-header>
+      <hlm-alert-dialog-footer>
+        <button
+          hlmBtn
+          variant="outline"
+          type="button"
+          [disabled]="ocupado() === 'confirmar'"
+          (click)="cancelarConfirmacion()"
+        >
+          Cancelar
+        </button>
+        <button
+          hlmBtn
+          variant="destructive"
+          type="button"
+          [disabled]="ocupado() === 'confirmar'"
+          (click)="confirmar()"
+        >
+          @if (ocupado() === 'confirmar') {
+            <hlm-spinner class="size-4" aria-hidden="true" />
+          }
+          {{ c.tipo === 'desasignar' ? 'Retirar' : 'Revocar' }}
+        </button>
+      </hlm-alert-dialog-footer>
+    }
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>

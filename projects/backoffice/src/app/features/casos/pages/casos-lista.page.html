@@ -1,0 +1,300 @@
+<div class="space-y-5">
+  <header class="flex items-start justify-between gap-3">
+    <div class="min-w-0 space-y-1">
+      <h1 class="text-2xl font-semibold tracking-tight">Casos</h1>
+      <p class="text-muted-foreground text-sm" aria-live="polite">
+        @if (fase() === 'listo') {
+          {{ resumenTotal() }}{{ filtro() ? ' · ' + etiquetaEstado(filtro()!) : '' }}
+        } @else {
+          &nbsp;
+        }
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="hidden w-56 md:block">
+        <label for="filtro-estado" class="sr-only">Estado del caso</label>
+        <hlm-select
+          [value]="filtro() ?? todos"
+          [itemToString]="etiquetaFiltro"
+          (valueChange)="filtrar($any($event))"
+        >
+          <hlm-select-trigger buttonId="filtro-estado" class="w-full">
+            <hlm-select-value />
+          </hlm-select-trigger>
+          <hlm-select-content *hlmSelectPortal>
+            <hlm-select-item [value]="todos">Todos los estados</hlm-select-item>
+            @for (e of estados; track e) {
+              <hlm-select-item [value]="e">{{ etiquetaEstado(e) }}</hlm-select-item>
+            }
+          </hlm-select-content>
+        </hlm-select>
+      </div>
+      <button
+        hlmBtn
+        variant="outline"
+        size="icon"
+        type="button"
+        aria-label="Actualizar"
+        [disabled]="fase() === 'cargando'"
+        (click)="recargar()"
+      >
+        <ng-icon name="lucideRotateCw" aria-hidden="true" />
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile: segmented chips, scrollable sideways (plan §7.3). -->
+  <div
+    role="group"
+    aria-label="Filtrar por estado"
+    class="-mx-4 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1 md:hidden"
+  >
+    <button
+      type="button"
+      [class]="claseChip(!filtro())"
+      [attr.aria-pressed]="!filtro()"
+      (click)="filtrar(null)"
+    >
+      Todos
+    </button>
+    @for (e of estados; track e) {
+      <button
+        type="button"
+        [class]="claseChip(filtro() === e)"
+        [attr.aria-pressed]="filtro() === e"
+        (click)="filtrar(e)"
+      >
+        {{ etiquetaEstado(e) }}
+      </button>
+    }
+  </div>
+
+  @switch (fase()) {
+    @case ('cargando') {
+      <div aria-busy="true" aria-label="Cargando casos">
+        <ul class="space-y-3 md:hidden">
+          @for (i of [1, 2, 3, 4]; track i) {
+            <li class="bg-card ring-border space-y-3 rounded-xl p-4 ring-1">
+              <div class="flex justify-between gap-2">
+                <hlm-skeleton class="h-7 w-40" />
+                <hlm-skeleton class="h-6 w-20 rounded-full" />
+              </div>
+              <hlm-skeleton class="h-4 w-1/2" />
+              <hlm-skeleton class="h-4 w-2/3" />
+            </li>
+          }
+        </ul>
+        <div class="bg-card ring-border hidden space-y-4 rounded-xl p-4 ring-1 md:block">
+          @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+            <div class="flex items-center gap-6">
+              <hlm-skeleton class="h-7 w-44" />
+              <hlm-skeleton class="h-4 w-32" />
+              <hlm-skeleton class="h-6 w-24 rounded-full" />
+              <hlm-skeleton class="h-4 w-24" />
+              <hlm-skeleton class="h-4 w-28" />
+            </div>
+          }
+        </div>
+      </div>
+    }
+    @case ('error') {
+      <halsa-estado-error
+        [titulo]="error()?.titulo ?? 'No pudimos cargar los casos'"
+        [mensaje]="error()?.mensaje"
+        [traza]="error()?.traza ?? undefined"
+        (reintentar)="recargar()"
+      />
+    }
+    @default {
+      @if (!items().length) {
+        <halsa-estado-vacio
+          icono="lucideFolderOpen"
+          [titulo]="filtro() ? 'No hay casos en este estado' : 'Aún no hay casos'"
+          [descripcion]="
+            filtro()
+              ? 'Prueba con otro estado o revisa todos los casos.'
+              : 'Los casos aparecen aquí cuando se radican.'
+          "
+        >
+          @if (filtro()) {
+            <button hlmBtn variant="outline" type="button" (click)="filtrar(null)">
+              Ver todos los casos
+            </button>
+          }
+        </halsa-estado-vacio>
+      } @else {
+        <!-- Mobile cards -->
+        <ul class="space-y-3 md:hidden" aria-label="Casos">
+          @for (caso of items(); track caso.id) {
+            <li
+              class="bg-card ring-border has-[a:focus-visible]:ring-ring relative space-y-2 rounded-xl p-4 ring-1 has-[a:focus-visible]:ring-2"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <halsa-radicado-chip class="relative z-10" [radicado]="caso.radicado" />
+                <halsa-estado-badge tipo="caso" [valor]="caso.estado" />
+              </div>
+              <a
+                [routerLink]="['/casos', caso.id]"
+                class="flex items-center justify-between gap-2 font-medium outline-none after:absolute after:inset-0 after:rounded-xl"
+              >
+                <!-- The accessible name keeps the visible text (WCAG 2.5.3). -->
+                <span
+                  ><span class="sr-only">Abrir caso {{ caso.radicado }}: </span
+                  >{{ etiquetaTipo(caso.tipoEvento) }}</span
+                >
+                <ng-icon
+                  name="lucideChevronRight"
+                  class="text-muted-foreground"
+                  aria-hidden="true"
+                />
+              </a>
+              <div
+                class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-sm"
+              >
+                <halsa-fecha-bogota [valor]="caso.fechaEvento" [conHora]="false" />
+                @let doc = documento(caso.trabajadorDocumento);
+                <halsa-documento-enmascarado
+                  class="text-foreground relative z-10"
+                  [tipo]="doc.tipo ?? undefined"
+                  [numero]="doc.numero"
+                />
+                @if (caso.tieneCalificacion) {
+                  <span class="text-clinical font-medium tabular-nums">
+                    Calificado {{ porcentaje(caso.porcentajePcl) }}
+                  </span>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+
+        @if (ultima()?.hasNextPage) {
+          <div class="flex justify-center md:hidden">
+            <button
+              hlmBtn
+              variant="outline"
+              class="w-full"
+              type="button"
+              [disabled]="cargandoMas()"
+              (click)="cargarMas()"
+            >
+              @if (cargandoMas()) {
+                <hlm-spinner class="size-4" aria-hidden="true" />
+                Cargando…
+              } @else {
+                Cargar más
+              }
+            </button>
+          </div>
+        }
+        @if (error(); as e) {
+          <p role="alert" class="text-destructive text-center text-sm md:hidden">
+            {{ e.titulo }}. {{ e.mensaje }}
+          </p>
+        }
+
+        <!-- Desktop table -->
+        <div class="bg-card ring-border hidden rounded-xl ring-1 md:block">
+          <div hlmTableContainer>
+            <table hlmTable>
+              <caption class="sr-only">
+                Casos
+              </caption>
+              <thead hlmTHead>
+                <tr hlmTr>
+                  <th hlmTh scope="col">Radicado</th>
+                  <th hlmTh scope="col">Tipo de evento</th>
+                  <th hlmTh scope="col">Estado</th>
+                  <th hlmTh scope="col">Fecha del evento</th>
+                  <th hlmTh scope="col">Trabajador</th>
+                  <th hlmTh scope="col">Calificación</th>
+                  <th hlmTh scope="col"><span class="sr-only">Acciones</span></th>
+                </tr>
+              </thead>
+              <tbody hlmTBody>
+                @for (caso of items(); track caso.id) {
+                  <tr hlmTr>
+                    <td hlmTd><halsa-radicado-chip [radicado]="caso.radicado" /></td>
+                    <td hlmTd>{{ etiquetaTipo(caso.tipoEvento) }}</td>
+                    <td hlmTd><halsa-estado-badge tipo="caso" [valor]="caso.estado" /></td>
+                    <td hlmTd>
+                      <halsa-fecha-bogota [valor]="caso.fechaEvento" [conHora]="false" />
+                    </td>
+                    <td hlmTd>
+                      @let doc = documento(caso.trabajadorDocumento);
+                      <halsa-documento-enmascarado
+                        [tipo]="doc.tipo ?? undefined"
+                        [numero]="doc.numero"
+                      />
+                    </td>
+                    <td hlmTd class="tabular-nums">
+                      @if (caso.tieneCalificacion) {
+                        {{ porcentaje(caso.porcentajePcl) }}
+                      } @else {
+                        <span class="text-muted-foreground">—</span>
+                      }
+                    </td>
+                    <td hlmTd class="text-end">
+                      <a
+                        hlmBtn
+                        variant="ghost"
+                        size="sm"
+                        [routerLink]="['/casos', caso.id]"
+                        [attr.aria-label]="'Abrir caso ' + caso.radicado"
+                      >
+                        Abrir
+                        <ng-icon name="lucideChevronRight" aria-hidden="true" />
+                      </a>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        @if (totalPaginas() > 1) {
+          <nav hlmPagination class="hidden md:flex" aria-label="Paginación de casos">
+            <ul hlmPaginationContent>
+              @if (pagina() > 1) {
+                <li hlmPaginationItem>
+                  <hlm-pagination-previous
+                    link="."
+                    [queryParams]="{ page: pagina() - 1 }"
+                    queryParamsHandling="merge"
+                  />
+                </li>
+              }
+              @for (entrada of entradasPaginacion(); track $index) {
+                <li hlmPaginationItem>
+                  @if (entrada === 'hueco') {
+                    <hlm-pagination-ellipsis />
+                  } @else {
+                    <a
+                      hlmPaginationLink
+                      link="."
+                      [queryParams]="{ page: entrada }"
+                      queryParamsHandling="merge"
+                      [isActive]="entrada === pagina()"
+                      [attr.aria-label]="'Página ' + entrada"
+                      >{{ entrada }}</a
+                    >
+                  }
+                </li>
+              }
+              @if (pagina() < totalPaginas()) {
+                <li hlmPaginationItem>
+                  <hlm-pagination-next
+                    link="."
+                    [queryParams]="{ page: pagina() + 1 }"
+                    queryParamsHandling="merge"
+                  />
+                </li>
+              }
+            </ul>
+          </nav>
+        }
+      }
+    }
+  }
+</div>

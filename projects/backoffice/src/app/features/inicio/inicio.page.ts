@@ -2,17 +2,28 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronRight } from '@ng-icons/lucide';
-import { PermisosService } from '../../core/permisos/permisos';
+import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';
+import { ConPermiso, PermisosService } from '../../core/permisos/permisos';
 import { SesionService } from '../../core/sesion/sesion.service';
 import { ICONOS_NAVEGACION, NAVEGACION } from '../../shell/navegacion';
+import { WidgetCasosPorEstado } from './widgets/casos-por-estado.widget';
+import { WidgetCasosRecientes } from './widgets/casos-recientes.widget';
+
+type IdWidget = 'casos-por-estado' | 'casos-recientes';
+
+/** Plan §7.2: every widget declares its permission; plazos (M5) and privacidad (M9) follow. */
+const WIDGETS: readonly (ConPermiso & { id: IdWidget })[] = [
+  { id: 'casos-por-estado', permiso: 'casos:read' },
+  { id: 'casos-recientes', permiso: 'casos:read' },
+];
 
 /**
- * `/inicio` (plan §7.2). M3 ships the greeting and the permission-filtered quick actions; the
- * data widgets arrive with their features (casos in M4, plazos in M5, privacidad in M9).
+ * `/inicio` (plan §7.2): greeting, permission-filtered widgets and quick actions. Each widget
+ * fetches on its own when it scrolls into view, so one failure doesn't break the page.
  */
 @Component({
   selector: 'app-inicio',
-  imports: [RouterLink, NgIcon],
+  imports: [RouterLink, NgIcon, HlmSkeletonImports, WidgetCasosPorEstado, WidgetCasosRecientes],
   providers: [provideIcons({ ...ICONOS_NAVEGACION, lucideChevronRight })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -21,6 +32,29 @@ import { ICONOS_NAVEGACION, NAVEGACION } from '../../shell/navegacion';
         <h1 class="text-2xl font-semibold tracking-tight">{{ saludo() }}</h1>
         <p class="text-muted-foreground text-sm">{{ contexto() }}</p>
       </header>
+
+      @if (widgets().length) {
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          @for (w of widgets(); track w.id) {
+            @switch (w.id) {
+              @case ('casos-por-estado') {
+                @defer (on viewport) {
+                  <app-widget-casos-por-estado />
+                } @placeholder {
+                  <hlm-skeleton class="block h-56 rounded-xl" />
+                }
+              }
+              @case ('casos-recientes') {
+                @defer (on viewport) {
+                  <app-widget-casos-recientes class="xl:col-span-2" />
+                } @placeholder {
+                  <hlm-skeleton class="block h-56 rounded-xl xl:col-span-2" />
+                }
+              }
+            }
+          }
+        </div>
+      }
 
       @if (accesos().length) {
         <section aria-labelledby="t-accesos" class="space-y-3">
@@ -69,6 +103,8 @@ export class InicioPage {
     if (!s) return '';
     return s.actorTipo === 'ips' ? `IPS ${s.ipsId ?? ''}`.trim() : (s.tenantId ?? 'ARL');
   });
+
+  protected readonly widgets = computed(() => this.permisos.filtrar(WIDGETS));
 
   protected readonly accesos = computed(() =>
     this.permisos.filtrar(NAVEGACION).filter((i) => i.id !== 'inicio' && i.id !== 'cuenta'),

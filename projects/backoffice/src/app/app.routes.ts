@@ -45,7 +45,11 @@ export const routes: Routes = [
         title: 'Inicio · Halsa',
         loadComponent: () => import('./features/inicio/inicio.page').then((m) => m.InicioPage),
       },
-      seccionPendiente('casos', 'Casos', 'casos:read'),
+      {
+        path: 'casos',
+        canActivate: [requierePermiso('casos:read')],
+        loadChildren: () => import('./features/casos/casos.routes').then((m) => m.CASOS_ROUTES),
+      },
       seccionPendiente('plazos', 'Plazos', 'plazos:read'),
       seccionPendiente(
         'solicitudes-copia-hc',
