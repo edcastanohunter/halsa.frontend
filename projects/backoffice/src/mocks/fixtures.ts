@@ -431,8 +431,8 @@ export function crearDatosBackoffice(ahora: number = Date.now()): DatosBackoffic
       observaciones: 'Entregar en horario de oficina.',
       estado: 'EN_TRAMITE',
       solicitadaEn: iso(-6 * DIA),
-      atendidaEn: null,
-      atendidaPor: null,
+      atendidaEn: iso(-5 * DIA),
+      atendidaPor: SUB.privacidadArla,
       notaAtencion: null,
     },
     {
@@ -449,68 +449,176 @@ export function crearDatosBackoffice(ahora: number = Date.now()): DatosBackoffic
       atendidaPor: SUB.privacidadArla,
       notaAtencion: 'Entregada en la oficina principal.',
     },
+    {
+      id: '0199f100-0000-7000-8000-000000000004',
+      casoId: CASO.noAsignado,
+      radicado: '2026-ARLA-000104',
+      pacienteSub: '0199aa00-0000-7000-8000-00000000f004',
+      medioEntrega: 'PRESENCIAL',
+      direccionOCorreo: null,
+      observaciones: 'Puedo recogerla los martes en la tarde.',
+      estado: 'RECIBIDA',
+      solicitadaEn: iso(-3 * HORA),
+      atendidaEn: null,
+      atendidaPor: null,
+      notaAtencion: null,
+    },
+    {
+      id: '0199f100-0000-7000-8000-000000000005',
+      casoId: CASO.enCalificacion,
+      radicado: '2026-ARLA-000103',
+      pacienteSub: '0199aa00-0000-7000-8000-00000000f002',
+      medioEntrega: 'ELECTRONICO',
+      direccionOCorreo: 'trabajador@example.com',
+      observaciones: null,
+      estado: 'RECHAZADA',
+      solicitadaEn: iso(-60 * DIA),
+      atendidaEn: iso(-58 * DIA),
+      atendidaPor: SUB.privacidadArla,
+      notaAtencion: 'El correo no corresponde al registrado por el trabajador; se le informó.',
+    },
   ];
 
-  const ACCIONES = ['Leer', 'Leer', 'Crear', 'Actualizar', 'Corregir'] as const;
-  const RESULTADOS = ['Exito', 'Exito', 'Exito', 'Denegado', 'NoEncontrado', 'Error'] as const;
-  const accesos: AccesoAuditadoResponse[] = Array.from({ length: 45 }, (_, i) => ({
-    id: `0199f200-0000-7000-8000-${String(i + 1).padStart(12, '0')}`,
-    ocurridoEn: iso(-i * 5 * HORA),
+  // Audit rows as `AccesoAuditadoFactory` writes them: stored codes (`LEER`, `NO_ENCONTRADO`,
+  // `REGISTRO_CLINICO`). One every 2 h over 10 days, so the default 7-day window has two pages of
+  // 50; plus the emergency accesses behind each review and one row of another tenant.
+  const ACCIONES = ['LEER', 'LEER', 'CREAR', 'ACTUALIZAR', 'CORREGIR'] as const;
+  const RESULTADOS = ['EXITO', 'EXITO', 'EXITO', 'DENEGADO', 'NO_ENCONTRADO', 'ERROR'] as const;
+  const ACTORES = [
+    {
+      actorId: SUB.analistaArla,
+      actorTipo: 'arl',
+      actorTenantId: 'ARL_A',
+      actorIpsId: null,
+      actorRoles: ['analista-arl'],
+      recursoTipo: 'CASO',
+      acr: '1',
+    },
+    {
+      actorId: SUB.calificadorArla,
+      actorTipo: 'arl',
+      actorTenantId: 'ARL_A',
+      actorIpsId: null,
+      actorRoles: ['medico-calificador'],
+      recursoTipo: 'REGISTRO_CLINICO',
+      acr: '2',
+    },
+    {
+      actorId: SUB.medicoIps,
+      actorTipo: 'ips',
+      actorTenantId: null,
+      actorIpsId: IPS_DEV,
+      actorRoles: ['medico-ips'],
+      recursoTipo: 'INCAPACIDAD',
+      acr: '2',
+    },
+  ] as const;
+  const AGENTE = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/141.0';
+  const idAcceso = (n: number) => `0199f200-0000-7000-8000-${String(n).padStart(12, '0')}`;
+  const accesoBase = (n: number, ocurridoEn: string) => ({
+    id: idAcceso(n),
+    ocurridoEn,
     tenantId: 'ARL_A',
-    actorId: i % 3 === 0 ? SUB.calificadorArla : SUB.analistaArla,
-    actorTipo: 'arl',
-    actorTenantId: 'ARL_A',
-    actorIpsId: null,
-    actorRoles: i % 3 === 0 ? ['medico-calificador'] : ['analista-arl'],
     clientId: 'halsa-backoffice',
     ip: '10.0.0.15',
-    userAgent: 'Mozilla/5.0',
-    correlationId: crypto.randomUUID(),
-    accion: ACCIONES[i % ACCIONES.length]!,
-    resultado: RESULTADOS[i % RESULTADOS.length]!,
-    recursoTipo: i % 3 === 0 ? 'RegistroClinico' : 'Caso',
+    userAgent: AGENTE,
+    correlationId: `0199f2cc-0000-7000-8000-${String(n).padStart(12, '0')}`,
     recursoId: null,
-    casoMedicoId: i % 2 === 0 ? CASO.validado : CASO.enCalificacion,
-    motivo: i === 6 ? 'Paciente en urgencias con sincope, se requiere antecedente' : null,
-    acr: i % 3 === 0 ? '2' : '1',
-  }));
+    motivo: null,
+  });
+  const rutinarios: AccesoAuditadoResponse[] = Array.from({ length: 120 }, (_, i) => {
+    const actor = ACTORES[i % ACTORES.length]!;
+    return {
+      ...accesoBase(i + 1, iso(-(i * 2 + 1) * HORA)),
+      ...actor,
+      actorRoles: [...actor.actorRoles],
+      accion: ACCIONES[i % ACCIONES.length]!,
+      resultado: RESULTADOS[i % RESULTADOS.length]!,
+      casoMedicoId: i % 2 === 0 ? CASO.validado : CASO.enCalificacion,
+    };
+  });
 
-  const revisionesEmergencia: RevisionEmergenciaResponse[] = [
+  const emergencias = [
     {
-      id: '0199f300-0000-7000-8000-000000000001',
-      casoMedicoId: CASO.noAsignado,
-      accesoId: accesos[6]!.id,
-      actorId: SUB.calificadorArla,
+      n: 901,
+      caso: CASO.noAsignado,
+      horas: -10,
       motivo: 'Paciente en urgencias con sincope, se requiere antecedente',
-      ocurridoEn: iso(-10 * HORA),
-      venceRevisionEn: iso(62 * HORA),
-      estado: 'PENDIENTE',
     },
     {
-      // Past its 72 h deadline: destructive badge.
-      id: '0199f300-0000-7000-8000-000000000002',
-      casoMedicoId: CASO.noAsignado,
-      accesoId: accesos[12]!.id,
-      actorId: SUB.calificadorArla,
+      n: 902,
+      caso: CASO.noAsignado,
+      horas: -60,
+      motivo: 'Traslado a cirugia de urgencia, se necesitan alergias registradas',
+    },
+    {
+      n: 903,
+      caso: CASO.noAsignado,
+      horas: -80,
       motivo: 'Valoracion urgente por trauma craneoencefalico en turno nocturno',
-      ocurridoEn: iso(-80 * HORA),
-      venceRevisionEn: iso(-8 * HORA),
-      estado: 'PENDIENTE',
     },
     {
-      id: '0199f300-0000-7000-8000-000000000003',
-      casoMedicoId: CASO.validado,
-      accesoId: accesos[18]!.id,
-      actorId: SUB.calificadorArla,
+      n: 904,
+      caso: CASO.validado,
+      horas: -12 * 24,
       motivo: 'Consulta de antecedentes por reingreso a urgencias del paciente',
-      ocurridoEn: iso(-12 * DIA),
-      venceRevisionEn: iso(-9 * DIA),
+    },
+  ];
+  const accesosEmergencia: AccesoAuditadoResponse[] = emergencias.map((e) => ({
+    ...accesoBase(e.n, iso(e.horas * HORA)),
+    ...ACTORES[1],
+    actorRoles: [...ACTORES[1].actorRoles],
+    accion: 'LEER',
+    resultado: 'EXITO',
+    casoMedicoId: e.caso,
+    motivo: e.motivo,
+  }));
+  const otroTenant: AccesoAuditadoResponse = {
+    ...accesoBase(999, iso(-3 * HORA)),
+    ...ACTORES[0],
+    actorRoles: ['analista-arl'],
+    tenantId: 'ARL_B',
+    actorId: SUB.analistaArlb,
+    actorTenantId: 'ARL_B',
+    accion: 'LEER',
+    resultado: 'EXITO',
+    casoMedicoId: CASO.arlB,
+  };
+  const accesos = [...rutinarios, ...accesosEmergencia, otroTenant].sort(
+    (x, y) => Date.parse(y.ocurridoEn) - Date.parse(x.ocurridoEn),
+  );
+
+  const revision = (
+    n: number,
+    e: (typeof emergencias)[number],
+    extra: Partial<RevisionEmergenciaResponse> = {},
+  ): RevisionEmergenciaResponse => ({
+    id: `0199f300-0000-7000-8000-${String(n).padStart(12, '0')}`,
+    casoMedicoId: e.caso,
+    accesoId: idAcceso(e.n),
+    actorId: SUB.calificadorArla,
+    motivo: e.motivo,
+    ocurridoEn: iso(e.horas * HORA),
+    venceRevisionEn: iso((e.horas + 72) * HORA),
+    estado: 'PENDIENTE',
+    revisadoEn: null,
+    revisadoPor: null,
+    conclusion: null,
+    observaciones: null,
+    ...extra,
+  });
+  // Pending: 62 h left, 12 h left (< 24 h: red) and 8 h past its deadline (overdue).
+  const revisionesEmergencia: RevisionEmergenciaResponse[] = [
+    revision(1, emergencias[0]!),
+    revision(4, emergencias[1]!),
+    revision(2, emergencias[2]!),
+    revision(3, emergencias[3]!, {
       estado: 'CERRADA',
       revisadoEn: iso(-11 * DIA),
       revisadoPor: SUB.privacidadArla,
       conclusion: 'JUSTIFICADO',
       observaciones: 'Urgencia verificada con la IPS.',
-    },
+    }),
   ];
 
   return {

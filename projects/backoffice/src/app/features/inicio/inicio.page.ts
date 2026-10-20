@@ -10,14 +10,24 @@ import { WidgetCasosPorEstado } from './widgets/casos-por-estado.widget';
 import { WidgetCasosRecientes } from './widgets/casos-recientes.widget';
 import { WidgetPlazosPorVencer } from './widgets/plazos-por-vencer.widget';
 import { WidgetPlazosVencidos } from './widgets/plazos-vencidos.widget';
+import { WidgetRevisionesPendientes } from './widgets/revisiones-pendientes.widget';
+import { WidgetSolicitudesAbiertas } from './widgets/solicitudes-abiertas.widget';
 
-type IdWidget = 'plazos-por-vencer' | 'plazos-vencidos' | 'casos-por-estado' | 'casos-recientes';
+type IdWidget =
+  | 'revisiones-pendientes'
+  | 'solicitudes-abiertas'
+  | 'plazos-por-vencer'
+  | 'plazos-vencidos'
+  | 'casos-por-estado'
+  | 'casos-recientes';
 
 /**
- * Plan §7.2: every widget declares its permission, deadlines first (they're time-bound);
- * privacidad's arrive in M9.
+ * Plan §7.2: every widget declares its permission. Time-bound queues first: the 72 h emergency
+ * reviews and the copy requests, then the deadlines.
  */
 const WIDGETS: readonly (ConPermiso & { id: IdWidget })[] = [
+  { id: 'revisiones-pendientes', permiso: 'auditoria:revisar' },
+  { id: 'solicitudes-abiertas', permiso: 'solicitudes-hc:gestionar' },
   { id: 'plazos-por-vencer', permiso: 'plazos:read' },
   { id: 'plazos-vencidos', permiso: 'plazos:read' },
   { id: 'casos-por-estado', permiso: 'casos:read' },
@@ -38,6 +48,8 @@ const WIDGETS: readonly (ConPermiso & { id: IdWidget })[] = [
     WidgetCasosRecientes,
     WidgetPlazosPorVencer,
     WidgetPlazosVencidos,
+    WidgetRevisionesPendientes,
+    WidgetSolicitudesAbiertas,
   ],
   providers: [provideIcons({ ...ICONOS_NAVEGACION, lucideChevronRight })],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,6 +64,20 @@ const WIDGETS: readonly (ConPermiso & { id: IdWidget })[] = [
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           @for (w of widgets(); track w.id) {
             @switch (w.id) {
+              @case ('revisiones-pendientes') {
+                @defer (on viewport) {
+                  <app-widget-revisiones-pendientes class="xl:col-span-2" />
+                } @placeholder {
+                  <hlm-skeleton class="block h-56 rounded-xl xl:col-span-2" />
+                }
+              }
+              @case ('solicitudes-abiertas') {
+                @defer (on viewport) {
+                  <app-widget-solicitudes-abiertas />
+                } @placeholder {
+                  <hlm-skeleton class="block h-56 rounded-xl" />
+                }
+              }
               @case ('plazos-por-vencer') {
                 @defer (on viewport) {
                   <app-widget-plazos-por-vencer class="xl:col-span-2" />

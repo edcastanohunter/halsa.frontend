@@ -142,8 +142,7 @@ export type EstadoRevisionEmergencia = Schemas['RevisionEmergenciaResponse']['es
 export type ConclusionRevisionEmergencia = NonNullable<
   Schemas['RevisionEmergenciaResponse']['conclusion']
 >;
-// TODO(api-types): case states and audit results are plain strings in the OpenAPI spec;
-// values from plan §4.3 / §8.3.
+// TODO(api-types): case states are a plain string in the OpenAPI spec; values from plan §4.3.
 export type EstadoCaso =
   | 'Radicado'
   | 'Validado'
@@ -152,7 +151,24 @@ export type EstadoCaso =
   | 'EnCalificacionPcl'
   | 'Cerrado'
   | 'Rechazado';
-export type ResultadoAuditoria = 'Exito' | 'Denegado' | 'NoEncontrado' | 'Error';
+// TODO(api-types): the audit `accion`, `resultado` and `recursoTipo` are plain strings in the
+// API. The rows carry the stored codes (backend `AuditoriaCodigos.Codigo`: `NoEncontrado` →
+// `NO_ENCONTRADO`), not the enum names plan §4.3 lists; the filters accept either.
+export type ResultadoAuditoria = 'EXITO' | 'DENEGADO' | 'NO_ENCONTRADO' | 'ERROR';
+export type AccionAuditoria =
+  'LEER' | 'CREAR' | 'ACTUALIZAR' | 'ELIMINAR' | 'CORREGIR' | 'EXPORTAR';
+export type RecursoAuditoria =
+  | 'CASO'
+  | 'REMISION'
+  | 'ASIGNACION'
+  | 'REGISTRO_CLINICO'
+  | 'AUDITORIA'
+  | 'INCAPACIDAD'
+  | 'SOPORTE'
+  | 'PLAZO'
+  | 'VINCULO'
+  | 'CODIGO_ACTIVACION'
+  | 'SOLICITUD_COPIA_HC';
 
 export const ESTADO_PLAZO_LABELS: Record<EstadoPlazo, string> = {
   ABIERTO: 'Abierto',
@@ -186,24 +202,33 @@ export const CONCLUSION_REVISION_EMERGENCIA_LABELS: Record<ConclusionRevisionEme
 };
 
 export const RESULTADO_AUDITORIA_LABELS: Record<ResultadoAuditoria, string> = {
-  Exito: 'Éxito',
-  Denegado: 'Denegado',
-  NoEncontrado: 'No encontrado',
-  Error: 'Error',
+  EXITO: 'Éxito',
+  DENEGADO: 'Denegado',
+  NO_ENCONTRADO: 'No encontrado',
+  ERROR: 'Error',
 };
 
-// TODO(api-types): `accion` is a plain string in the API; values from the backend
-// AccionAuditoria enum. Verify the wire casing against a live response (plan §4.3).
-export type AccionAuditoria =
-  'Leer' | 'Crear' | 'Actualizar' | 'Eliminar' | 'Corregir' | 'Exportar';
-
 export const ACCION_AUDITORIA_LABELS: Record<AccionAuditoria, string> = {
-  Leer: 'Lectura',
-  Crear: 'Creación',
-  Actualizar: 'Actualización',
-  Eliminar: 'Eliminación',
-  Corregir: 'Corrección',
-  Exportar: 'Exportación',
+  LEER: 'Lectura',
+  CREAR: 'Creación',
+  ACTUALIZAR: 'Actualización',
+  ELIMINAR: 'Eliminación',
+  CORREGIR: 'Corrección',
+  EXPORTAR: 'Exportación',
+};
+
+export const RECURSO_AUDITORIA_LABELS: Record<RecursoAuditoria, string> = {
+  CASO: 'Caso',
+  REMISION: 'Remisión',
+  ASIGNACION: 'Asignación',
+  REGISTRO_CLINICO: 'Registro clínico',
+  AUDITORIA: 'Auditoría',
+  INCAPACIDAD: 'Incapacidad',
+  SOPORTE: 'Soporte de incapacidad',
+  PLAZO: 'Plazo',
+  VINCULO: 'Vínculo del paciente',
+  CODIGO_ACTIVACION: 'Código de activación',
+  SOLICITUD_COPIA_HC: 'Solicitud de copia HC',
 };
 
 export const TIPO_INCAPACIDAD_LABELS: Record<TipoIncapacidad, string> = {
@@ -236,6 +261,7 @@ export const ENUM_LABEL_MAPS = {
   CONCLUSION_REVISION_EMERGENCIA_LABELS,
   RESULTADO_AUDITORIA_LABELS,
   ACCION_AUDITORIA_LABELS,
+  RECURSO_AUDITORIA_LABELS,
   TIPO_INCAPACIDAD_LABELS,
   MODALIDAD_INCAPACIDAD_LABELS,
 } as const;

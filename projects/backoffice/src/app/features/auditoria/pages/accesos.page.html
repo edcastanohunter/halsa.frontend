@@ -1,0 +1,367 @@
+<div class="space-y-5">
+  <header class="flex items-start justify-between gap-3">
+    <div class="min-w-0 space-y-1">
+      <h1 class="text-2xl font-semibold tracking-tight">Auditoría de accesos</h1>
+      <p class="text-muted-foreground text-sm" aria-live="polite">
+        @if (fase() === 'listo' && pagina()) {
+          {{ resumenTotal() }} del {{ fechaCorta(filtro().desde) }} al
+          {{ fechaCorta(filtro().hasta) }}
+        } @else {
+          &nbsp;
+        }
+      </p>
+    </div>
+    <button
+      hlmBtn
+      variant="outline"
+      size="icon"
+      type="button"
+      aria-label="Actualizar"
+      [disabled]="fase() === 'cargando'"
+      (click)="recargar()"
+    >
+      <ng-icon name="lucideRotateCw" aria-hidden="true" />
+    </button>
+  </header>
+
+  <section aria-label="Filtros" class="space-y-3">
+    <!-- Mobile: the filters collapse behind "Filtros (n)" (plan §7.10). -->
+    <button
+      hlmBtn
+      variant="outline"
+      type="button"
+      class="w-full justify-between md:hidden"
+      aria-controls="filtros-auditoria"
+      [attr.aria-expanded]="filtrosAbiertos()"
+      (click)="filtrosAbiertos.set(!filtrosAbiertos())"
+    >
+      <span class="inline-flex items-center gap-2">
+        <ng-icon name="lucideSlidersHorizontal" aria-hidden="true" />
+        Filtros
+        @if (cantidadFiltros()) {
+          ({{ cantidadFiltros() }})
+        }
+      </span>
+      <ng-icon
+        name="lucideChevronDown"
+        class="transition-transform"
+        [class.rotate-180]="filtrosAbiertos()"
+        aria-hidden="true"
+      />
+    </button>
+
+    <form
+      id="filtros-auditoria"
+      class="bg-card ring-border space-y-4 rounded-xl p-4 ring-1 md:block"
+      [class.hidden]="!filtrosAbiertos()"
+      [formGroup]="form"
+      (ngSubmit)="aplicar()"
+      novalidate
+    >
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <hlm-field [forceInvalid]="!!errorRango()">
+          <label hlmFieldLabel for="filtro-desde">Desde</label>
+          <input
+            hlmInput
+            id="filtro-desde"
+            type="date"
+            formControlName="desde"
+            [attr.aria-describedby]="errorRango() ? 'error-rango' : 'ayuda-rango'"
+            (input)="errorRango.set(null)"
+          />
+        </hlm-field>
+        <hlm-field [forceInvalid]="!!errorRango()">
+          <label hlmFieldLabel for="filtro-hasta">Hasta</label>
+          <input
+            hlmInput
+            id="filtro-hasta"
+            type="date"
+            formControlName="hasta"
+            [attr.aria-describedby]="errorRango() ? 'error-rango' : 'ayuda-rango'"
+            (input)="errorRango.set(null)"
+          />
+        </hlm-field>
+        <hlm-field [forceInvalid]="!!errorCaso()" class="lg:col-span-2">
+          <label hlmFieldLabel for="filtro-caso">Caso (identificador)</label>
+          <input
+            hlmInput
+            id="filtro-caso"
+            formControlName="casoId"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            class="font-mono"
+            placeholder="0199a000-0000-7000-8000-…"
+            [attr.aria-describedby]="errorCaso() ? 'error-caso' : null"
+            (input)="errorCaso.set(null)"
+          />
+          @if (errorCaso(); as e) {
+            <hlm-field-error forceShow id="error-caso">{{ e }}</hlm-field-error>
+          }
+        </hlm-field>
+        <hlm-field class="lg:col-span-2">
+          <label hlmFieldLabel for="filtro-actor">Actor (identificador)</label>
+          <input
+            hlmInput
+            id="filtro-actor"
+            formControlName="actorId"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            class="font-mono"
+            placeholder="01999000-0000-7000-8000-…"
+            [attr.maxlength]="actorMax"
+          />
+        </hlm-field>
+        <hlm-field>
+          <label hlmFieldLabel for="filtro-accion">Acción</label>
+          <hlm-select formControlName="accion" [itemToString]="etiquetaFiltroAccion">
+            <hlm-select-trigger buttonId="filtro-accion" class="w-full">
+              <hlm-select-value />
+            </hlm-select-trigger>
+            <hlm-select-content *hlmSelectPortal>
+              <hlm-select-item [value]="todos">Todas las acciones</hlm-select-item>
+              @for (a of acciones; track a) {
+                <hlm-select-item [value]="a">{{ etiquetaAccion(a) }}</hlm-select-item>
+              }
+            </hlm-select-content>
+          </hlm-select>
+        </hlm-field>
+        <hlm-field>
+          <label hlmFieldLabel for="filtro-resultado">Resultado</label>
+          <hlm-select formControlName="resultado" [itemToString]="etiquetaFiltroResultado">
+            <hlm-select-trigger buttonId="filtro-resultado" class="w-full">
+              <hlm-select-value />
+            </hlm-select-trigger>
+            <hlm-select-content *hlmSelectPortal>
+              <hlm-select-item [value]="todos">Todos los resultados</hlm-select-item>
+              @for (r of resultados; track r) {
+                <hlm-select-item [value]="r">{{ etiquetaFiltroResultado(r) }}</hlm-select-item>
+              }
+            </hlm-select-content>
+          </hlm-select>
+        </hlm-field>
+      </div>
+      @if (errorRango(); as e) {
+        <p id="error-rango" role="alert" class="text-destructive text-sm">{{ e }}</p>
+      } @else {
+        <p id="ayuda-rango" class="text-muted-foreground text-xs">
+          Días completos en hora de Bogotá, hasta 31 días por consulta.
+        </p>
+      }
+      <div class="flex flex-wrap justify-end gap-2">
+        @if (cantidadFiltros()) {
+          <button hlmBtn variant="ghost" type="button" (click)="limpiar()">
+            <ng-icon name="lucideX" aria-hidden="true" />
+            Quitar filtros
+          </button>
+        }
+        <button hlmBtn type="submit">Aplicar filtros</button>
+      </div>
+    </form>
+  </section>
+
+  @switch (fase()) {
+    @case ('cargando') {
+      <div aria-busy="true" aria-label="Cargando accesos" class="space-y-3">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="bg-card ring-border space-y-3 rounded-xl p-4 ring-1">
+            <div class="flex justify-between gap-2">
+              <hlm-skeleton class="h-5 w-40" />
+              <hlm-skeleton class="h-6 w-24 rounded-full" />
+            </div>
+            <hlm-skeleton class="h-4 w-2/3" />
+          </div>
+        }
+      </div>
+    }
+    @case ('error') {
+      <halsa-estado-error
+        [titulo]="error()?.titulo ?? 'No pudimos cargar la auditoría'"
+        [mensaje]="error()?.mensaje"
+        [traza]="error()?.traza ?? undefined"
+        (reintentar)="recargar()"
+      />
+    }
+    @default {
+      @if (pagina()) {
+        @if (!items().length) {
+          <halsa-estado-vacio
+            icono="lucideScrollText"
+            titulo="No hay accesos con estos filtros"
+            descripcion="Amplía el rango de fechas o quita algún filtro."
+          />
+        } @else {
+          <!-- Mobile: one card per access, the whole card opens the detail. -->
+          <ul class="space-y-3 md:hidden" data-testid="accesos-movil">
+            @for (a of items(); track a.id) {
+              <li>
+                <button
+                  type="button"
+                  class="bg-card ring-border hover:bg-muted/60 focus-visible:ring-ring w-full space-y-2 rounded-xl p-4 text-start ring-1 outline-none focus-visible:ring-2"
+                  (click)="seleccionado.set(a)"
+                >
+                  <!-- Visible text stays in the accessible name (WCAG 2.5.3). -->
+                  <span class="sr-only">Ver detalle del acceso: </span>
+                  <span class="flex items-start justify-between gap-2">
+                    <span class="min-w-0">
+                      <span class="block text-sm font-medium"
+                        >{{ etiquetaAccion(a.accion) }} · {{ etiquetaRecurso(a.recursoTipo) }}</span
+                      >
+                      <span class="text-muted-foreground block text-xs">
+                        <halsa-fecha-bogota [valor]="a.ocurridoEn" />
+                      </span>
+                    </span>
+                    <halsa-estado-badge tipo="resultadoAuditoria" [valor]="a.resultado" />
+                  </span>
+                  <span
+                    class="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+                  >
+                    <span
+                      ><code class="text-foreground font-mono">{{ corto(a.actorId) }}</code> ·
+                      {{ contexto(a) }}</span
+                    >
+                    <span>{{ nivel(a.acr) }}</span>
+                    @if (a.casoMedicoId) {
+                      <span
+                        >Caso <code class="font-mono">{{ corto(a.casoMedicoId) }}</code></span
+                      >
+                    }
+                  </span>
+                  @if (emergencia(a)) {
+                    <span
+                      class="bg-warning/12 text-warning ring-warning/30 inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium ring-1 ring-inset"
+                    >
+                      <ng-icon name="lucideShieldAlert" aria-hidden="true" />
+                      Acceso de emergencia
+                    </span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+
+          <!-- Desktop table: the "Cuándo" button (and the row) opens the detail. -->
+          <div class="bg-card ring-border hidden rounded-xl ring-1 md:block">
+            <div hlmTableContainer>
+              <table hlmTable>
+                <caption class="sr-only">
+                  Accesos auditados
+                </caption>
+                <thead hlmTHead>
+                  <tr hlmTr>
+                    <th hlmTh scope="col">Cuándo</th>
+                    <th hlmTh scope="col">Actor</th>
+                    <th hlmTh scope="col">Acción</th>
+                    <th hlmTh scope="col">Resultado</th>
+                    <th hlmTh scope="col">Caso</th>
+                    <th hlmTh scope="col">Nivel</th>
+                    <th hlmTh scope="col">Motivo</th>
+                  </tr>
+                </thead>
+                <tbody hlmTBody>
+                  @for (a of items(); track a.id) {
+                    <tr hlmTr class="cursor-pointer" (click)="seleccionado.set(a)">
+                      <td hlmTd>
+                        <button
+                          type="button"
+                          class="hover:text-primary focus-visible:ring-ring -mx-1 rounded px-1 text-start outline-none focus-visible:ring-2"
+                          (click)="$event.stopPropagation(); seleccionado.set(a)"
+                        >
+                          <span class="sr-only">Ver detalle del acceso: </span>
+                          <halsa-fecha-bogota class="block font-medium" [valor]="a.ocurridoEn" />
+                          <span class="text-muted-foreground block text-xs">
+                            <halsa-fecha-relativa [valor]="a.ocurridoEn" />
+                          </span>
+                        </button>
+                      </td>
+                      <td hlmTd>
+                        <code class="font-mono text-sm">{{ corto(a.actorId) }}</code>
+                        <span class="text-muted-foreground block text-xs">{{ contexto(a) }}</span>
+                      </td>
+                      <td hlmTd>
+                        <span class="block text-sm font-medium">{{
+                          etiquetaAccion(a.accion)
+                        }}</span>
+                        <span class="text-muted-foreground block text-xs">{{
+                          etiquetaRecurso(a.recursoTipo)
+                        }}</span>
+                      </td>
+                      <td hlmTd>
+                        <halsa-estado-badge tipo="resultadoAuditoria" [valor]="a.resultado" />
+                      </td>
+                      <td hlmTd>
+                        @if (a.casoMedicoId) {
+                          <code class="font-mono text-sm">{{ corto(a.casoMedicoId) }}</code>
+                        } @else {
+                          <span class="text-muted-foreground" aria-label="Sin caso">—</span>
+                        }
+                      </td>
+                      <td hlmTd class="whitespace-nowrap">{{ nivel(a.acr) }}</td>
+                      <td hlmTd>
+                        @if (emergencia(a)) {
+                          <span
+                            class="bg-warning/12 text-warning ring-warning/30 inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium whitespace-nowrap ring-1 ring-inset"
+                          >
+                            <ng-icon name="lucideShieldAlert" aria-hidden="true" />
+                            Emergencia
+                          </span>
+                        } @else {
+                          <span class="text-muted-foreground" aria-label="Sin motivo">—</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          @if (totalPaginas() > 1) {
+            <nav hlmPagination aria-label="Paginación de accesos">
+              <ul hlmPaginationContent class="flex-wrap">
+                @if (paginaActual() > 1) {
+                  <li hlmPaginationItem>
+                    <hlm-pagination-previous
+                      link="."
+                      [queryParams]="{ page: paginaActual() - 1 }"
+                      queryParamsHandling="merge"
+                    />
+                  </li>
+                }
+                @for (entrada of entradasPaginacion(); track $index) {
+                  <li hlmPaginationItem>
+                    @if (entrada === 'hueco') {
+                      <hlm-pagination-ellipsis />
+                    } @else {
+                      <a
+                        hlmPaginationLink
+                        link="."
+                        [queryParams]="{ page: entrada }"
+                        queryParamsHandling="merge"
+                        [isActive]="entrada === paginaActual()"
+                        [attr.aria-label]="'Página ' + entrada"
+                        >{{ entrada }}</a
+                      >
+                    }
+                  </li>
+                }
+                @if (paginaActual() < totalPaginas()) {
+                  <li hlmPaginationItem>
+                    <hlm-pagination-next
+                      link="."
+                      [queryParams]="{ page: paginaActual() + 1 }"
+                      queryParamsHandling="merge"
+                    />
+                  </li>
+                }
+              </ul>
+            </nav>
+          }
+        }
+      }
+    }
+  }
+</div>
+
+<app-detalle-acceso [acceso]="seleccionado()" (cerrado)="seleccionado.set(null)" />

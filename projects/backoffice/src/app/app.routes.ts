@@ -1,25 +1,9 @@
 import { Routes } from '@angular/router';
 import { requierePermiso, requiereSesion } from './core/permisos/guards';
-import { Permiso } from './core/permisos/permisos';
 import { devRoutes, devShellRoutes } from './dev.routes';
 
 const estadoPagina = () =>
   import('./shell/paginas/estado-pagina.page').then((m) => m.EstadoPaginaPage);
-
-/** A section whose milestone hasn't landed: guarded like the real one, with a neutral page. */
-function seccionPendiente(path: string, titulo: string, permiso: Permiso) {
-  return {
-    path,
-    title: `${titulo} · Halsa`,
-    canActivate: [requierePermiso(permiso)],
-    loadComponent: estadoPagina,
-    data: {
-      titulo,
-      descripcion: 'Esta sección estará disponible pronto.',
-      icono: 'lucideHammer',
-    },
-  };
-}
 
 // Plan §6.2. Every staff route lives under the shell, behind the session guard.
 export const routes: Routes = [
@@ -70,17 +54,19 @@ export const routes: Routes = [
         canActivate: [requierePermiso('plazos:read')],
         loadChildren: () => import('./features/plazos/plazos.routes').then((m) => m.PLAZOS_ROUTES),
       },
-      seccionPendiente(
-        'solicitudes-copia-hc',
-        'Solicitudes de copia HC',
-        'solicitudes-hc:gestionar',
-      ),
-      seccionPendiente('auditoria/accesos', 'Auditoría de accesos', 'auditoria:read'),
-      seccionPendiente(
-        'auditoria/revisiones-emergencia',
-        'Revisiones de emergencia',
-        'auditoria:revisar',
-      ),
+      {
+        path: 'solicitudes-copia-hc',
+        canActivate: [requierePermiso('solicitudes-hc:gestionar')],
+        loadChildren: () =>
+          import('./features/solicitudes-copia-hc/solicitudes-copia-hc.routes').then(
+            (m) => m.SOLICITUDES_COPIA_HC_ROUTES,
+          ),
+      },
+      {
+        path: 'auditoria',
+        loadChildren: () =>
+          import('./features/auditoria/auditoria.routes').then((m) => m.AUDITORIA_ROUTES),
+      },
       {
         path: 'cuenta',
         title: 'Mi cuenta · Halsa',

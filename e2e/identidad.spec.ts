@@ -133,7 +133,13 @@ for (const colorScheme of ['light', 'dark'] as const) {
 
     test('privacidad: inicio with the inbox sections', async ({ page }, testInfo) => {
       await ingresar(page, USUARIOS.privacidad.username);
-      await capturar(page, testInfo, `inicio-privacidad-${colorScheme}`);
+      // M9 widgets: wait for their data; the review countdowns are relative to now.
+      await cargarDiferidos(page);
+      await expect(page.getByTestId('revisiones-pendientes')).toContainText('por revisar');
+      await expect(page.getByTestId('solicitudes-abiertas')).toContainText('En trámite');
+      await capturarEn(REPORTE_DIR, page, testInfo, `inicio-privacidad-${colorScheme}`, true, [
+        page.locator('time'),
+      ]);
       await sinViolacionesGraves(page);
     });
 

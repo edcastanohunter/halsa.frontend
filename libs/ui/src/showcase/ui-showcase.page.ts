@@ -207,7 +207,7 @@ export class UiShowcasePage {
     {
       tipo: 'resultadoAuditoria',
       titulo: 'Resultado de auditoría',
-      valores: ['Exito', 'Denegado', 'NoEncontrado', 'Error'],
+      valores: ['EXITO', 'DENEGADO', 'NO_ENCONTRADO', 'ERROR'],
     },
   ];
 

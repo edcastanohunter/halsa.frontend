@@ -69,10 +69,10 @@ const CONCLUSION: Record<ConclusionRevisionEmergencia, Estilo> = {
   INJUSTIFICADO: { tono: 'destructive' },
 };
 const AUDITORIA: Record<ResultadoAuditoria, Estilo> = {
-  Exito: { tono: 'success' },
-  Denegado: { tono: 'destructive' },
-  NoEncontrado: { tono: 'warning' },
-  Error: { tono: 'destructive', contorno: true },
+  EXITO: { tono: 'success' },
+  DENEGADO: { tono: 'destructive' },
+  NO_ENCONTRADO: { tono: 'warning' },
+  ERROR: { tono: 'destructive', contorno: true },
 };
 
 interface EntradaCatalogo {

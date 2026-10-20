@@ -1,6 +1,6 @@
 # Halsa Frontend — Plan de Hitos y Seguimiento de Implementación
 
-> **Estado general:** M8 completado (2026-10-20); siguiente: M9  
+> **Estado general:** M9 completado (2026-10-20); siguiente: M10  
 > **Fecha de inicio:** 2026-10-17  
 > **Tipografía UI:** Plus Jakarta Sans (`@fontsource/plus-jakarta-sans`)  
 > **Monospace:** JetBrains Mono (`@fontsource/jetbrains-mono`)  
@@ -20,7 +20,7 @@
 - [x] **M6: Clínico 🔒 (Historia Clínica y Acceso de Emergencia "Break-the-Glass")**
 - [x] **M7: Incapacidades (Listado, Barra Acumulada, Carga Multipart con Soporte PDF)**
 - [x] **M8: Dictamen PCL 🔒 (Dictamen, Notificación y Ventana de 15 Minutos)**
-- [ ] **M9: Privacidad (Bandeja Solicitudes Copia HC, Auditoría de Accesos, Revisiones de Emergencia)**
+- [x] **M9: Privacidad (Bandeja Solicitudes Copia HC, Auditoría de Accesos, Revisiones de Emergencia)**
 - [ ] **M10: Portal del Paciente (BFF, Sesión por Cookie, Línea de Tiempo, Solicitudes)**
 - [ ] **M11: Hardening y Entrega (Dockerfiles, Nginx con CSP/Trusted Types, CI GitHub Actions)**
 
@@ -252,7 +252,7 @@
 
 ---
 
-### [ ] M9: Privacidad
+### [x] M9: Privacidad
 - **Alcance:**
   - Bandeja de Solicitudes de Copia de Historia Clínica `/solicitudes-copia-hc`:
     - Pestañas por estado (Recibidas, En trámite, Cerradas).
@@ -268,6 +268,16 @@
 - **Criterios de Aceptación:**
   - Pruebas E2E completas con el usuario `privacidad.arla`.
   - Paginación y filtrado operativo contra el API.
+- **Notas de implementación:**
+  - `shared/privacidad/`: `SolicitudesCopiaHcApi`, `RevisionesEmergenciaApi` (con `pendientes()`) y `VencimientoRevision` (chip "Vence en 2 d 14 h" / "Vencida hace 8 h", rojo con < 24 h, icono distinto por nivel). Compartidos porque los widgets de `/inicio` leen lo mismo. `shared/identificador-copiable.ts`: sub/UUID en monoespacio con botón de copiar.
+  - `features/solicitudes-copia-hc/`: pestañas `?estado=en-tramite|cerradas` (Recibidas por defecto) con contadores, de **una sola** `GET` sin `estado` partida en el cliente (`agruparBandeja`); abiertas en el orden del API (la más antigua primero), cerradas por cierre más reciente. Radicado como `RadicadoChip` sin enlace (sin `casos:read`), `pacienteSub` copiable, aviso del plazo legal de 10 días hábiles. "Pasar a trámite" y "Cerrar" (hoja: resultado en tarjetas + nota 10–1000 con contador). `SolicitudCopiaHc.TransicionInvalida` → aviso y recarga.
+  - `features/auditoria/`: rutas `accesos` (`auditoria:read`) y `revisiones-emergencia` (`auditoria:revisar`), cada una con su guard. Filtros en la URL (`filtros.ts`): `desde`/`hasta` como días de Bogotá (por defecto los últimos 7, hoy incluido) → `desde` 00:00 −05:00 y `hasta` = medianoche siguiente (el `hasta` del API es exclusivo), ≤ 31 días, `casoId` UUID, `actorId` ≤ 64, `accion`/`resultado` desde una sola constante; se aplican con "Aplicar filtros" y en móvil se pliegan tras "Filtros (n)". Un rango inválido en la URL se explica y no se consulta. 50 por página con paginación del servidor; tabla en escritorio, tarjetas en móvil; cajón de detalle con todos los campos copiables. Sin botón de exportar (G8).
+  - Revisiones: Pendientes ordenadas por `venceRevisionEn` con el motivo completo y destacado; Cerradas paginadas (50) con conclusión, revisor y observaciones. "Cerrar revisión": conclusión en tarjetas (verde/rojo) + observaciones ≤ 2000. `Auditoria.RevisionYaCerrada` → aviso y recarga.
+  - `/inicio`: widgets "Revisiones de emergencia pendientes" (conteo + las 3 que vencen primero) y "Solicitudes de copia HC abiertas" (Recibidas / En trámite, dos `GET` en paralelo), primeros en el orden de widgets.
+  - **Casing real del API:** el backend guarda y devuelve `accion`, `resultado` y `recursoTipo` como códigos (`AuditoriaCodigos.Codigo`: `LEER`, `NO_ENCONTRADO`, `REGISTRO_CLINICO`), no los nombres del enum que lista el plan §4.3. `ACCION_AUDITORIA_LABELS` / `RESULTADO_AUDITORIA_LABELS` pasaron a esos códigos y hay `RECURSO_AUDITORIA_LABELS`. Verificado en el código del backend (no había API en marcha); el filtro acepta ambas formas.
+  - Mock alineado con el backend: accesos con `desde`/`hasta` obligatorios y ≤ 31 días (`Auditoria.*Requerido`, `RangoInvalido`, `RangoExcedido`), filtros por código o por nombre, por tenant, 50 por defecto y máximo 200; revisiones de la más reciente a la más antigua, `ConclusionInvalida` / `ObservacionesDemasiadoLargas`; solicitudes de la más antigua a la más reciente, cierre desde RECIBIDA **o** EN_TRAMITE (`SolicitudCopiaHc.Cerrar`), `NotaRequerida` / `NotaDemasiadoLarga`, `tramitar` registra `atendidaEn`/`atendidaPor`; actor no ARL → 403 `Auditoria.ActorNoAutorizado`. Fixtures: 120 accesos cada 2 h (dos páginas en la ventana de 7 días), 4 accesos de emergencia con su revisión (62 h, 12 h y −8 h de plazo, más una cerrada) y una fila de ARL_B.
+  - Evidencia: unit `shared/privacidad/privacidad.spec.ts` (niveles del plazo, `pendientes()` lee 3 páginas de 200 y ordena, mock vs. backend), `solicitudes-copia-hc.spec.ts` (9), `auditoria.spec.ts` (17: filtros, URL, rango inválido, cajón, cerrar revisión, 409) y `inicio/widgets/privacidad.widgets.spec.ts`. E2E `e2e/privacidad.spec.ts` con `privacidad.arla` en Keycloak real: filtros ↔ URL con "Atrás", página 2, filtro por caso, cajón, sin exportar; cerrar la revisión vencida como Injustificado y verla en Cerradas; pasar a trámite y cerrar una solicitud como Entregada; widgets de `/inicio`. Capturas 375/1440 claro y oscuro con axe en `docs/reportes/m9/`. La línea base de `/inicio` de privacidad de M3 se regeneró (ahora con widgets).
+  - Axe destapó dos defectos, corregidos: botones de fila con `aria-label` que no contenía el texto visible (WCAG 2.5.3; ahora prefijo `sr-only`) y un `<dl>` con envoltorios intermedios en el cajón. El test unitario del widget destapó "3por revisar" (Angular elimina el espacio entre dos `span`).
 
 ---
 
@@ -308,7 +318,7 @@
 | **OBS-2** | Podman en Windows | Keycloak local para M1.5. | `podman-machine-default` se iniciará (`podman machine start`) antes de ejecutar scripts `kc:*`. Verificado: los bind mounts relativos funcionan; `podman compose` delega en `docker-compose.exe`. En esta máquina `host.containers.internal` resuelve al router (192.168.1.1), no al host: no depender de él. |
 | **OBS-3** | Generación OpenAPI (M0) | API backend fuera de línea al inicio. | Uso del script alternativo `npm run api:types:yaml` apuntando a `../Halsa.Backend/docs/api/atel-api.openapi.yaml`. |
 | **OBS-5** | Umbral de las líneas base visuales | `maxDiffPixelRatio: 0.01` con el umbral por píxel por defecto deja pasar contenido nuevo en páginas claras grandes (tarjetas blancas sobre fondo casi blanco: solo cuentan los glifos). | Detectado en M4: la línea base de escritorio de `/inicio` (M3) no fallaba con los widgets nuevos. Se regeneraron desde cero las afectadas y los specs esperan los datos antes de capturar. Pendiente para M11: evaluar un umbral más estricto. |
-| **OBS-6** | Presupuesto del portal | El bundle inicial del portal mide 468 kB sin comprimir (presupuesto de aviso de 400 kB en `angular.json`), ya desde antes de M4 (464,5 kB en el commit de M3). Comprimido son 109 kB, dentro del objetivo de 200 kB del plan. Al cierre de M8 mide 476,8 kB (109,4 kB comprimido); M8 no le suma nada (medido sin sus cambios). | Revisar en M10/M11. |
+| **OBS-6** | Presupuesto del portal | El bundle inicial del portal mide 468 kB sin comprimir (presupuesto de aviso de 400 kB en `angular.json`), ya desde antes de M4 (464,5 kB en el commit de M3). Comprimido son 109 kB, dentro del objetivo de 200 kB del plan. Al cierre de M8 mide 476,8 kB (109,4 kB comprimido); M8 no le suma nada (medido sin sus cambios). Al cierre de M9: 478,6 kB (109,5 kB comprimido; las etiquetas nuevas de `@halsa/core`). | Revisar en M10/M11. |
 | **OBS-4** | Compatibilidad Spartan UI | Soporte sobre Angular 21 zoneless. | Si `@spartan-ng/*` presenta conflicto en v21, se aplicará el fallback documentado en `@angular/cdk` + `cva` + `tailwind-merge`. |
 | **G1** | Falta de CORS en Backend API | Afecta llamadas directas cross-origin. | En desarrollo se usa el proxy local (`proxy.backoffice.json`). Para despliegue se documentan cabeceras requeridas en `deploy/README.md`. |
 | **G3** | Falta de Redirect URI en BFF | Bloquea login local del portal en `:4300`. | Desarrollo inicial del portal (M10) sobre el adaptador mock; posterior validación E2E con BFF tras actualización del realm. |
@@ -320,6 +330,8 @@
 | **G18** | `IncapacidadResponse` sin `prorrogaDe` | La lista no sabe a qué incapacidad prorroga cada prórroga. | El frontend infiere las cadenas (`agruparCadenas`): una prórroga va con la cadena cuyo último certificado termina justo antes de su inicio, lo que el backend garantiza (solo se prorroga la última de la cadena, sin solapes, ≤ 30 días de separación). Pedir al backend que exponga `prorrogaDe`. |
 | **G19** | Reglas 422 de incapacidades sin prefijo | Las reglas de la SPEC 07 responden con el código tal cual (`INCAPACIDAD_SOLAPADA`, `PRORROGA_NO_ES_ULTIMA`, …), no `Incapacidades.*`, y el plan §4.2 no las lista. `Incapacidades.DiasFueraDeRango` e `InicialConProrrogaDe` son guardas que el validador ya impide (llegan como `errors` de `datos.*`). | Mapeo explícito de esas reglas a su campo en `erroresDeCarga`. |
 | **G20** | Plazo de controversia asíncrono | `POST …/dictamen-pcl/notificar` responde 204, pero `CONTROVERSIA_DICTAMEN` se abre desde el evento del outbox: justo después, `GET` puede traer `NOTIFICADO` con `venceControversiaEn: null` (también es nulo para un actor IPS). | La vista dice "El plazo para controvertir aún no está disponible" en lugar de una fecha vacía. Si el backend quiere la fecha en la respuesta, podría devolver `DictamenPclResponse` en vez de 204. |
+| **G21** | Revisiones de emergencia ordenadas por `ocurridoEn` | `GET /auditoria/revisiones-emergencia` ordena de la más reciente a la más antigua: las que vencen primero quedan en la **última** página, y el `pageSize=5` del widget del plan §7.2 mostraría las menos urgentes. | `RevisionesEmergenciaApi.pendientes()` lee la cola completa en páginas de 200 (tope 5 páginas) y ordena por `venceRevisionEn` en el cliente; lo usan la pestaña Pendientes y el widget. Pedir al backend `orden=venceRevisionEn` (o ese orden para `PENDIENTE`). |
+| **G22** | Códigos de auditoría distintos al plan | El plan §4.3 lista `Leer`/`NoEncontrado`; las filas traen `LEER`/`NO_ENCONTRADO` (y `recursoTipo` en UPPER_SNAKE). El OpenAPI los tipa como `string`. | Etiquetas por código guardado; el filtro envía el código (el backend acepta ambos). Pedir que el OpenAPI declare los enums. |
 | **OBS-7** | Ventana de 15 min en E2E | No se puede simular un `auth_time` viejo en Playwright: adelantar el reloj del navegador rompe la validación del id_token al renovar (`iat`/`exp`) y reescribir el access token falla el `at_hash`. | El E2E prueba la supervivencia del formulario con una re-verificación real por popup ("Renovar verificación"); el cierre y la reapertura de la compuerta por tiempo se prueban en el spec unitario con la compuerta real y el popup simulado. |
 
 ---

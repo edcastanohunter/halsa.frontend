@@ -88,6 +88,52 @@ function textoEntre(valor: unknown, min: number, max: number): valor is string {
   return typeof valor === 'string' && valor.trim().length >= min && valor.length <= max;
 }
 
+interface ErrorValidacion {
+  code: string;
+  description: string;
+}
+
+/** A FluentValidation failure as the backend returns it: `General.Validation` + `errors[]`. */
+const validacion = (errors: ErrorValidacion[]): RespuestaMock =>
+  problema(400, 'General.Validation', 'Uno o más datos no son válidos.', { errors });
+
+/** The audit and review lists cap `pageSize` at 200 and default to 50. */
+const MAX_PAGINA_AUDITORIA = 200;
+const ESTADOS_SOLICITUD = new Set(['RECIBIDA', 'EN_TRAMITE', 'ENTREGADA', 'RECHAZADA']);
+const ACCIONES_AUDITORIA = new Set([
+  'LEER',
+  'CREAR',
+  'ACTUALIZAR',
+  'ELIMINAR',
+  'CORREGIR',
+  'EXPORTAR',
+]);
+const RESULTADOS_AUDITORIA = new Set(['EXITO', 'DENEGADO', 'NO_ENCONTRADO', 'ERROR']);
+
+/** `AuditoriaCodigos.TryParse`: the stored code (`NO_ENCONTRADO`) or the enum name (`NoEncontrado`). */
+function codigoAuditoria(valor: string | null): string | null {
+  return valor === null ? null : valor.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
+}
+
+function validarPagina(q: URLSearchParams): ErrorValidacion[] {
+  const errores: ErrorValidacion[] = [];
+  const page = q.get('page');
+  const pageSize = q.get('pageSize');
+  if (page !== null && !(Number(page) >= 1)) {
+    errores.push({ code: 'Auditoria.PageInvalida', description: 'Debe ser 1 o más.' });
+  }
+  if (pageSize !== null && !(Number(pageSize) >= 1 && Number(pageSize) <= MAX_PAGINA_AUDITORIA)) {
+    errores.push({ code: 'Auditoria.PageSizeInvalido', description: 'Debe estar entre 1 y 200.' });
+  }
+  return errores;
+}
+
+function conTamanoPorDefecto(q: URLSearchParams): URLSearchParams {
+  const copia = new URLSearchParams(q);
+  if (!copia.has('pageSize')) copia.set('pageSize', '50');
+  return copia;
+}
+
 export function crearRutasBackoffice(
   db: DatosBackoffice,
   ahora: () => number = Date.now,
@@ -141,6 +187,27 @@ export function crearRutasBackoffice(
     }
     return manejar(c, a);
   }
+
+  const tenantDeCaso = (casoId: string) =>
+    db.casos.find((c) => c.detalle.resumen.id === casoId)?.tenantId ?? null;
+
+  const solicitudDelTenant = (a: Actor, id: string | undefined) =>
+    db.solicitudesCopiaHc.find((s) => s.id === id && tenantDeCaso(s.casoId) === a.tenantId);
+  const solicitudNoEncontrada = () =>
+    noEncontrado('SolicitudCopiaHc.NoEncontrada', 'La solicitud no existe o no es de este tenant.');
+  const transicionInvalida = () =>
+    problema(
+      409,
+      'SolicitudCopiaHc.TransicionInvalida',
+      'El estado actual de la solicitud no admite esta transición.',
+    );
+  /** Only an ARL oversees its tenant's audit trail, whatever permissions another actor holds. */
+  const auditoriaNoAutorizada = () =>
+    problema(
+      403,
+      'Auditoria.ActorNoAutorizado',
+      'Solo un actor de tipo ARL puede consultar la auditoría de accesos.',
+    );
 
   const rutas: RutaMock[] = [
     /* ---------- identidad ---------- */
@@ -753,13 +820,27 @@ export function crearRutasBackoffice(
 
     /* ---------- solicitudes de copia HC ---------- */
     {
+      // Backend `ListSolicitudesCopiaHcQuery`: the tenant's, oldest first (their deadline order).
       metodo: 'GET',
       ruta: '/v1/solicitudes-copia-hc',
       manejar: (p) => {
         const a = actor(p);
         if (!a.permisos.has('solicitudes-hc:gestionar')) return prohibido();
         const estado = p.query.get('estado');
-        return ok(db.solicitudesCopiaHc.filter((s) => !estado || s.estado === estado));
+        if (estado && !ESTADOS_SOLICITUD.has(estado)) {
+          return validacion([
+            {
+              code: 'SolicitudCopiaHc.EstadoInvalido',
+              description: 'Debe ser RECIBIDA, EN_TRAMITE, ENTREGADA o RECHAZADA.',
+            },
+          ]);
+        }
+        return ok(
+          db.solicitudesCopiaHc
+            .filter((s) => tenantDeCaso(s.casoId) === a.tenantId)
+            .filter((s) => !estado || s.estado === estado)
+            .sort((x, y) => Date.parse(x.solicitadaEn) - Date.parse(y.solicitadaEn)),
+        );
       },
     },
     {
@@ -768,52 +849,47 @@ export function crearRutasBackoffice(
       manejar: (p) => {
         const a = actor(p);
         if (!a.permisos.has('solicitudes-hc:gestionar')) return prohibido();
-        const s = db.solicitudesCopiaHc.find((x) => x.id === p.params['id']);
-        if (!s) return noEncontrado('SolicitudCopiaHc.NoEncontrada', 'La solicitud no existe.');
-        if (s.estado !== 'RECIBIDA') {
-          return problema(
-            409,
-            'SolicitudCopiaHc.TransicionInvalida',
-            'La solicitud ya está en trámite o cerrada.',
-          );
-        }
-        s.estado = 'EN_TRAMITE';
+        const s = solicitudDelTenant(a, p.params['id']);
+        if (!s) return solicitudNoEncontrada();
+        if (s.estado !== 'RECIBIDA') return transicionInvalida();
+        Object.assign(s, { estado: 'EN_TRAMITE', atendidaEn: iso(), atendidaPor: a.sub });
         return sinContenido();
       },
     },
     {
+      // `CerrarSolicitudCopiaHcCommandValidator`, then `SolicitudCopiaHc.Cerrar` (any open state).
       metodo: 'POST',
       ruta: '/v1/solicitudes-copia-hc/:id/cerrar',
       manejar: async (p) => {
         const a = actor(p);
         if (!a.permisos.has('solicitudes-hc:gestionar')) return prohibido();
-        const s = db.solicitudesCopiaHc.find((x) => x.id === p.params['id']);
-        if (!s) return noEncontrado('SolicitudCopiaHc.NoEncontrada', 'La solicitud no existe.');
         const body = await cuerpoJson<CerrarSolicitudCopiaHcRequest>(p.req);
+        const errores: ErrorValidacion[] = [];
         if (body?.resultado !== 'ENTREGADA' && body?.resultado !== 'RECHAZADA') {
-          return problema(
-            400,
-            'SolicitudCopiaHc.ResultadoInvalido',
-            'El resultado debe ser ENTREGADA o RECHAZADA.',
-          );
-        }
-        if (!textoEntre(body.nota, 10, 1000)) {
-          return problema(400, 'General.Validation', 'Uno o más datos no son válidos.', {
-            errors: [
-              { code: 'nota', description: 'La nota debe tener entre 10 y 1000 caracteres.' },
-            ],
+          errores.push({
+            code: 'SolicitudCopiaHc.ResultadoInvalido',
+            description: 'Debe ser ENTREGADA o RECHAZADA.',
           });
         }
-        if (s.estado !== 'EN_TRAMITE') {
-          return problema(
-            409,
-            'SolicitudCopiaHc.TransicionInvalida',
-            'Solo se cierran solicitudes en trámite.',
-          );
+        const nota = typeof body?.nota === 'string' ? body.nota : '';
+        if (nota.trim().length < 10) {
+          errores.push({
+            code: 'SolicitudCopiaHc.NotaRequerida',
+            description: 'Debe tener al menos 10 caracteres.',
+          });
+        } else if (nota.length > 1000) {
+          errores.push({
+            code: 'SolicitudCopiaHc.NotaDemasiadoLarga',
+            description: 'Admite como máximo 1000 caracteres.',
+          });
         }
+        if (errores.length) return validacion(errores);
+        const s = solicitudDelTenant(a, p.params['id']);
+        if (!s) return solicitudNoEncontrada();
+        if (s.estado !== 'RECIBIDA' && s.estado !== 'EN_TRAMITE') return transicionInvalida();
         Object.assign(s, {
-          estado: body.resultado,
-          notaAtencion: body.nota,
+          estado: body!.resultado,
+          notaAtencion: nota.trim(),
           atendidaEn: iso(),
           atendidaPor: a.sub,
         });
@@ -823,37 +899,91 @@ export function crearRutasBackoffice(
 
     /* ---------- auditoría ---------- */
     {
+      // `ListAccesosAuditadosQueryValidator`: `desde` and `hasta` required, at most 31 days apart,
+      // `hasta` exclusive; the filters take the stored code or the enum name. Newest first.
       metodo: 'GET',
       ruta: '/v1/auditoria/accesos',
       manejar: (p) => {
         const a = actor(p);
         if (!a.permisos.has('auditoria:read')) return prohibido();
+        if (a.actorTipo !== 'arl') return auditoriaNoAutorizada();
         const q = p.query;
-        const desde = q.get('desde');
-        const hasta = q.get('hasta');
+        const desde = Date.parse(q.get('desde') ?? '');
+        const hasta = Date.parse(q.get('hasta') ?? '');
+        const accion = codigoAuditoria(q.get('accion'));
+        const resultado = codigoAuditoria(q.get('resultado'));
+        const errores: ErrorValidacion[] = [];
+        if (Number.isNaN(desde)) {
+          errores.push({
+            code: 'Auditoria.DesdeRequerido',
+            description: "'Desde' es obligatorio.",
+          });
+        }
+        if (Number.isNaN(hasta)) {
+          errores.push({
+            code: 'Auditoria.HastaRequerido',
+            description: "'Hasta' es obligatorio.",
+          });
+        }
+        if (!Number.isNaN(desde) && !Number.isNaN(hasta)) {
+          if (hasta <= desde) {
+            errores.push({
+              code: 'Auditoria.RangoInvalido',
+              description: "'Hasta' debe ser posterior a 'Desde'.",
+            });
+          } else if (hasta - desde > 31 * DIA_MS) {
+            errores.push({
+              code: 'Auditoria.RangoExcedido',
+              description: 'El rango entre desde y hasta no puede superar 31 días.',
+            });
+          }
+        }
+        if (accion !== null && !ACCIONES_AUDITORIA.has(accion)) {
+          errores.push({ code: 'Auditoria.AccionInvalida', description: 'Acción no válida.' });
+        }
+        if (resultado !== null && !RESULTADOS_AUDITORIA.has(resultado)) {
+          errores.push({
+            code: 'Auditoria.ResultadoInvalido',
+            description: 'Resultado no válido.',
+          });
+        }
+        errores.push(...validarPagina(q));
+        if (errores.length) return validacion(errores);
+        const casoId = q.get('casoId');
+        const actorId = q.get('actorId');
         const items = db.accesos
-          .filter((x) => !desde || Date.parse(x.ocurridoEn) >= Date.parse(desde))
-          .filter((x) => !hasta || Date.parse(x.ocurridoEn) <= Date.parse(hasta))
-          .filter((x) => !q.get('casoId') || x.casoMedicoId === q.get('casoId'))
-          .filter((x) => !q.get('actorId') || x.actorId === q.get('actorId'))
-          .filter((x) => !q.get('accion') || x.accion === q.get('accion'))
-          .filter((x) => !q.get('resultado') || x.resultado === q.get('resultado'));
-        return ok(paginar(items, q));
+          .filter((x) => x.tenantId === a.tenantId)
+          .filter((x) => Date.parse(x.ocurridoEn) >= desde && Date.parse(x.ocurridoEn) < hasta)
+          .filter((x) => !casoId || x.casoMedicoId === casoId)
+          .filter((x) => !actorId || x.actorId === actorId)
+          .filter((x) => !accion || x.accion === accion)
+          .filter((x) => !resultado || x.resultado === resultado);
+        return ok(paginar(items, conTamanoPorDefecto(q), MAX_PAGINA_AUDITORIA));
       },
     },
     {
+      // `ListRevisionesEmergenciaQuery`: newest first by `ocurridoEn`, 50 per page by default.
       metodo: 'GET',
       ruta: '/v1/auditoria/revisiones-emergencia',
       manejar: (p) => {
         const a = actor(p);
         if (!a.permisos.has('auditoria:revisar')) return prohibido();
+        if (a.actorTipo !== 'arl') return auditoriaNoAutorizada();
         const estado = p.query.get('estado');
-        return ok(
-          paginar(
-            db.revisionesEmergencia.filter((r) => !estado || r.estado === estado),
-            p.query,
-          ),
-        );
+        const errores: ErrorValidacion[] = [];
+        if (estado && estado !== 'PENDIENTE' && estado !== 'CERRADA') {
+          errores.push({
+            code: 'Auditoria.EstadoInvalido',
+            description: 'Debe ser PENDIENTE o CERRADA.',
+          });
+        }
+        errores.push(...validarPagina(p.query));
+        if (errores.length) return validacion(errores);
+        const items = db.revisionesEmergencia
+          .filter((r) => tenantDeCaso(r.casoMedicoId) === a.tenantId)
+          .filter((r) => !estado || r.estado === estado)
+          .sort((x, y) => Date.parse(y.ocurridoEn) - Date.parse(x.ocurridoEn));
+        return ok(paginar(items, conTamanoPorDefecto(p.query), MAX_PAGINA_AUDITORIA));
       },
     },
     {
@@ -862,21 +992,42 @@ export function crearRutasBackoffice(
       manejar: async (p) => {
         const a = actor(p);
         if (!a.permisos.has('auditoria:revisar')) return prohibido();
-        const r = db.revisionesEmergencia.find((x) => x.id === p.params['id']);
-        if (!r) return noEncontrado('Auditoria.RevisionNoEncontrada', 'La revisión no existe.');
-        if (r.estado === 'CERRADA') {
-          return problema(409, 'Auditoria.RevisionYaCerrada', 'La revisión ya fue cerrada.');
-        }
+        if (a.actorTipo !== 'arl') return auditoriaNoAutorizada();
         const body = await cuerpoJson<CerrarRevisionEmergenciaRequest>(p.req);
+        const errores: ErrorValidacion[] = [];
         if (body?.conclusion !== 'JUSTIFICADO' && body?.conclusion !== 'INJUSTIFICADO') {
-          return problema(400, 'General.Validation', 'Indica la conclusión de la revisión.', {
-            errors: [{ code: 'conclusion', description: 'La conclusión es obligatoria.' }],
+          errores.push({
+            code: 'Auditoria.ConclusionInvalida',
+            description: 'Debe ser JUSTIFICADO o INJUSTIFICADO.',
           });
+        }
+        if ((body?.observaciones?.length ?? 0) > 2000) {
+          errores.push({
+            code: 'Auditoria.ObservacionesDemasiadoLargas',
+            description: 'Admite como máximo 2000 caracteres.',
+          });
+        }
+        if (errores.length) return validacion(errores);
+        const r = db.revisionesEmergencia.find(
+          (x) => x.id === p.params['id'] && tenantDeCaso(x.casoMedicoId) === a.tenantId,
+        );
+        if (!r) {
+          return noEncontrado(
+            'Auditoria.RevisionNoEncontrada',
+            'La revisión de emergencia no existe o no es de este tenant.',
+          );
+        }
+        if (r.estado === 'CERRADA') {
+          return problema(
+            409,
+            'Auditoria.RevisionYaCerrada',
+            'La revisión de emergencia ya está cerrada y no cambia.',
+          );
         }
         Object.assign(r, {
           estado: 'CERRADA',
-          conclusion: body.conclusion,
-          observaciones: body.observaciones ?? null,
+          conclusion: body!.conclusion,
+          observaciones: body!.observaciones ?? null,
           revisadoEn: iso(),
           revisadoPor: a.sub,
         });

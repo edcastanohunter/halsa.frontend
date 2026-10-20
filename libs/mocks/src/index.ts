@@ -171,10 +171,14 @@ export interface PaginaMock<T> {
 }
 
 /** `PagedList<T>` from the `page`/`pageSize` query params (plan §4.1). */
-export function paginar<T>(items: readonly T[], query: URLSearchParams): PaginaMock<T> {
+export function paginar<T>(
+  items: readonly T[],
+  query: URLSearchParams,
+  maximo = 100,
+): PaginaMock<T> {
   const page = Math.max(1, Number.parseInt(query.get('page') ?? '1', 10) || 1);
   const pageSize = Math.min(
-    100,
+    maximo,
     Math.max(1, Number.parseInt(query.get('pageSize') ?? '20', 10) || 20),
   );
   const totalPages = Math.ceil(items.length / pageSize);

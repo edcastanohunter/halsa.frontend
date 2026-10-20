@@ -114,7 +114,7 @@ describe('EstadoBadge', () => {
   });
 
   it('renders an audit Error as a destructive outline', async () => {
-    const badge = await render('resultadoAuditoria', 'Error');
+    const badge = await render('resultadoAuditoria', 'ERROR');
     expect(badge.className).toContain('ring-destructive');
     expect(badge.className).toContain('bg-transparent');
   });
