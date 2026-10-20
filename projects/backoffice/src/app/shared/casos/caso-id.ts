@@ -4,8 +4,8 @@ import { ActivatedRoute, ActivatedRouteSnapshot } from '@angular/router';
 import { map, of } from 'rxjs';
 
 /**
- * The `:casoId` of the enclosing case route. Clinical routes are mounted under the case shell
- * (`/casos/:casoId/historia-clinica`), whose params they don't inherit.
+ * The `:casoId` of the enclosing case route. Tabs of other features are mounted under the case
+ * shell (`/casos/:casoId/historia-clinica`, `…/incapacidades`), whose params they don't inherit.
  */
 export function casoIdDe(ruta: ActivatedRouteSnapshot): string | null {
   const ids = ruta.pathFromRoot.map((r) => r.paramMap.get('casoId'));

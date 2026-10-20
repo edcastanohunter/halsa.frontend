@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router, Routes } from '@angular/router';
 import { Notificaciones } from '@halsa/ui';
 import { PermisosService } from '../../core/permisos/permisos';
-import { casoIdDe } from './caso-id';
+import { casoIdDe } from '../../shared/casos/caso-id';
 
 /** `nuevo` needs `clinico:write`; without it, back to the list with a notice (plan §6.2). */
 const requiereEscritura: CanActivateFn = (route) => {

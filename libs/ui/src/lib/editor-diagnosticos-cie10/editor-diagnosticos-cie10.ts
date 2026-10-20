@@ -107,10 +107,12 @@ export function crearFormDiagnostico(
       @if (error()) {
         <p role="alert" class="text-destructive text-sm">{{ error() }}</p>
       }
-      <button hlmBtn variant="outline" size="sm" type="button" (click)="agregar()">
-        <ng-icon name="lucidePlus" aria-hidden="true" />
-        Agregar diagnóstico
-      </button>
+      @if (maximo() === null || diagnosticos().length < maximo()!) {
+        <button hlmBtn variant="outline" size="sm" type="button" (click)="agregar()">
+          <ng-icon name="lucidePlus" aria-hidden="true" />
+          Agregar diagnóstico
+        </button>
+      }
     </fieldset>
   `,
 })
@@ -121,6 +123,8 @@ export class EditorDiagnosticosCie10 {
   readonly idPrefijo = input('diagnostico');
   /** Rows that can't be removed (the dictamen needs at least one). */
   readonly minimo = input(0);
+  /** Rows allowed, e.g. the principal plus 3 related for an incapacidad; `null` for no cap. */
+  readonly maximo = input<number | null>(null);
   /** A server-side error about the diagnoses as a whole. */
   readonly error = input<string | null>(null);
 

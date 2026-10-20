@@ -7,8 +7,9 @@ const NO_MOCKS = {
   group: ['**/mocks/**', '**/mocks'],
   message: 'Mock fixtures must never be imported in production code.',
 };
-// Plan §3: only clinico and dictamen-pcl may reach clinical endpoints.
-const CLINICAL_FEATURES = new Set(['clinico', 'dictamen-pcl']);
+// Plan §3: only clinico, dictamen-pcl and the soporte download of incapacidades may reach
+// clinical endpoints.
+const CLINICAL_FEATURES = new Set(['clinico', 'dictamen-pcl', 'incapacidades']);
 const FEATURE_RE = /\/projects\/[^/]+\/src\/app\/features\/([^/]+)(?:\/|$)/;
 
 // Resolves relative imports against the importing file, so `../clinico/...` is caught too.
@@ -19,7 +20,7 @@ const featureBoundaries = {
       crossFeature:
         'Features never import from other features ("{{from}}" → "{{to}}"). Move shared code to shared/ or a lib.',
       clinical:
-        'Clinical data-access is isolated: only features/clinico and features/dictamen-pcl may import it.',
+        'Clinical data-access is isolated: only features/clinico, features/dictamen-pcl and features/incapacidades may import it.',
     },
     schema: [],
   },

@@ -22,7 +22,7 @@ import { lucideSearchX, lucideSiren } from '@ng-icons/lucide';
 import { PermisosService } from '../../../core/permisos/permisos';
 import { SesionService } from '../../../core/sesion/sesion.service';
 import { CompuertaReforzada } from '../../../core/step-up/compuerta-reforzada';
-import { injectCasoId } from '../caso-id';
+import { injectCasoId } from '../../../shared/casos/caso-id';
 import { ClinicoApi } from '../data-access/clinico-api.service';
 import { HistoriaClinicaStore } from '../data-access/historia-clinica.store';
 

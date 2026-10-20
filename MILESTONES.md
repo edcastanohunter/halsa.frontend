@@ -1,6 +1,6 @@
 # Halsa Frontend — Plan de Hitos y Seguimiento de Implementación
 
-> **Estado general:** M6 completado (2026-10-20); siguiente: M7  
+> **Estado general:** M7 completado (2026-10-20); siguiente: M8  
 > **Fecha de inicio:** 2026-10-17  
 > **Tipografía UI:** Plus Jakarta Sans (`@fontsource/plus-jakarta-sans`)  
 > **Monospace:** JetBrains Mono (`@fontsource/jetbrains-mono`)  
@@ -18,7 +18,7 @@
 - [x] **M4: Casos (Flujo Administrativo, Resumen, Equipo, Activación Paciente)**
 - [x] **M5: Plazos (Tablero de Vencimientos y Workflow de Cumplimiento)**
 - [x] **M6: Clínico 🔒 (Historia Clínica y Acceso de Emergencia "Break-the-Glass")**
-- [ ] **M7: Incapacidades (Listado, Barra Acumulada, Carga Multipart con Soporte PDF)**
+- [x] **M7: Incapacidades (Listado, Barra Acumulada, Carga Multipart con Soporte PDF)**
 - [ ] **M8: Dictamen PCL 🔒 (Dictamen, Notificación y Ventana de 15 Minutos)**
 - [ ] **M9: Privacidad (Bandeja Solicitudes Copia HC, Auditoría de Accesos, Revisiones de Emergencia)**
 - [ ] **M10: Portal del Paciente (BFF, Sesión por Cookie, Línea de Tiempo, Solicitudes)**
@@ -199,7 +199,7 @@
 
 ---
 
-### [ ] M7: Incapacidades
+### [x] M7: Incapacidades
 - **Alcance:**
   - Visualizador de días acumulados con barra de progreso y marcadores normativos (150, 180, 540 días).
   - Listado de certificados e indentación visual de prórrogas respecto a la incapacidad inicial.
@@ -212,6 +212,15 @@
 - **Criterios de Aceptación:**
   - E2E de carga de incapacidad con `medico.ips`.
   - Test unitario de persistencia de la misma clave de idempotencia en reintentos.
+- **Notas de implementación:**
+  - `features/incapacidades/`: `incapacidades.routes.ts` (lista y `nueva` con `incapacidades:write`), montado desde `app.routes.ts` con `crearRutasCasos({ incapacidades })` como la historia clínica. `IncapacidadesApi` e `IncapacidadesStore` los provee la página de la pestaña: el listado se comparte con el formulario (selector de `prorrogaDe`) y se descarta al salir.
+  - Lista: `BarraDiasAcumulados` con el mayor `diasAcumulados`, cadenas (inicial + prórrogas sangradas) con `agruparCadenas` (`cadenas.ts`) y alertas con sus etiquetas de §8.4. "Descargar soporte" 🔒 (`clinico:read`): step-up `acr=2` antes de pedirlo, blob + `guardarBlob` (URL de un solo uso revocada en el acto) con el nombre de `Content-Disposition` (`nombreDeContentDisposition`, respaldo `incapacidad-<id>.pdf`); un 403/404 va a un toast.
+  - Carga: compuerta `acr=2` primero. Escritorio, una página; móvil (< 768 px), stepper de 5 pasos que valida cada paso antes de avanzar, con las acciones fijas sobre la barra inferior. `formulario.ts` concentra el modelo, `aRequest` (sin `profesional`; `prorrogaDe` solo en prórrogas) y `erroresDeCarga` (códigos de dominio, reglas 422 de la SPEC 07, rutas `datos.*` de `errors`, 413/415 sobre el soporte). Vista previa "Termina el …", REPS prellenado con el `ipsId` de los actores IPS, barra de progreso (`reportProgress`) y hoja de resultado con las `alertas`.
+  - Multipart: `datos` como `Blob` `application/json` y `soporte` como el PDF. `ClaveIdempotencia` (`@halsa/core`) da una `Idempotency-Key` UUID v4 por estado del formulario: la misma si se reintenta con los mismos datos y el mismo archivo (tras un fallo de red el botón pasa a "Reintentar la carga"), una nueva si algo cambia, y se descarta tras el 201.
+  - Diagnósticos: un solo `EditorDiagnosticosCie10` (el primero es el principal, hasta 3 relacionados); el editor ganó la entrada `maximo`.
+  - `features/clinico/caso-id.ts` pasó a `shared/casos/caso-id.ts` (lo usan las dos pestañas montadas desde fuera). La regla `halsa/feature-boundaries` trata `features/incapacidades/data-access` como clínica (plan §3: la descarga del soporte).
+  - Evidencia: `incapacidades.spec.ts` (unit: cadenas, modelo, mapeo de errores, compuerta, multipart, misma clave tras un fallo de red simulado, clave nueva si cambian los datos, 503, permisos) y `e2e/incapacidades.spec.ts` (medico.ips: prórroga con PDF, rechazo de un no-PDF en el cliente, descarga del soporte; analista sin carga ni descarga; capturas 375/1440 claro y oscuro con axe). Capturas en `docs/reportes/m7/`.
+  - Las capturas de M7 hacen claro y oscuro en la misma prueba (`emulateMedia`): solo `calificador.arla` y `medico.ips` tienen OTP y cada step-up necesita su ventana TOTP de 30 s; una prueba por esquema hacía que la suite completa superara el timeout de 120 s.
 
 ---
 
@@ -296,6 +305,8 @@
 | **G8** | Sin endpoint de exportación | Permiso `auditoria:export` sin backend. | Se oculta el botón de exportación en la pantalla de auditoría. |
 | **G10** | Motivo de emergencia en ASCII | Kestrel rechaza caracteres diacríticos en cabeceras HTTP. | Transliteración automática a ASCII antes del envío (`ñ→n`, acentos removidos) y visualización en vivo del texto resultante. |
 | **G13** | Discrepancia ProblemDetails | OpenAPI especifica `code`, implementación usa `errorCode`. | Lectura defensiva en interceptores y mappers: `errorCode ?? code`. |
+| **G18** | `IncapacidadResponse` sin `prorrogaDe` | La lista no sabe a qué incapacidad prorroga cada prórroga. | El frontend infiere las cadenas (`agruparCadenas`): una prórroga va con la cadena cuyo último certificado termina justo antes de su inicio, lo que el backend garantiza (solo se prorroga la última de la cadena, sin solapes, ≤ 30 días de separación). Pedir al backend que exponga `prorrogaDe`. |
+| **G19** | Reglas 422 de incapacidades sin prefijo | Las reglas de la SPEC 07 responden con el código tal cual (`INCAPACIDAD_SOLAPADA`, `PRORROGA_NO_ES_ULTIMA`, …), no `Incapacidades.*`, y el plan §4.2 no las lista. `Incapacidades.DiasFueraDeRango` e `InicialConProrrogaDe` son guardas que el validador ya impide (llegan como `errors` de `datos.*`). | Mapeo explícito de esas reglas a su campo en `erroresDeCarga`. |
 
 ---
 

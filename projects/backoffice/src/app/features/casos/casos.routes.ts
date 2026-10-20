@@ -27,6 +27,7 @@ function pestana(ruta: string, permiso: Permiso, titulo: string) {
 
 /** Tabs owned by other features, wired by the app routes (features never import each other). */
 export interface PestanasExternas {
+  incapacidades?: LoadChildrenCallback;
   historiaClinica?: LoadChildrenCallback;
 }
 
@@ -61,7 +62,7 @@ export const crearRutasCasos = (externas: PestanasExternas = {}): Routes => [
         ...pestana('plazos', 'plazos:read', 'Plazos'),
         loadComponent: () => import('./pages/plazos.page').then((m) => m.PlazosCasoPage),
       },
-      pestanaPendiente('incapacidades'),
+      pestanaExterna('incapacidades', externas.incapacidades),
       pestanaExterna('historia-clinica', externas.historiaClinica),
       pestanaPendiente('dictamen-pcl'),
       {

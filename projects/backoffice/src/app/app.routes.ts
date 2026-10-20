@@ -52,6 +52,10 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/casos/casos.routes').then((m) =>
             m.crearRutasCasos({
+              incapacidades: () =>
+                import('./features/incapacidades/incapacidades.routes').then(
+                  (i) => i.INCAPACIDADES_ROUTES,
+                ),
               historiaClinica: () =>
                 import('./features/clinico/clinico.routes').then((c) => c.CLINICO_ROUTES),
             }),

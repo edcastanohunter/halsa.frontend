@@ -1,0 +1,510 @@
+@let v = valor();
+
+@if (!escritorio()) {
+  <!-- Stepper (mobile): where the user is, and how many steps are left. -->
+  <nav aria-label="Pasos de la carga" class="mb-5">
+    <ol class="flex gap-1.5" data-testid="stepper">
+      @for (p of pasos; track p; let i = $index) {
+        <li class="flex-1">
+          <span
+            class="block h-1.5 rounded-full"
+            [class]="i <= indicePaso() ? 'bg-primary' : 'bg-muted'"
+            aria-hidden="true"
+          ></span>
+          <span class="sr-only"
+            >{{ etiquetasPaso[p] }}{{ p === paso() ? ' (paso actual)' : '' }}</span
+          >
+        </li>
+      }
+    </ol>
+    <p
+      class="mt-2 text-sm font-medium outline-none"
+      tabindex="-1"
+      data-titulo-paso
+      aria-live="polite"
+    >
+      Paso {{ indicePaso() + 1 }} de {{ pasos.length }} · {{ etiquetasPaso[paso()] }}
+    </p>
+  </nav>
+}
+
+<form class="space-y-8" [formGroup]="form" (submit)="cargar($event)" novalidate>
+  @if (error('general'); as e) {
+    <div
+      role="alert"
+      data-error
+      tabindex="-1"
+      class="bg-destructive/10 text-destructive ring-destructive/25 flex items-start gap-3 rounded-lg p-3 text-sm ring-1 ring-inset"
+      data-testid="error-general"
+    >
+      <ng-icon
+        [name]="falloRed() ? 'lucideWifiOff' : 'lucideTriangleAlert'"
+        class="mt-0.5 shrink-0"
+        aria-hidden="true"
+      />
+      <div class="min-w-0 space-y-1">
+        <p>{{ e }}</p>
+        @if (falloRed()) {
+          <p class="text-foreground/80">
+            Al reintentar se envía la misma solicitud: si la primera alcanzó a llegar, no se
+            duplica.
+          </p>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- 1. Certificado -->
+  @if (enPaso('certificado')) {
+    <fieldset class="space-y-5" formGroupName="certificado">
+      <legend class="mb-3 text-base font-semibold">Certificado</legend>
+
+      <hlm-field class="max-w-sm" [forceInvalid]="!!error('numeroCertificado')">
+        <label hlmFieldLabel for="inc-numero">Número del certificado</label>
+        <input
+          hlmInput
+          id="inc-numero"
+          formControlName="numeroCertificado"
+          autocomplete="off"
+          spellcheck="false"
+          [attr.maxlength]="numeroMax"
+        />
+        <hlm-field-error validator="required">Escribe el número del certificado.</hlm-field-error>
+        @if (error('numeroCertificado'); as e) {
+          <hlm-field-error forceShow data-testid="error-numero">{{ e }}</hlm-field-error>
+        }
+      </hlm-field>
+
+      <div>
+        <p id="inc-tipo-label" class="mb-2 text-sm font-medium">Tipo</p>
+        <div
+          class="bg-muted inline-flex w-full gap-1 rounded-lg p-1 sm:w-auto"
+          role="radiogroup"
+          aria-labelledby="inc-tipo-label"
+        >
+          @for (t of tipos; track t) {
+            <label
+              class="has-checked:bg-card has-checked:text-foreground has-focus-visible:ring-ring text-muted-foreground flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-md px-4 text-sm font-medium has-checked:shadow-xs has-focus-visible:ring-2 sm:flex-none"
+            >
+              <input type="radio" class="sr-only" formControlName="tipo" [value]="t" />
+              {{ etiquetaTipo(t) }}
+            </label>
+          }
+        </div>
+      </div>
+
+      @if (esProrroga()) {
+        <fieldset
+          [attr.aria-describedby]="error('prorrogaDe') ? 'inc-prorroga-error' : null"
+          data-testid="prorroga-de"
+        >
+          <legend class="mb-2 text-sm font-medium">Prórroga de</legend>
+          @if (store.prorrogables().length) {
+            <div class="space-y-2">
+              @for (i of store.prorrogables(); track i.id) {
+                <label
+                  class="border-input has-checked:border-primary has-checked:bg-primary/5 has-focus-visible:ring-ring flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm has-focus-visible:ring-2"
+                >
+                  <input
+                    type="radio"
+                    class="accent-primary size-4"
+                    formControlName="prorrogaDe"
+                    [value]="i.id"
+                  />
+                  <span>
+                    <span class="font-medium">{{ etiquetaTipo(i.tipo) }}</span>
+                    · {{ fecha(i.fechaInicio) }} – {{ fecha(i.fechaFin) }}
+                    <span class="text-muted-foreground">({{ dias(i.dias) }})</span>
+                  </span>
+                </label>
+              }
+            </div>
+            <p class="text-muted-foreground mt-2 text-xs">
+              Solo se puede prorrogar la última incapacidad de cada cadena.
+            </p>
+          } @else {
+            <p class="bg-muted rounded-lg p-3 text-sm" data-error tabindex="-1">
+              El caso no tiene incapacidades para prorrogar. Carga primero la incapacidad inicial.
+            </p>
+          }
+          @if (
+            form.controls.certificado.hasError('sinOrigen') &&
+            form.controls.certificado.controls.prorrogaDe.touched &&
+            store.prorrogables().length
+          ) {
+            <p class="text-destructive mt-2 text-sm" role="alert" data-error tabindex="-1">
+              Elige la incapacidad que se prorroga.
+            </p>
+          }
+          @if (error('prorrogaDe'); as e) {
+            <p
+              id="inc-prorroga-error"
+              class="text-destructive mt-2 text-sm"
+              role="alert"
+              data-error
+              tabindex="-1"
+            >
+              {{ e }}
+            </p>
+          }
+        </fieldset>
+      }
+
+      <div class="grid gap-5 sm:grid-cols-2">
+        <hlm-field [forceInvalid]="!!error('fechaInicio')">
+          <label hlmFieldLabel for="inc-inicio">Fecha de inicio</label>
+          <input hlmInput id="inc-inicio" type="date" formControlName="fechaInicio" [max]="hoy" />
+          <hlm-field-error validator="required">Indica la fecha de inicio.</hlm-field-error>
+          <hlm-field-error validator="futura">No puede ser una fecha futura.</hlm-field-error>
+          <hlm-field-error validator="invalida">La fecha no es válida.</hlm-field-error>
+          @if (error('fechaInicio'); as e) {
+            <hlm-field-error forceShow data-testid="error-fecha">{{ e }}</hlm-field-error>
+          }
+        </hlm-field>
+
+        <hlm-field [forceInvalid]="!!error('dias')">
+          <label hlmFieldLabel for="inc-dias">Días</label>
+          <div class="flex items-center gap-2">
+            <button
+              hlmBtn
+              variant="outline"
+              size="icon"
+              type="button"
+              aria-label="Un día menos"
+              aria-controls="inc-dias"
+              [disabled]="(v.certificado.dias ?? 0) <= diasMin"
+              (click)="cambiarDias(-1)"
+            >
+              <ng-icon name="lucideMinus" aria-hidden="true" />
+            </button>
+            <input
+              hlmInput
+              id="inc-dias"
+              type="number"
+              inputmode="numeric"
+              class="w-20 text-center tabular-nums"
+              formControlName="dias"
+              [min]="diasMin"
+              [max]="diasMax"
+              step="1"
+            />
+            <button
+              hlmBtn
+              variant="outline"
+              size="icon"
+              type="button"
+              aria-label="Un día más"
+              aria-controls="inc-dias"
+              [disabled]="(v.certificado.dias ?? 0) >= diasMax"
+              (click)="cambiarDias(1)"
+            >
+              <ng-icon name="lucidePlus" aria-hidden="true" />
+            </button>
+          </div>
+          <p hlmFieldDescription aria-live="polite" data-testid="termina-el">
+            @if (fechaFin(); as fin) {
+              Termina el <span class="text-foreground font-medium">{{ fecha(fin) }}</span>
+            } @else {
+              Entre {{ diasMin }} y {{ diasMax }} días calendario.
+            }
+          </p>
+          <hlm-field-error validator="required">Indica los días.</hlm-field-error>
+          <hlm-field-error validator="min">Entre 1 y 30 días.</hlm-field-error>
+          <hlm-field-error validator="max">Entre 1 y 30 días.</hlm-field-error>
+          <hlm-field-error validator="pattern">Escribe un número entero.</hlm-field-error>
+          @if (error('dias'); as e) {
+            <hlm-field-error forceShow>{{ e }}</hlm-field-error>
+          }
+        </hlm-field>
+      </div>
+
+      <div>
+        <p id="inc-modalidad-label" class="mb-2 text-sm font-medium">Modalidad de la atención</p>
+        <div
+          class="bg-muted inline-flex w-full gap-1 rounded-lg p-1 sm:w-auto"
+          role="radiogroup"
+          aria-labelledby="inc-modalidad-label"
+        >
+          @for (m of modalidades; track m) {
+            <label
+              class="has-checked:bg-card has-checked:text-foreground has-focus-visible:ring-ring text-muted-foreground flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-md px-4 text-sm font-medium has-checked:shadow-xs has-focus-visible:ring-2 sm:flex-none"
+            >
+              <input type="radio" class="sr-only" formControlName="modalidad" [value]="m" />
+              {{ etiquetaModalidad(m) }}
+            </label>
+          }
+        </div>
+      </div>
+    </fieldset>
+  }
+
+  <!-- 2. Diagnóstico -->
+  @if (enPaso('diagnostico')) {
+    <div class="space-y-5" formGroupName="diagnostico">
+      @if (escritorio()) {
+        <h3 class="text-base font-semibold">Diagnóstico</h3>
+      }
+      <p class="text-muted-foreground text-sm">
+        El primero es el principal; puedes agregar hasta 3 relacionados. Se guardan en la historia
+        clínica y no se muestran en el listado.
+      </p>
+      <halsa-editor-diagnosticos-cie10
+        titulo="Diagnósticos CIE-10"
+        idPrefijo="inc-dx"
+        [diagnosticos]="form.controls.diagnostico.controls.diagnosticos"
+        [minimo]="1"
+        [maximo]="diagnosticosMax"
+        [error]="errorDiagnosticos()"
+      />
+      <hlm-field [forceInvalid]="!!error('observaciones')">
+        <label hlmFieldLabel for="inc-observaciones">Observaciones (opcional)</label>
+        <textarea
+          hlmTextarea
+          id="inc-observaciones"
+          class="field-sizing-content min-h-20"
+          formControlName="observaciones"
+          [attr.maxlength]="observacionesMax"
+        ></textarea>
+        <p hlmFieldDescription class="text-end tabular-nums">
+          {{ v.diagnostico.observaciones.length }}/{{ observacionesMax }}
+        </p>
+        @if (error('observaciones'); as e) {
+          <hlm-field-error forceShow>{{ e }}</hlm-field-error>
+        }
+      </hlm-field>
+    </div>
+  }
+
+  <!-- 3. IPS emisora -->
+  @if (enPaso('ips')) {
+    <fieldset class="space-y-5" formGroupName="ips">
+      <legend class="mb-3 text-base font-semibold">IPS emisora</legend>
+      <div class="grid gap-5 sm:grid-cols-[14rem_1fr]">
+        <hlm-field [forceInvalid]="!!error('codigoReps')">
+          <label hlmFieldLabel for="inc-reps">Código REPS</label>
+          <input
+            hlmInput
+            id="inc-reps"
+            class="font-mono"
+            inputmode="numeric"
+            autocomplete="off"
+            maxlength="12"
+            formControlName="codigoReps"
+          />
+          <p hlmFieldDescription>Entre 10 y 12 dígitos.</p>
+          <hlm-field-error validator="required">Escribe el código REPS.</hlm-field-error>
+          <hlm-field-error validator="pattern"
+            >El código REPS tiene entre 10 y 12 dígitos.</hlm-field-error
+          >
+          @if (error('codigoReps'); as e) {
+            <hlm-field-error forceShow>{{ e }}</hlm-field-error>
+          }
+        </hlm-field>
+        <hlm-field [forceInvalid]="!!error('nombreIps')">
+          <label hlmFieldLabel for="inc-ips-nombre">Nombre (opcional)</label>
+          <input hlmInput id="inc-ips-nombre" formControlName="nombre" maxlength="200" />
+          @if (error('nombreIps'); as e) {
+            <hlm-field-error forceShow>{{ e }}</hlm-field-error>
+          }
+        </hlm-field>
+      </div>
+    </fieldset>
+  }
+
+  <!-- 4. Soporte -->
+  @if (enPaso('soporte')) {
+    <section class="space-y-3" aria-labelledby="inc-soporte-titulo">
+      <h3 id="inc-soporte-titulo" class="text-base font-semibold">Soporte</h3>
+      <p class="text-muted-foreground text-sm">
+        El certificado firmado en PDF. Se analiza con antivirus y se guarda cifrado.
+      </p>
+      <halsa-subida-pdf
+        data-testid="soporte"
+        [archivo]="v.soporte"
+        [deshabilitado]="enviando()"
+        (archivoChange)="alElegirSoporte($event)"
+      />
+      @if (form.controls.soporte.hasError('required') && form.controls.soporte.touched) {
+        <p class="text-destructive text-sm" role="alert" data-error tabindex="-1">
+          Adjunta el PDF del certificado.
+        </p>
+      }
+      @if (error('soporte'); as e) {
+        <p
+          class="text-destructive text-sm font-medium"
+          role="alert"
+          data-error
+          tabindex="-1"
+          data-testid="error-soporte"
+        >
+          {{ e }}
+        </p>
+      }
+    </section>
+  }
+
+  <!-- 5. Revisión (mobile only: desktop shows everything at once) -->
+  @if (!escritorio() && paso() === 'revision') {
+    <section class="space-y-3" aria-label="Revisión" data-testid="revision">
+      <dl class="bg-card ring-border divide-border divide-y rounded-xl text-sm ring-1">
+        <div class="flex justify-between gap-3 p-3">
+          <dt class="text-muted-foreground">Certificado</dt>
+          <dd class="text-end font-medium break-all">{{ v.certificado.numeroCertificado }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 p-3">
+          <dt class="text-muted-foreground">Tipo</dt>
+          <dd class="text-end">
+            {{ etiquetaTipo(v.certificado.tipo) }}
+            @if (prorrogaElegida(); as p) {
+              <span class="text-muted-foreground block text-xs"
+                >de {{ fecha(p.fechaInicio) }} – {{ fecha(p.fechaFin) }}</span
+              >
+            }
+          </dd>
+        </div>
+        <div class="flex justify-between gap-3 p-3">
+          <dt class="text-muted-foreground">Periodo</dt>
+          <dd class="text-end tabular-nums">
+            {{ fecha(v.certificado.fechaInicio) }} – {{ fecha(fechaFin()) }}
+            <span class="text-muted-foreground block text-xs">{{
+              dias(v.certificado.dias ?? 0)
+            }}</span>
+          </dd>
+        </div>
+        <div class="flex justify-between gap-3 p-3">
+          <dt class="text-muted-foreground">Modalidad</dt>
+          <dd class="text-end">{{ etiquetaModalidad(v.certificado.modalidad) }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 p-3">
+          <dt class="text-muted-foreground">Diagnósticos</dt>
+          <dd class="flex flex-wrap justify-end gap-1">
+            @for (d of v.diagnostico.diagnosticos; track $index) {
+              <span
+                class="bg-muted ring-border rounded-md px-2 py-0.5 font-mono text-xs ring-1 ring-inset"
+                >{{ d.codigo }}</span
+              >
+            }
+          </dd>
+        </div>
+        <div class="flex justify-between gap-3 p-3">
+          <dt class="text-muted-foreground">IPS emisora</dt>
+          <dd class="text-end">
+            <span class="font-mono">{{ v.ips.codigoReps }}</span>
+            @if (v.ips.nombre) {
+              <span class="text-muted-foreground block text-xs">{{ v.ips.nombre }}</span>
+            }
+          </dd>
+        </div>
+        <div class="flex justify-between gap-3 p-3">
+          <dt class="text-muted-foreground">Soporte</dt>
+          <dd class="min-w-0 text-end">
+            @if (v.soporte; as s) {
+              <span class="block truncate">{{ s.name }}</span>
+              <span class="text-muted-foreground text-xs tabular-nums">{{ tamano(s.size) }}</span>
+            }
+          </dd>
+        </div>
+      </dl>
+    </section>
+  }
+
+  @if (enviando()) {
+    <div class="space-y-1.5" data-testid="progreso">
+      <hlm-progress [value]="progreso()" aria-label="Carga del soporte">
+        <hlm-progress-indicator />
+      </hlm-progress>
+      <p class="text-muted-foreground text-xs tabular-nums" aria-live="polite">
+        @if (progreso() !== null) {
+          Cargando… {{ progreso() }} %
+        } @else {
+          Cargando…
+        }
+      </p>
+    </div>
+  }
+
+  <!--
+    Below lg the actions stick above the bottom nav: the next step is always at hand, and the
+    primary button never sits under the translucent bar.
+  -->
+  <div
+    class="border-border bg-background/95 supports-[backdrop-filter]:bg-background/85 flex gap-2 max-lg:sticky max-lg:bottom-[calc(3.5rem+1px+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:-mx-4 max-lg:border-t max-lg:px-4 max-lg:py-3 max-lg:backdrop-blur sm:justify-end md:max-lg:-mx-6 md:max-lg:px-6"
+    data-testid="acciones"
+  >
+    @if (escritorio() || indicePaso() === 0) {
+      <a hlmBtn variant="outline" class="max-sm:flex-1" routerLink="..">Cancelar</a>
+    } @else {
+      <button
+        hlmBtn
+        variant="outline"
+        type="button"
+        class="max-sm:flex-1"
+        [disabled]="enviando()"
+        (click)="anterior()"
+      >
+        Atrás
+      </button>
+    }
+    @if (escritorio() || paso() === 'revision') {
+      <button hlmBtn type="submit" class="max-sm:flex-1" [disabled]="enviando()">
+        @if (enviando()) {
+          <hlm-spinner class="size-4" aria-hidden="true" />
+        }
+        {{ falloRed() ? 'Reintentar la carga' : 'Cargar incapacidad' }}
+      </button>
+    } @else {
+      <button hlmBtn type="button" class="max-sm:flex-1" (click)="siguiente()">Siguiente</button>
+    }
+  </div>
+</form>
+
+<!-- Success sheet with the alertas the server computed (plan §7.6). -->
+<hlm-sheet
+  [side]="escritorio() ? 'right' : 'bottom'"
+  [state]="creada() ? 'open' : 'closed'"
+  (closed)="volver()"
+>
+  <hlm-sheet-content *hlmSheetPortal="let ctx" class="max-h-dvh overflow-y-auto sm:max-w-md">
+    @if (creada(); as c) {
+      <hlm-sheet-header>
+        <h2 hlmSheetTitle class="flex items-center gap-2">
+          <ng-icon name="lucideCircleCheck" class="text-success" aria-hidden="true" />
+          Incapacidad cargada
+        </h2>
+        <p hlmSheetDescription>
+          {{ etiquetaTipo(c.tipo) }} · {{ fecha(c.fechaInicio) }} – {{ fecha(c.fechaFin) }} ·
+          {{ dias(c.dias) }}
+        </p>
+      </hlm-sheet-header>
+      <div class="space-y-4 px-4" data-testid="resultado-carga">
+        <p class="text-sm">
+          El caso acumula
+          <span class="font-semibold tabular-nums">{{ dias(c.diasAcumulados) }}</span> de
+          incapacidad.
+        </p>
+        @if (c.alertas.length) {
+          <ul class="space-y-2" aria-label="Alertas">
+            @for (a of c.alertas; track a.code) {
+              <li
+                class="bg-warning/12 ring-warning/30 flex gap-2 rounded-lg p-3 text-sm ring-1 ring-inset"
+              >
+                <ng-icon
+                  name="lucideTriangleAlert"
+                  class="text-warning mt-0.5 shrink-0"
+                  aria-hidden="true"
+                />
+                <span>
+                  <span class="block font-medium">{{ alerta(a) }}</span>
+                  <span class="text-foreground/80">{{ a.mensaje }}</span>
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+      <hlm-sheet-footer>
+        <button hlmBtn type="button" (click)="volver()">Volver a incapacidades</button>
+      </hlm-sheet-footer>
+    }
+  </hlm-sheet-content>
+</hlm-sheet>
