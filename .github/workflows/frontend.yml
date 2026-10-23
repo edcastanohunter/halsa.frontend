@@ -1,34 +1,84 @@
 name: Frontend CI
 
+# Plan §11 gates: lint + unit + production build with the gzip budgets. E2E is excluded (it
+# needs Keycloak and the backend). The images are built, not pushed, so a broken Dockerfile or
+# nginx template fails the PR.
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
-    name: Lint, Test & Build
+    name: Lint, test & build
     runs-on: ubuntu-latest
-
+    timeout-minutes: 20
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: npm
 
+      # The lockfile is written by the npm in package.json "packageManager"; npm 10 rejects it.
       - name: Install dependencies
-        run: npm ci
+        run: npm install -g npm@11.6.2 && npm ci --no-audit --no-fund
+
+      - name: Format
+        run: npm run format:check
 
       - name: Lint
         run: npm run lint
 
-      - name: Unit Tests
+      - name: Unit tests
         run: npm run test
 
-      - name: Build Applications
+      # Both apps + scripts/check-bundles.mjs (gzip budgets, no mock code in production).
+      - name: Build
         run: npm run build
+
+  images:
+    name: Container image (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: validate
+    strategy:
+      matrix:
+        app: [backoffice, portal]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/${{ matrix.app }}/Dockerfile
+          push: false
+          load: true
+          tags: halsa-${{ matrix.app }}:ci
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+
+      # The container must start with env-provided config and send the CSP (plan §10.2, §10.3).
+      - name: Smoke test
+        run: |
+          docker run -d --name app -p 8080:8080 \
+            -e HALSA_KEYCLOAK_AUTHORITY=https://auth.example.com/realms/halsa \
+            -e HALSA_API_BASE_URL=https://api.example.com \
+            halsa-${{ matrix.app }}:ci
+          for i in $(seq 1 20); do curl -fs http://localhost:8080/health && break; sleep 1; done
+          curl -fsS http://localhost:8080/config.json
+          curl -fsSI http://localhost:8080/casos | grep -i "content-security-policy:.*require-trusted-types-for 'script'"
+          curl -fsS http://localhost:8080/casos | grep -q '<app-root>'
+          docker logs app

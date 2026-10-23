@@ -1,0 +1,27 @@
+# syntax=docker/dockerfile:1
+# Patient portal image (plan §10.2). Build context: the repository root.
+#   docker build -f deploy/portal/Dockerfile -t halsa-portal .
+# No runtime env: the portal only talks to its BFF on the same host (/paciente/*), which the
+# reverse proxy routes before this container (deploy/README.md).
+
+FROM node:22-alpine AS build
+WORKDIR /src
+COPY package.json package-lock.json ./
+# The lockfile is written by the npm in package.json "packageManager"; npm 10 (node 22) rejects it.
+RUN npm install -g npm@11.6.2 && npm ci --no-audit --no-fund
+COPY angular.json tsconfig.json .postcssrc.json ./
+COPY libs libs
+COPY projects/portal projects/portal
+COPY scripts/check-bundles.mjs scripts/
+# Production build + gzip budgets and the no-mock check; config.json is generated at start.
+RUN npx ng build portal \
+    && node scripts/check-bundles.mjs portal \
+    && rm dist/portal/browser/config.json
+
+FROM nginxinc/nginx-unprivileged:stable-alpine
+ENV HALSA_APP=portal
+COPY --chmod=0755 deploy/nginx/16-halsa.envsh /docker-entrypoint.d/
+COPY deploy/nginx/default.conf.template deploy/nginx/seguridad.inc.template /etc/nginx/templates/
+COPY --from=build /src/dist/portal/browser /usr/share/nginx/html
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -q -O /dev/null http://127.0.0.1:8080/health || exit 1

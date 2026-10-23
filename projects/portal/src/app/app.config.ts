@@ -16,6 +16,7 @@ import {
   provideLocaleEsCo,
   provideManejadorErrores,
 } from '@halsa/core';
+import { provideIconosTrustedTypes } from '@halsa/ui/iconos';
 import { provideSpartanHlm } from '@halsa/ui/helm/utils';
 import { routes } from './app.routes';
 import { csrfInterceptor, sesionExpiradaInterceptor } from './core/http/interceptores';
@@ -44,6 +45,7 @@ export function appConfig(config: AppConfig): ApplicationConfig {
         ]),
       ),
       provideSpartanHlm(),
+      provideIconosTrustedTypes(),
       provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
       // `bff/usuario` before the first navigation, so the guards know the session.
       provideAppInitializer(() => inject(SesionPaciente).iniciar()),

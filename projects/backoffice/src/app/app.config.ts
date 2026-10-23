@@ -16,6 +16,7 @@ import {
   provideLocaleEsCo,
   provideManejadorErrores,
 } from '@halsa/core';
+import { provideIconosTrustedTypes } from '@halsa/ui/iconos';
 import { provideSpartanHlm } from '@halsa/ui/helm/utils';
 import { routes } from './app.routes';
 import { provideOidc } from './core/auth/oidc';
@@ -47,6 +48,7 @@ export function appConfig(config: AppConfig): ApplicationConfig {
         ]),
       ),
       provideSpartanHlm(),
+      provideIconosTrustedTypes(),
       provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
       // OIDC callback + `identidad/yo` before the first navigation, so guards see the session.
       provideAppInitializer(() => inject(SesionService).iniciar()),

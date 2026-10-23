@@ -1,4 +1,4 @@
-import { type BrowserContext, expect, type Page, test, type TestInfo } from '@playwright/test';
+import { type BrowserContext, expect, type Page, test, type TestInfo } from './fixtures';
 import {
   capturar as capturarEn,
   esEscritorio,

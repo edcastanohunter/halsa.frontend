@@ -1,0 +1,8 @@
+# Security headers (plan §10.3). nginx drops the server's add_header directives in any location
+# that declares its own, so every location includes this file. HALSA_CSP comes from
+# 16-halsa.envsh. HSTS belongs to the TLS-terminating proxy (deploy/README.md).
+add_header Content-Security-Policy "${HALSA_CSP}" always;
+add_header Referrer-Policy "no-referrer" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+add_header Cross-Origin-Opener-Policy "same-origin-allow-popups" always;

@@ -1,0 +1,46 @@
+# One server for either SPA (plan §10.2). Rendered by the image's 20-envsubst-on-templates.sh,
+# which only replaces variables defined in the environment, so nginx's own $uri stays as is.
+server {
+    listen 8080;
+    server_name _;
+    root /usr/share/nginx/html;
+
+    server_tokens off;
+    # Behind the reverse proxy: redirects must not leak the container's port.
+    absolute_redirect off;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    include /etc/nginx/conf.d/seguridad.inc;
+
+    location = /health {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    # Generated at container start from env vars (16-halsa.envsh).
+    location = /config.json {
+        alias /tmp/halsa/config.json;
+        default_type application/json;
+        add_header Cache-Control "no-cache" always;
+        include /etc/nginx/conf.d/seguridad.inc;
+    }
+
+    # Hashed build output (main-ABCD1234.js, media/font-ABCD1234.woff2): cached for a year.
+    location ~* "-[A-Z0-9]{8}\.(?:js|css|woff2?|ttf|svg|png|jpe?g|webp)$" {
+        try_files $uri =404;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        include /etc/nginx/conf.d/seguridad.inc;
+    }
+
+    # index.html, theme-init.js, favicon and every client route (SPA fallback): always revalidated.
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-cache" always;
+        include /etc/nginx/conf.d/seguridad.inc;
+    }
+}

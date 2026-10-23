@@ -1,4 +1,4 @@
-import { expect, type Page, test, type TestInfo } from '@playwright/test';
+import { expect, type Page, test, type TestInfo } from './fixtures';
 import { capturar as capturarEn, esEscritorio, sinViolacionesGraves } from './backoffice';
 
 // M10 (plan §6.4, §7.12): the patient portal against the mock BFF (gap G3 blocks the real BFF

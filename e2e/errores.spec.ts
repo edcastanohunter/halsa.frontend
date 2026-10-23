@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, type Page, test, type TestInfo } from '@playwright/test';
+import { expect, type Page, test, type TestInfo } from './fixtures';
 
 // M2 (plan §4.2, §8.6): the error→UI mapping and the toasts mounted in each app shell, at 375 px
 // and 1440 px, light and dark, in both apps. Each view must match its baseline in

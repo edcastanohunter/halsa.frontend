@@ -1,0 +1,16 @@
+# Only what the Dockerfiles in deploy/ copy: package files, angular.json, tsconfig, libs,
+# projects, scripts and deploy/nginx.
+**/node_modules
+.git
+.angular
+.nx
+dist
+out-tsc
+coverage
+docs
+e2e
+dev
+keycloak-theme
+playwright-report
+test-results
+prompt

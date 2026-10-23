@@ -23,7 +23,15 @@ const fail = (message) => {
   console.error(`  ✗ ${message}`);
 };
 
-for (const [app, budget] of Object.entries(BUDGETS)) {
+// Both apps by default; the Dockerfiles pass the one they build.
+const apps = process.argv.length > 2 ? process.argv.slice(2) : Object.keys(BUDGETS);
+
+for (const app of apps) {
+  const budget = BUDGETS[app];
+  if (!budget) {
+    fail(`unknown app "${app}" (expected ${Object.keys(BUDGETS).join(' or ')})`);
+    continue;
+  }
   const dir = join('dist', app, 'browser');
   if (!existsSync(dir)) {
     fail(`${app}: ${dir} not found, run the production build first`);

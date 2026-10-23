@@ -97,7 +97,14 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "port": 3000,
-            "proxyConfig": "proxy.backoffice.json"
+            "proxyConfig": "proxy.backoffice.json",
+            "headers": {
+              "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' http://localhost:5600 http://localhost:8080 http://localhost:8180; frame-src http://localhost:8080 http://localhost:8180; frame-ancestors 'none'; base-uri 'self'; form-action 'self' http://localhost:8080 http://localhost:8180; object-src 'none'; require-trusted-types-for 'script'; trusted-types angular angular#bundler halsa#iconos",
+              "Referrer-Policy": "no-referrer",
+              "X-Content-Type-Options": "nosniff",
+              "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+              "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
+            }
           },
           "configurations": {
             "production": {
@@ -212,7 +219,14 @@
           "options": {
             "port": 4300,
             "ssl": true,
-            "proxyConfig": "proxy.portal.json"
+            "proxyConfig": "proxy.portal.json",
+            "headers": {
+              "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; require-trusted-types-for 'script'; trusted-types angular angular#bundler halsa#iconos",
+              "Referrer-Policy": "no-referrer",
+              "X-Content-Type-Options": "nosniff",
+              "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+              "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
+            }
           },
           "configurations": {
             "production": {

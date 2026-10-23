@@ -6,7 +6,7 @@ import {
   type Page,
   test,
   type TestInfo,
-} from '@playwright/test';
+} from './fixtures';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';

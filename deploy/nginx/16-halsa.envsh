@@ -1,0 +1,74 @@
+#!/bin/sh
+# Sourced by the nginx image entrypoint before 20-envsubst-on-templates.sh (plan §10.2, §10.3).
+# 1. Validates the runtime env vars of this app (HALSA_APP, set by the Dockerfile).
+# 2. Writes /tmp/halsa/config.json, which nginx serves as /config.json (one image, any env).
+# 3. Exports HALSA_CSP, which the templates put in the Content-Security-Policy header, with the
+#    API and Keycloak origins derived from the same URLs as config.json.
+
+halsa_fallar() {
+    echo "halsa: $*" >&2
+    exit 1
+}
+
+# Values end up inside JSON strings and an HTTP header: only plain URL characters are allowed.
+halsa_url() {
+    case "$2" in
+        *[!A-Za-z0-9:/._~%@+=-]*) halsa_fallar "$1 contains characters not allowed in a URL: '$2'" ;;
+    esac
+}
+
+halsa_origen() {
+    printf '%s' "$1" | sed -E 's#^(https?://[^/]+).*#\1#'
+}
+
+mkdir -p /tmp/halsa
+
+case "${HALSA_APP:-}" in
+    backoffice)
+        HALSA_API_BASE_URL="${HALSA_API_BASE_URL:-}"
+        HALSA_KEYCLOAK_CLIENT_ID="${HALSA_KEYCLOAK_CLIENT_ID:-halsa-backoffice}"
+        [ -n "${HALSA_KEYCLOAK_AUTHORITY:-}" ] || halsa_fallar "HALSA_KEYCLOAK_AUTHORITY is required (e.g. https://auth.example.com/realms/halsa)"
+        case "$HALSA_KEYCLOAK_AUTHORITY" in
+            http://* | https://*) ;;
+            *) halsa_fallar "HALSA_KEYCLOAK_AUTHORITY must be an absolute http(s) URL" ;;
+        esac
+        case "$HALSA_API_BASE_URL" in
+            '' | http://* | https://*) ;;
+            *) halsa_fallar "HALSA_API_BASE_URL must be empty (same origin) or an absolute http(s) URL" ;;
+        esac
+        # The app appends /v1/ itself.
+        HALSA_API_BASE_URL="${HALSA_API_BASE_URL%/}"
+        halsa_url HALSA_API_BASE_URL "$HALSA_API_BASE_URL"
+        halsa_url HALSA_KEYCLOAK_AUTHORITY "$HALSA_KEYCLOAK_AUTHORITY"
+        halsa_url HALSA_KEYCLOAK_CLIENT_ID "$HALSA_KEYCLOAK_CLIENT_ID"
+
+        halsa_kc="$(halsa_origen "$HALSA_KEYCLOAK_AUTHORITY")"
+        halsa_api=""
+        [ -z "$HALSA_API_BASE_URL" ] || halsa_api=" $(halsa_origen "$HALSA_API_BASE_URL")"
+
+        printf '{"apiBaseUrl":"%s","mock":false,"keycloak":{"authority":"%s","clientId":"%s"}}\n' \
+            "$HALSA_API_BASE_URL" "$HALSA_KEYCLOAK_AUTHORITY" "$HALSA_KEYCLOAK_CLIENT_ID" \
+            > /tmp/halsa/config.json
+
+        # Step-up uses a Keycloak popup and the token endpoint (connect-src); frame-src covers
+        # the OIDC library's iframes should silent renew ever fall back to them.
+        halsa_conexiones="'self'${halsa_api} ${halsa_kc}"
+        halsa_marcos="frame-src ${halsa_kc}; "
+        halsa_formularios="'self' ${halsa_kc}"
+        ;;
+    portal)
+        # The portal only talks to its BFF on the same host (/paciente/*). Login and logout are
+        # full navigations, never a form posted to Keycloak.
+        printf '{"apiBaseUrl":"","mock":false}\n' > /tmp/halsa/config.json
+        halsa_conexiones="'self'"
+        halsa_marcos=""
+        halsa_formularios="'self'"
+        ;;
+    *)
+        halsa_fallar "HALSA_APP must be 'backoffice' or 'portal' (set by the Dockerfile)"
+        ;;
+esac
+
+export HALSA_CSP="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src ${halsa_conexiones}; ${halsa_marcos}frame-ancestors 'none'; base-uri 'self'; form-action ${halsa_formularios}; object-src 'none'; require-trusted-types-for 'script'; trusted-types angular angular#bundler halsa#iconos"
+
+echo "halsa: ${HALSA_APP} config.json written; CSP connect-src ${halsa_conexiones}"

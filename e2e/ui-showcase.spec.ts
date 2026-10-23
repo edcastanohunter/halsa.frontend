@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 // M1 AC: the /_ui showcase in light and dark at 375 px and 1440 px, axe-clean, with screenshots
 // for the milestone report (backoffice projects only, to keep the set small).

@@ -18,6 +18,7 @@
       "@halsa/ui/showcase": ["libs/ui/src/showcase/ui-showcase.page.ts"],
       "@halsa/ui/tema": ["libs/ui/src/lib/tema/tema.service.ts"],
       "@halsa/ui/notificaciones": ["libs/ui/src/lib/notificaciones/notificaciones.ts"],
+      "@halsa/ui/iconos": ["libs/ui/src/lib/iconos/iconos-trusted-types.ts"],
       "@halsa/core": ["libs/core/src/index.ts"],
       "@halsa/api-types": ["libs/api-types/src/index.ts"],
       "@halsa/mocks": ["libs/mocks/src/index.ts"],

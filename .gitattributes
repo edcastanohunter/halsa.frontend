@@ -1,0 +1,4 @@
+# Shell scripts and nginx templates run inside Linux containers: never check them out with CRLF.
+*.sh text eol=lf
+*.envsh text eol=lf
+deploy/** text eol=lf
