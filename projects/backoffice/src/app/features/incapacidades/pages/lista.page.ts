@@ -19,15 +19,12 @@ import {
   guardarBlob,
   TIPO_INCAPACIDAD_LABELS,
 } from '@halsa/core';
-import {
-  BarraDiasAcumulados,
-  EstadoError,
-  EstadoVacio,
-  FechaBogota,
-  Notificaciones,
-  Tono,
-  TONO_SUAVE,
-} from '@halsa/ui';
+import { BarraDiasAcumulados } from '@halsa/ui/barra-dias-acumulados';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
+import { Notificaciones } from '@halsa/ui/notificaciones';
+import { Tono, TONO_SUAVE } from '@halsa/ui/tono';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';
 import { HlmSpinner } from '@halsa/ui/helm/spinner';

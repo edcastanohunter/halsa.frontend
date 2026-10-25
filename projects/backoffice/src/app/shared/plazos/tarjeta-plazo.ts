@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 import { RouterLink } from '@angular/router';
 import type { PlazoResponse } from '@halsa/api-types';
 import { getEnumLabel, REGLA_PLAZO_LABELS } from '@halsa/core';
-import { FechaBogota, SemaforoPlazo } from '@halsa/ui';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
+import { SemaforoPlazo } from '@halsa/ui/semaforo-plazo';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCircleCheck } from '@ng-icons/lucide';

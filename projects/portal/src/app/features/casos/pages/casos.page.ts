@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import type { CasoPacienteResponse } from '@halsa/api-types';
 import { MensajeError, mensajeDeError } from '@halsa/core';
-import { EstadoError, EstadoVacio } from '@halsa/ui';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
 import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';
 import { provideIcons } from '@ng-icons/core';
 import { lucideFolderOpen } from '@ng-icons/lucide';

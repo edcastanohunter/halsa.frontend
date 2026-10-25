@@ -21,15 +21,13 @@ import {
   mensajeDeError,
   TIPO_EVENTO_LABELS,
 } from '@halsa/core';
-import {
-  DocumentoEnmascarado,
-  EstadoBadge,
-  EstadoError,
-  EstadoVacio,
-  FechaBogota,
-  hlm,
-  RadicadoChip,
-} from '@halsa/ui';
+import { DocumentoEnmascarado } from '@halsa/ui/documento-enmascarado';
+import { EstadoBadge } from '@halsa/ui/estado-badge';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
+import { hlm } from '@halsa/ui/helm/utils';
+import { RadicadoChip } from '@halsa/ui/radicado-chip';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmPaginationImports } from '@halsa/ui/helm/pagination';
 import { HlmSelectImports } from '@halsa/ui/helm/select';

@@ -19,7 +19,8 @@ import {
   Validators,
 } from '@angular/forms';
 import type { SolicitudCopiaHcResponse } from '@halsa/api-types';
-import { injectMediaQuery, Notificaciones } from '@halsa/ui';
+import { injectMediaQuery } from '@halsa/ui/media';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmFieldImports } from '@halsa/ui/helm/field';
 import { HlmSheetImports } from '@halsa/ui/helm/sheet';

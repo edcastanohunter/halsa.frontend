@@ -16,7 +16,7 @@ import {
   sumarDias,
   TipoIncapacidad,
 } from '@halsa/core';
-import { crearFormDiagnostico, FormDiagnostico } from '@halsa/ui';
+import { crearFormDiagnostico, FormDiagnostico } from '@halsa/ui/editor-diagnosticos-cie10';
 
 /** Backend `IncapacidadRequestValidator` and `Incapacidad.MaxDias`. */
 export const NUMERO_CERTIFICADO_MAX = 40;

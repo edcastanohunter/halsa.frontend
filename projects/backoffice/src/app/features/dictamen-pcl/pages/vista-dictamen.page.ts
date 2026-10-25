@@ -8,7 +8,10 @@ import {
   getEnumLabel,
   ORIGEN_LABELS,
 } from '@halsa/core';
-import { DocumentoEnmascarado, EstadoBadge, EstadoVacio, Notificaciones } from '@halsa/ui';
+import { DocumentoEnmascarado } from '@halsa/ui/documento-enmascarado';
+import { EstadoBadge } from '@halsa/ui/estado-badge';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {

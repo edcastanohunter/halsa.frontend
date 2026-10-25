@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { EstadoVacio } from '@halsa/ui';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { provideIcons } from '@ng-icons/core';
 import { lucideBan, lucideHammer, lucideSearchX } from '@ng-icons/lucide';

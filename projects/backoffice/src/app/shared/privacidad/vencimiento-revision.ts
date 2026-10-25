@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { formatFechaHoraBogota } from '@halsa/core';
-import { hlm, injectAhora, TONO_CONTORNO, TONO_SUAVE } from '@halsa/ui';
+import { hlm } from '@halsa/ui/helm/utils';
+import { injectAhora } from '@halsa/ui/ahora';
+import { TONO_CONTORNO, TONO_SUAVE } from '@halsa/ui/tono';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCircleAlert, lucideClock, lucideTriangleAlert } from '@ng-icons/lucide';
 

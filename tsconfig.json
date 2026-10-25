@@ -19,6 +19,41 @@
       "@halsa/ui/tema": ["libs/ui/src/lib/tema/tema.service.ts"],
       "@halsa/ui/notificaciones": ["libs/ui/src/lib/notificaciones/notificaciones.ts"],
       "@halsa/ui/iconos": ["libs/ui/src/lib/iconos/iconos-trusted-types.ts"],
+      "@halsa/ui/ahora": ["libs/ui/src/lib/utils/ahora.ts"],
+      "@halsa/ui/media": ["libs/ui/src/lib/utils/media.ts"],
+      "@halsa/ui/portapapeles": ["libs/ui/src/lib/utils/portapapeles.ts"],
+      "@halsa/ui/tono": ["libs/ui/src/lib/utils/tono.ts"],
+      "@halsa/ui/barra-dias-acumulados": [
+        "libs/ui/src/lib/barra-dias-acumulados/barra-dias-acumulados.ts"
+      ],
+      "@halsa/ui/campo-porcentaje": ["libs/ui/src/lib/campo-porcentaje/campo-porcentaje.ts"],
+      "@halsa/ui/codigo-una-vez": ["libs/ui/src/lib/codigo-una-vez/codigo-una-vez.ts"],
+      "@halsa/ui/contador-regresivo": ["libs/ui/src/lib/contador-regresivo/contador-regresivo.ts"],
+      "@halsa/ui/dialogo-acceso-emergencia": [
+        "libs/ui/src/lib/dialogo-acceso-emergencia/dialogo-acceso-emergencia.ts"
+      ],
+      "@halsa/ui/documento-enmascarado": [
+        "libs/ui/src/lib/documento-enmascarado/documento-enmascarado.ts"
+      ],
+      "@halsa/ui/editor-diagnosticos-cie10": [
+        "libs/ui/src/lib/editor-diagnosticos-cie10/editor-diagnosticos-cie10.ts"
+      ],
+      "@halsa/ui/estado-badge": ["libs/ui/src/lib/estado-badge/estado-badge.ts"],
+      "@halsa/ui/estado-error": ["libs/ui/src/lib/estado-error/estado-error.ts"],
+      "@halsa/ui/estado-vacio": ["libs/ui/src/lib/estado-vacio/estado-vacio.ts"],
+      "@halsa/ui/fecha-bogota": ["libs/ui/src/lib/fecha-bogota/fecha-bogota.ts"],
+      "@halsa/ui/fecha-relativa": ["libs/ui/src/lib/fecha-relativa/fecha-relativa.ts"],
+      "@halsa/ui/page-header": ["libs/ui/src/lib/page-header/page-header.ts"],
+      "@halsa/ui/panel-no-asignado": ["libs/ui/src/lib/panel-no-asignado/panel-no-asignado.ts"],
+      "@halsa/ui/radicado-chip": ["libs/ui/src/lib/radicado-chip/radicado-chip.ts"],
+      "@halsa/ui/seccion-clinica": ["libs/ui/src/lib/seccion-clinica/seccion-clinica.ts"],
+      "@halsa/ui/selector-tema": ["libs/ui/src/lib/selector-tema/selector-tema.ts"],
+      "@halsa/ui/nivel-plazo": ["libs/ui/src/lib/semaforo-plazo/nivel-plazo.ts"],
+      "@halsa/ui/semaforo-plazo": ["libs/ui/src/lib/semaforo-plazo/semaforo-plazo.ts"],
+      "@halsa/ui/subida-pdf": ["libs/ui/src/lib/subida-pdf/subida-pdf.ts"],
+      "@halsa/ui/verificacion-reforzada": [
+        "libs/ui/src/lib/verificacion-reforzada/verificacion-reforzada.ts"
+      ],
       "@halsa/core": ["libs/core/src/index.ts"],
       "@halsa/api-types": ["libs/api-types/src/index.ts"],
       "@halsa/mocks": ["libs/mocks/src/index.ts"],

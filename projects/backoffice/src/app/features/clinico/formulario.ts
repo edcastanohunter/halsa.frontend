@@ -15,7 +15,7 @@ import {
   mensajeDeError,
   tieneCodigo,
 } from '@halsa/core';
-import { crearFormDiagnostico, FormDiagnostico } from '@halsa/ui';
+import { crearFormDiagnostico, FormDiagnostico } from '@halsa/ui/editor-diagnosticos-cie10';
 
 /** What the backoffice may register (plan §4.3, `RegistroClinicoRequest.tipo`). */
 export const TIPOS_REGISTRABLES = [

@@ -18,7 +18,9 @@ import {
   mensajeDeError,
   TIPO_EVENTO_LABELS,
 } from '@halsa/core';
-import { EstadoBadge, EstadoError, EstadoVacio } from '@halsa/ui';
+import { EstadoBadge } from '@halsa/ui/estado-badge';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';
 import { NgIcon, provideIcons } from '@ng-icons/core';

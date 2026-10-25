@@ -22,12 +22,10 @@ import {
   MODALIDAD_INCAPACIDAD_LABELS,
   TIPO_INCAPACIDAD_LABELS,
 } from '@halsa/core';
-import {
-  ContenidoReforzado,
-  EditorDiagnosticosCie10,
-  injectMediaQuery,
-  SubidaPdf,
-} from '@halsa/ui';
+import { ContenidoReforzado } from '@halsa/ui/verificacion-reforzada';
+import { EditorDiagnosticosCie10 } from '@halsa/ui/editor-diagnosticos-cie10';
+import { injectMediaQuery } from '@halsa/ui/media';
+import { SubidaPdf } from '@halsa/ui/subida-pdf';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmFieldImports } from '@halsa/ui/helm/field';
 import { HlmInput } from '@halsa/ui/helm/input';

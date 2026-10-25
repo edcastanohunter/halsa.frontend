@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { CasoPacienteResponse } from '@halsa/api-types';
 import { getEnumLabel, TIPO_EVENTO_LABELS } from '@halsa/core';
-import { EstadoBadge, FechaRelativa } from '@halsa/ui';
+import { EstadoBadge } from '@halsa/ui/estado-badge';
+import { FechaRelativa } from '@halsa/ui/fecha-relativa';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronRight } from '@ng-icons/lucide';
 

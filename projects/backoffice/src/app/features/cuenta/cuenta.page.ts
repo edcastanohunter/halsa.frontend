@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { APP_CONFIG, ZONA_HORARIA } from '@halsa/core';
-import { injectCopiar, SelectorTema } from '@halsa/ui';
+import { injectCopiar } from '@halsa/ui/portapapeles';
+import { SelectorTema } from '@halsa/ui/selector-tema';
 import { HlmBadgeImports } from '@halsa/ui/helm/badge';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmCardImports } from '@halsa/ui/helm/card';

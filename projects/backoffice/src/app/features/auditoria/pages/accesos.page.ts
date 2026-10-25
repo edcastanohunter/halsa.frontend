@@ -21,7 +21,11 @@ import {
   parsearFechaCalendario,
   RESULTADO_AUDITORIA_LABELS,
 } from '@halsa/core';
-import { EstadoBadge, EstadoError, EstadoVacio, FechaBogota, FechaRelativa } from '@halsa/ui';
+import { EstadoBadge } from '@halsa/ui/estado-badge';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
+import { FechaRelativa } from '@halsa/ui/fecha-relativa';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmFieldImports } from '@halsa/ui/helm/field';
 import { HlmInput } from '@halsa/ui/helm/input';

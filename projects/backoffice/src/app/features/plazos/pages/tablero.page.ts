@@ -23,15 +23,13 @@ import {
   REGLA_PLAZO_LABELS,
   ReglaPlazo,
 } from '@halsa/core';
-import {
-  EstadoError,
-  EstadoVacio,
-  FechaBogota,
-  FechaRelativa,
-  injectAhora,
-  injectMediaQuery,
-  SemaforoPlazo,
-} from '@halsa/ui';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
+import { FechaRelativa } from '@halsa/ui/fecha-relativa';
+import { injectAhora } from '@halsa/ui/ahora';
+import { injectMediaQuery } from '@halsa/ui/media';
+import { SemaforoPlazo } from '@halsa/ui/semaforo-plazo';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmFieldImports } from '@halsa/ui/helm/field';
 import { HlmInput } from '@halsa/ui/helm/input';

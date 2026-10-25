@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, Routes } from '@angular/router';
-import { Notificaciones } from '@halsa/ui';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { PermisosService } from '../../core/permisos/permisos';
 import { casoIdDe } from '../../shared/casos/caso-id';
 

@@ -10,7 +10,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import type { SolicitudCopiaHcResponse } from '@halsa/api-types';
 import { API_PREFIX, ErrorApi, problemaInterceptor, ProblemaApi } from '@halsa/core';
 import { crearInterceptorMock } from '@halsa/mocks';
-import { Notificaciones } from '@halsa/ui';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { crearDatosBackoffice, crearRutasBackoffice, SUB } from '../../../mocks';
 import type { DatosBackoffice } from '../../../mocks/fixtures';
 import { PERSONAS } from '../../testing/personas';

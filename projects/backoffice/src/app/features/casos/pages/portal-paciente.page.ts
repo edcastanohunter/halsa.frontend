@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import type { CodigoActivacionResponse } from '@halsa/api-types';
 import { ESTADO_CASO_STAFF_LABELS, getEnumLabel, MensajeError, mensajeDeError } from '@halsa/core';
-import { CodigoUnaVez } from '@halsa/ui';
+import { CodigoUnaVez } from '@halsa/ui/codigo-una-vez';
 import { HlmAlertDialogImports } from '@halsa/ui/helm/alert-dialog';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmCardImports } from '@halsa/ui/helm/card';

@@ -10,7 +10,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import type { RegistroClinicoResponse } from '@halsa/api-types';
 import { API_PREFIX, APP_CONFIG, ErrorApi, problemaInterceptor, ProblemaApi } from '@halsa/core';
 import { ClaimsMock, crearInterceptorMock } from '@halsa/mocks';
-import { Notificaciones } from '@halsa/ui';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { CASO, crearDatosBackoffice, crearRutasBackoffice, SUB } from '../../../mocks';
 import { PERSONAS } from '../../testing/personas';

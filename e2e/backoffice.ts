@@ -97,7 +97,10 @@ export async function codigoOtp(secreto: string): Promise<string> {
       ventana = Math.floor(Date.now() / 30_000);
     }
     fs.writeFileSync(archivo, String(ventana));
-    return generate({ secret: secreto });
+    const codigo = await generate({ secret: secreto });
+    // eslint-disable-next-line no-console
+    console.log(`[OTP-DEBUG] secret=${secreto} ventana=${ventana} ahora=${Date.now()} codigo=${codigo}`);
+    return codigo;
   });
 }
 
@@ -114,7 +117,10 @@ export async function verificarEnPopup(
   const [popup] = await Promise.all([context.waitForEvent('page'), clic()]);
   await popup.waitForURL((url) => url.href.startsWith(KEYCLOAK));
   await expect(popup.locator('#password')).toHaveCount(0);
-  await popup.locator('#otp').fill(await codigoOtp(usuario.otp));
+  const codigo = await codigoOtp(usuario.otp);
+  await popup.locator('#otp').fill(codigo);
+  // eslint-disable-next-line no-console
+  console.log(`[OTP-DEBUG] valor en #otp=${await popup.locator('#otp').inputValue()}`);
   await Promise.all([
     popup.waitForEvent('close'),
     popup.getByRole('button', { name: 'Verificar' }).click(),

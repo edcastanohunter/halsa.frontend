@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import type { RemisionResponse } from '@halsa/api-types';
 import { ErrorApi, esErrorApi, tieneCodigo } from '@halsa/core';
-import { FechaBogota, Notificaciones } from '@halsa/ui';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { HlmAlertDialogImports } from '@halsa/ui/helm/alert-dialog';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmCardImports } from '@halsa/ui/helm/card';

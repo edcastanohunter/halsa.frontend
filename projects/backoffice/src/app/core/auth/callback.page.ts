@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { EstadoError } from '@halsa/ui';
+import { EstadoError } from '@halsa/ui/estado-error';
 import { HlmSpinner } from '@halsa/ui/helm/spinner';
 import { SesionService } from '../sesion/sesion.service';
 import { tomarRetorno } from './retorno';

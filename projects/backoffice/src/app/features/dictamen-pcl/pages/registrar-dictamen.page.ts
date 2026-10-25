@@ -19,7 +19,9 @@ import {
   ORIGEN_LABELS,
   OrigenDictamen,
 } from '@halsa/core';
-import { CampoPorcentaje, EditorDiagnosticosCie10, Notificaciones } from '@halsa/ui';
+import { CampoPorcentaje } from '@halsa/ui/campo-porcentaje';
+import { EditorDiagnosticosCie10 } from '@halsa/ui/editor-diagnosticos-cie10';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmFieldImports } from '@halsa/ui/helm/field';
 import { HlmInput } from '@halsa/ui/helm/input';

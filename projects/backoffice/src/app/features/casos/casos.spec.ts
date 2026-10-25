@@ -4,7 +4,7 @@ import { FormControl } from '@angular/forms';
 import { provideRouter, Router, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { API_PREFIX, problemaInterceptor } from '@halsa/core';
-import { Notificaciones } from '@halsa/ui';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { crearInterceptorMock } from '@halsa/mocks';
 import { CASO, crearDatosBackoffice, crearRutasBackoffice, IPS_DEV, SUB } from '../../../mocks';
 import { filtrarPorPermiso } from '../../core/permisos/permisos';

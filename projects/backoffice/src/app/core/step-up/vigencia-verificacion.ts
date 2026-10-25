@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { ContadorRegresivo, injectAhora } from '@halsa/ui';
+import { ContadorRegresivo } from '@halsa/ui/contador-regresivo';
+import { injectAhora } from '@halsa/ui/ahora';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmSpinner } from '@halsa/ui/helm/spinner';
 import { MARGEN_VENTANA_SEG, StepUpService } from './step-up.service';

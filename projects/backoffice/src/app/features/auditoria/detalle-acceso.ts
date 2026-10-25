@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import type { AccesoAuditadoResponse } from '@halsa/api-types';
-import { EstadoBadge, FechaBogota, injectMediaQuery } from '@halsa/ui';
+import { EstadoBadge } from '@halsa/ui/estado-badge';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
+import { injectMediaQuery } from '@halsa/ui/media';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmSheetImports } from '@halsa/ui/helm/sheet';
 import { NgIcon, provideIcons } from '@ng-icons/core';

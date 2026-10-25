@@ -11,7 +11,7 @@ Dos imágenes, una por aplicación, servidas por nginx sin privilegios (plan §1
 
 ```
 deploy/
-  backoffice/Dockerfile        node:22-alpine (build) → nginxinc/nginx-unprivileged:stable-alpine
+  backoffice/Dockerfile        node:22.23.4-alpine (build) → nginxinc/nginx-unprivileged:1.30.6-alpine
   portal/Dockerfile            idem
   nginx/16-halsa.envsh         al arrancar: valida el entorno, escribe config.json y arma la CSP
   nginx/default.conf.template  servidor SPA (puerto 8080, /health, caché)

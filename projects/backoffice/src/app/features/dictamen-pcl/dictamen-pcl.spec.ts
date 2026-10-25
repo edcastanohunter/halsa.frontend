@@ -18,7 +18,7 @@ import {
   sumarDias,
 } from '@halsa/core';
 import { ClaimsMock, crearInterceptorMock } from '@halsa/mocks';
-import { Notificaciones } from '@halsa/ui';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { of } from 'rxjs';
 import { CASO, crearDatosBackoffice, crearRutasBackoffice, SUB } from '../../../mocks';

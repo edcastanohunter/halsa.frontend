@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { injectAhora } from '@halsa/ui';
+import { injectAhora } from '@halsa/ui/ahora';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmSpinner } from '@halsa/ui/helm/spinner';
 import { NgIcon, provideIcons } from '@ng-icons/core';

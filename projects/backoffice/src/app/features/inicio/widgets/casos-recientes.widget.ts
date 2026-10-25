@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import type { CasoResumenResponse } from '@halsa/api-types';
 import { getEnumLabel, MensajeError, mensajeDeError, TIPO_EVENTO_LABELS } from '@halsa/core';
-import { EstadoBadge, FechaBogota } from '@halsa/ui';
+import { EstadoBadge } from '@halsa/ui/estado-badge';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmCardImports } from '@halsa/ui/helm/card';
 import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';

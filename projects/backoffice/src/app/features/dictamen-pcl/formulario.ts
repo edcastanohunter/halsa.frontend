@@ -25,7 +25,7 @@ import {
   parsearFechaCalendario,
   tieneMaxDecimales,
 } from '@halsa/core';
-import { crearFormDiagnostico, FormDiagnostico } from '@halsa/ui';
+import { crearFormDiagnostico, FormDiagnostico } from '@halsa/ui/editor-diagnosticos-cie10';
 
 /** Backend `RegistrarDictamenPclCommandValidator`. */
 export const PORCENTAJE_MIN = 0;

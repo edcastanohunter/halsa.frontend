@@ -11,7 +11,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import type { IncapacidadResponse } from '@halsa/api-types';
 import { API_PREFIX, APP_CONFIG, ErrorApi, problemaInterceptor, ProblemaApi } from '@halsa/core';
 import { ClaimsMock, crearInterceptorMock } from '@halsa/mocks';
-import { Notificaciones } from '@halsa/ui';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { throwError } from 'rxjs';
 import { CASO, crearDatosBackoffice, crearRutasBackoffice, IPS_DEV, SUB } from '../../../mocks';

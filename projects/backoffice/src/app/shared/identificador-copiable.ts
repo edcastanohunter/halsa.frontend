@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { injectCopiar } from '@halsa/ui';
+import { injectCopiar } from '@halsa/ui/portapapeles';
 import { HlmTooltipImports } from '@halsa/ui/helm/tooltip';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCheck, lucideCopy } from '@ng-icons/lucide';

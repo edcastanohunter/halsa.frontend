@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { mensajeDeError } from '@halsa/core';
-import { EstadoError } from '@halsa/ui';
+import { EstadoError } from '@halsa/ui/estado-error';
 import { HlmAvatarImports } from '@halsa/ui/helm/avatar';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmDropdownMenuImports } from '@halsa/ui/helm/dropdown-menu';

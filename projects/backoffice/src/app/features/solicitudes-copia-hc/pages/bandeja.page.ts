@@ -17,15 +17,13 @@ import {
   mensajeDeError,
   tieneCodigo,
 } from '@halsa/core';
-import {
-  EstadoBadge,
-  EstadoError,
-  EstadoVacio,
-  FechaBogota,
-  FechaRelativa,
-  Notificaciones,
-  RadicadoChip,
-} from '@halsa/ui';
+import { EstadoBadge } from '@halsa/ui/estado-badge';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
+import { FechaRelativa } from '@halsa/ui/fecha-relativa';
+import { Notificaciones } from '@halsa/ui/notificaciones';
+import { RadicadoChip } from '@halsa/ui/radicado-chip';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';
 import { HlmSpinner } from '@halsa/ui/helm/spinner';

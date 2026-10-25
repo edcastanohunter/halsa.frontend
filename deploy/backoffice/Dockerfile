@@ -3,7 +3,7 @@
 #   docker build -f deploy/backoffice/Dockerfile -t halsa-backoffice .
 # Runtime env: HALSA_KEYCLOAK_AUTHORITY (required), HALSA_API_BASE_URL, HALSA_KEYCLOAK_CLIENT_ID.
 
-FROM node:22-alpine AS build
+FROM node:22.23.4-alpine AS build
 WORKDIR /src
 COPY package.json package-lock.json ./
 # The lockfile is written by the npm in package.json "packageManager"; npm 10 (node 22) rejects it.
@@ -17,7 +17,7 @@ RUN npx ng build backoffice \
     && node scripts/check-bundles.mjs backoffice \
     && rm dist/backoffice/browser/config.json
 
-FROM nginxinc/nginx-unprivileged:stable-alpine
+FROM nginxinc/nginx-unprivileged:1.30.6-alpine
 ENV HALSA_APP=backoffice
 COPY --chmod=0755 deploy/nginx/16-halsa.envsh /docker-entrypoint.d/
 COPY deploy/nginx/default.conf.template deploy/nginx/seguridad.inc.template /etc/nginx/templates/

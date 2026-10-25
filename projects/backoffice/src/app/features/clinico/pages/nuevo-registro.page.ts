@@ -19,7 +19,9 @@ import {
   MensajeError,
   TIPO_REGISTRO_CLINICO_LABELS,
 } from '@halsa/core';
-import { EditorDiagnosticosCie10, EstadoError, Notificaciones } from '@halsa/ui';
+import { EditorDiagnosticosCie10 } from '@halsa/ui/editor-diagnosticos-cie10';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmFieldImports } from '@halsa/ui/helm/field';
 import { HlmInput } from '@halsa/ui/helm/input';

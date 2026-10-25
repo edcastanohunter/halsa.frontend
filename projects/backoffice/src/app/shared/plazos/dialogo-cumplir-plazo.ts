@@ -27,7 +27,8 @@ import {
   REGLA_PLAZO_LABELS,
   tieneCodigo,
 } from '@halsa/core';
-import { injectMediaQuery, Notificaciones } from '@halsa/ui';
+import { injectMediaQuery } from '@halsa/ui/media';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmFieldImports } from '@halsa/ui/helm/field';
 import { HlmInput } from '@halsa/ui/helm/input';

@@ -8,7 +8,9 @@ import {
   TIPO_EVENTO_LABELS,
   TIPO_INCAPACIDAD_LABELS,
 } from '@halsa/core';
-import { EstadoError, EstadoVacio, TONO_SUAVE } from '@halsa/ui';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
+import { TONO_SUAVE } from '@halsa/ui/tono';
 import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';
 import { provideIcons } from '@ng-icons/core';
 import { lucideCalendarDays } from '@ng-icons/lucide';

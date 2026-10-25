@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { Notificaciones } from '@halsa/ui';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { ConPermiso, Permiso, PermisosService } from '../../core/permisos/permisos';
 
 export interface PestanaCaso extends ConPermiso {

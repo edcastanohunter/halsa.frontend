@@ -7,7 +7,7 @@ import {
   MensajeError,
   mensajeDeError,
 } from '@halsa/core';
-import { EstadoBadge } from '@halsa/ui';
+import { EstadoBadge } from '@halsa/ui/estado-badge';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmCardImports } from '@halsa/ui/helm/card';
 import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';

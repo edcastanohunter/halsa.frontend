@@ -2,6 +2,8 @@
 
 Este repositorio contiene las aplicaciones web de Halsa para la gestión de casos ATEL (_accidentes de trabajo y enfermedades laborales_) en Colombia, construidas en un único workspace de Angular 21 sin SSR y con change detection zoneless basada en señales.
 
+> **Cómo correr y operar esto (local y producción):** [`docs/RUNBOOK.md`](docs/RUNBOOK.md). Despliegue con contenedores/Nginx/CSP: [`deploy/README.md`](deploy/README.md).
+
 ## Estructura del Workspace
 
 - **`projects/backoffice`**: Aplicación para el personal administrativo y asistencial de ARL e IPS. Autenticación OIDC + PKCE contra Keycloak (`halsa-backoffice`), elevación de privilegios paso a paso (step-up `acr=2`), acceso de emergencia auditado ("break-the-glass") y visualización estricta por permisos.
@@ -97,7 +99,7 @@ npm run kc:reset
 
 - Usuarios de desarrollo (contraseña `dev`): `analista.arla`, `calificador.arla` (OTP), `privacidad.arla`, `analista.arlb`, `medico.ips` (OTP), `coordinador.ips`; en `halsa-pacientes`, `paciente.dev@halsa.dev`. Consola de administración: `http://localhost:8180/admin` (`admin`/`admin`).
 - `kc:sync` quita los clientes `int-*` y las cuentas `service-account-*` (necesitan certificados mTLS), fija el tema y el idioma `es`, y apunta `halsa-backoffice` a `http://localhost:3000`. Nunca edites a mano los archivos generados.
-- `kc:sync` aplica a los realms mock dos cambios que el backend tiene pendientes, con la misma forma que tendrán en prod (detalle en [docs/backend/realm-g16-g17.md](docs/backend/realm-g16-g17.md)):
+- `kc:sync` aplica a los realms mock cambios que el backend tiene pendientes, con la misma forma que tendrán en prod (detalle en [docs/backend/realm-g16-g17.md](docs/backend/realm-g16-g17.md)):
   - G16: el client scope `basic` de Keycloak, para que los tokens traigan `sub` y `auth_time`, que el API lee.
   - G17: el paso Cookie al inicio de `browser-loa`, para que el step-up pida solo el código y no la contraseña otra vez.
 

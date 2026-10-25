@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SelectorTema } from '@halsa/ui';
+import { SelectorTema } from '@halsa/ui/selector-tema';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmSpinner } from '@halsa/ui/helm/spinner';
 import { NgIcon, provideIcons } from '@ng-icons/core';

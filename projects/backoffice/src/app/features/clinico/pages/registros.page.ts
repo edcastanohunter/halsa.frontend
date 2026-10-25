@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { RouterLink } from '@angular/router';
 import type { RegistroClinicoResponse } from '@halsa/api-types';
 import { getEnumLabel, TIPO_REGISTRO_CLINICO_LABELS } from '@halsa/core';
-import { EstadoVacio, FechaBogota } from '@halsa/ui';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmSwitch } from '@halsa/ui/helm/switch';
 import { NgIcon, provideIcons } from '@ng-icons/core';

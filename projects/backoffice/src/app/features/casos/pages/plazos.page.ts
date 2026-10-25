@@ -10,7 +10,10 @@ import {
 } from '@angular/core';
 import type { PlazoResponse } from '@halsa/api-types';
 import { MensajeError, mensajeDeError } from '@halsa/core';
-import { EstadoError, EstadoVacio, injectAhora, nivelPlazo } from '@halsa/ui';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
+import { injectAhora } from '@halsa/ui/ahora';
+import { nivelPlazo } from '@halsa/ui/nivel-plazo';
 import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';
 import { provideIcons } from '@ng-icons/core';
 import { lucideCalendarClock } from '@ng-icons/lucide';

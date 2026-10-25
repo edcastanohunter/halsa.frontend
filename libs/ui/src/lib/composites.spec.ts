@@ -177,8 +177,35 @@ describe('VerificacionReforzada', () => {
 });
 
 describe('TemaService', () => {
+  // jsdom in this test runner exposes no `localStorage` (and Node 22.4+/26 shadow the global with
+  // an experimental, non-functional one). Install a memory-backed Storage so the persistence
+  // assertions run against a real Storage, like the browser's.
+  function crearStorage(): Storage {
+    const datos = new Map<string, string>();
+    return {
+      get length() {
+        return datos.size;
+      },
+      clear: () => datos.clear(),
+      getItem: (clave) => (datos.has(clave) ? datos.get(clave)! : null),
+      key: (indice) => [...datos.keys()][indice] ?? null,
+      removeItem: (clave) => void datos.delete(clave),
+      setItem: (clave, valor) => void datos.set(clave, valor),
+    };
+  }
+
+  const almacen = crearStorage();
+
+  beforeAll(() => {
+    Object.defineProperty(document.defaultView!, 'localStorage', {
+      value: almacen,
+      configurable: true,
+      writable: true,
+    });
+  });
+
   afterEach(() => {
-    localStorage.clear();
+    almacen.clear();
     document.documentElement.classList.remove('dark');
   });
 
@@ -188,11 +215,11 @@ describe('TemaService', () => {
     tema.establecer('dark');
     TestBed.tick();
     expect(document.documentElement.classList.contains('dark')).toBe(true);
-    expect(localStorage.getItem('halsa.tema')).toBe('dark');
+    expect(almacen.getItem('halsa.tema')).toBe('dark');
 
     tema.establecer('system');
     TestBed.tick();
-    expect(localStorage.getItem('halsa.tema')).toBeNull();
+    expect(almacen.getItem('halsa.tema')).toBeNull();
     // jsdom has no matchMedia, so "system" resolves to light.
     expect(document.documentElement.classList.contains('dark')).toBe(false);
   });

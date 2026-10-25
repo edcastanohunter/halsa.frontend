@@ -8,14 +8,12 @@ import {
   untracked,
 } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import {
-  ContenidoReforzado,
-  DialogoAccesoEmergencia,
-  EstadoError,
-  EstadoVacio,
-  PanelNoAsignado,
-  SeccionClinica,
-} from '@halsa/ui';
+import { ContenidoReforzado } from '@halsa/ui/verificacion-reforzada';
+import { DialogoAccesoEmergencia } from '@halsa/ui/dialogo-acceso-emergencia';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
+import { PanelNoAsignado } from '@halsa/ui/panel-no-asignado';
+import { SeccionClinica } from '@halsa/ui/seccion-clinica';
 import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideSearchX, lucideSiren } from '@ng-icons/lucide';

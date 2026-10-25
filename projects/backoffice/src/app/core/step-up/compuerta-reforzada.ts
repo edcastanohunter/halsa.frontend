@@ -7,7 +7,7 @@ import {
   input,
 } from '@angular/core';
 import { APP_CONFIG } from '@halsa/core';
-import { ContenidoReforzado, VerificacionReforzada } from '@halsa/ui';
+import { ContenidoReforzado, VerificacionReforzada } from '@halsa/ui/verificacion-reforzada';
 import { StepUpService } from './step-up.service';
 
 /**

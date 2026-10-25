@@ -12,14 +12,12 @@ import {
 import { RouterLink } from '@angular/router';
 import type { RevisionEmergenciaResponse } from '@halsa/api-types';
 import { formatNumero, MensajeError, mensajeDeError } from '@halsa/core';
-import {
-  EstadoBadge,
-  EstadoError,
-  EstadoVacio,
-  FechaBogota,
-  FechaRelativa,
-  Notificaciones,
-} from '@halsa/ui';
+import { EstadoBadge } from '@halsa/ui/estado-badge';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
+import { FechaRelativa } from '@halsa/ui/fecha-relativa';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmPaginationImports } from '@halsa/ui/helm/pagination';
 import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';

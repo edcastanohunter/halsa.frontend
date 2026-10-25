@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import type { PlazoResponse } from '@halsa/api-types';
 import { getEnumLabel, MensajeError, mensajeDeError, REGLA_PLAZO_LABELS } from '@halsa/core';
-import { SemaforoPlazo } from '@halsa/ui';
+import { SemaforoPlazo } from '@halsa/ui/semaforo-plazo';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmCardImports } from '@halsa/ui/helm/card';
 import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';

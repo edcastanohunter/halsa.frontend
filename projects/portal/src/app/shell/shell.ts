@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { mensajeDeError } from '@halsa/core';
-import { EstadoError } from '@halsa/ui';
+import { EstadoError } from '@halsa/ui/estado-error';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideLogOut } from '@ng-icons/lucide';

@@ -9,7 +9,7 @@ import { provideRouter, Router, withComponentInputBinding } from '@angular/route
 import { RouterTestingHarness } from '@angular/router/testing';
 import { API_PREFIX, ErrorApi, problemaInterceptor, ProblemaApi } from '@halsa/core';
 import { crearInterceptorMock } from '@halsa/mocks';
-import { Notificaciones } from '@halsa/ui';
+import { Notificaciones } from '@halsa/ui/notificaciones';
 import { CASO, crearDatosBackoffice, crearRutasBackoffice, SUB } from '../../../mocks';
 import type { DatosBackoffice } from '../../../mocks/fixtures';
 import { PERSONAS } from '../../testing/personas';

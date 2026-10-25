@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { APP_CONFIG, mensajeDeError } from '@halsa/core';
-import { ContenidoReforzado } from '@halsa/ui';
+import { ContenidoReforzado } from '@halsa/ui/verificacion-reforzada';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmCardImports } from '@halsa/ui/helm/card';
 import { HlmLabel } from '@halsa/ui/helm/label';

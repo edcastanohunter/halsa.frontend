@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { formatPorcentaje, getEnumLabel, TIPO_EVENTO_LABELS } from '@halsa/core';
-import { DocumentoEnmascarado, FechaBogota } from '@halsa/ui';
+import { DocumentoEnmascarado } from '@halsa/ui/documento-enmascarado';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
 import { HlmCardImports } from '@halsa/ui/helm/card';
 import { separarDocumento } from '../../../shared/casos/caso';
 import { CasoStore } from '../data-access/caso.store';

@@ -19,7 +19,9 @@ import {
   mensajeDeError,
   TIPO_REGISTRO_CLINICO_LABELS,
 } from '@halsa/core';
-import { EstadoError, EstadoVacio, FechaBogota } from '@halsa/ui';
+import { EstadoError } from '@halsa/ui/estado-error';
+import { EstadoVacio } from '@halsa/ui/estado-vacio';
+import { FechaBogota } from '@halsa/ui/fecha-bogota';
 import { HlmButton } from '@halsa/ui/helm/button';
 import { HlmSkeletonImports } from '@halsa/ui/helm/skeleton';
 import { NgIcon, provideIcons } from '@ng-icons/core';
