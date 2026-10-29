@@ -975,5 +975,6 @@
     "es"
   ],
   "defaultLocale": "es",
-  "loginTheme": "halsa"
+  "loginTheme": "halsa",
+  "otpPolicyCodeReusable": true
 }

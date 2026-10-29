@@ -5,4 +5,5 @@ add_header Content-Security-Policy "${HALSA_CSP}" always;
 add_header Referrer-Policy "no-referrer" always;
 add_header X-Content-Type-Options "nosniff" always;
 add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
-add_header Cross-Origin-Opener-Policy "same-origin-allow-popups" always;
+# unsafe-none on /auth/callback only (map in default.conf).
+add_header Cross-Origin-Opener-Policy $halsa_coop always;

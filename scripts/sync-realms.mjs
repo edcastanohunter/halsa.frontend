@@ -123,6 +123,11 @@ function transformHalsa(realm) {
     ...realm,
     ...I18N,
     loginTheme: 'halsa',
+    // G25: `otpPolicyCodeReusable` defaults to false, so a validated OTP goes through the
+    // `singleUseStore` replay check; in this dev Keycloak that rejects even the first valid code,
+    // breaking the acr=2 step-up. Make codes reusable in the mock realm only (prod keeps the
+    // single-use default).
+    otpPolicyCodeReusable: true,
     clients,
     users: realm.users.filter((u) => !removedUsers.includes(u)),
   };

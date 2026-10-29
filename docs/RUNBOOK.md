@@ -222,11 +222,11 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 Referrer-Policy: no-referrer
 X-Content-Type-Options: nosniff
 Permissions-Policy: camera=(), microphone=(), geolocation=()
-Cross-Origin-Opener-Policy: same-origin-allow-popups
+Cross-Origin-Opener-Policy: same-origin-allow-popups   (unsafe-none en /auth/callback)
 ```
 
 - `'unsafe-inline'` solo en estilos (Angular inyecta los estilos de componentes en runtime). No hay scripts inline: el tema se aplica desde `theme-init.js` (archivo externo) antes del primer pintado.
-- `same-origin-allow-popups`: el popup de step-up necesita el `window.opener`.
+- `same-origin-allow-popups`: el popup de step-up necesita el `window.opener`. En `/auth/callback` va `unsafe-none`; si no, el popup pierde el opener al volver de Keycloak y el step-up nunca termina (G25, ver `deploy/README.md`).
 - **HSTS** lo pone el proxy que termina TLS (NPM: "HSTS Enabled"), no el contenedor (habla HTTP).
 
 ### 5.2 Salud y verificación tras desplegar

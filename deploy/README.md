@@ -61,7 +61,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 Referrer-Policy: no-referrer
 X-Content-Type-Options: nosniff
 Permissions-Policy: camera=(), microphone=(), geolocation=()
-Cross-Origin-Opener-Policy: same-origin-allow-popups
+Cross-Origin-Opener-Policy: same-origin-allow-popups   (unsafe-none en /auth/callback)
 ```
 
 | Directiva | Backoffice | Portal |
@@ -72,7 +72,7 @@ Cross-Origin-Opener-Policy: same-origin-allow-popups
 
 - **Trusted Types:** `angular` es la política del framework; `halsa#iconos` la crea `provideIconosTrustedTypes()` (`@halsa/ui/iconos`) para los SVG de lucide que `ng-icon` inserta con `innerHTML`. No hay política `default`: cualquier otro `innerHTML` con texto plano queda bloqueado.
 - `'unsafe-inline'` solo en estilos (Angular inyecta los estilos de componentes en runtime). No hay scripts inline: el tema se aplica antes del primer pintado desde `theme-init.js`.
-- `same-origin-allow-popups`: el step-up del backoffice abre Keycloak en un popup que necesita `window.opener`.
+- `same-origin-allow-popups`: el step-up del backoffice abre Keycloak en un popup que necesita `window.opener`. **Excepción: `/auth/callback` se sirve con `unsafe-none`** (un `map` sobre `$request_uri` en `default.conf`): con cualquier otro COOP, la vuelta del popup desde Keycloak lo pasa a otro *browsing context group*, el opener lo ve cerrado y `window.opener` queda en `null` (G25). El dev server de Angular no puede variar cabeceras por ruta, así que `ng serve backoffice` no envía COOP.
 - **HSTS** lo pone el proxy que termina TLS (NPM: "HSTS Enabled" en la pestaña SSL), no el contenedor, que habla HTTP.
 - Los dev servers (`ng serve`) envían la misma CSP con los orígenes locales (`angular.json` → `serve.options.headers`), y la suite E2E falla ante cualquier violación de CSP o Trusted Types (`e2e/fixtures.ts`).
 

@@ -1,5 +1,15 @@
 # One server for either SPA (plan §10.2). Rendered by the image's 20-envsubst-on-templates.sh,
 # which only replaces variables defined in the environment, so nginx's own $uri stays as is.
+
+# The OIDC callback is the page the step-up popup lands on after Keycloak. Any COOP other than
+# unsafe-none there moves the popup to a new browsing context group: the opener sees it as closed
+# and `window.opener` is null, so the code never reaches the app (MILESTONES G25). Matched on
+# $request_uri because try_files rewrites $uri to /index.html.
+map $request_uri $halsa_coop {
+    ~^/auth/callback(\?|$) unsafe-none;
+    default                same-origin-allow-popups;
+}
+
 server {
     listen 8080;
     server_name _;
