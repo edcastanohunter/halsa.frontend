@@ -98,43 +98,15 @@ El API local no tiene CORS (G1): el backoffice en contenedor puede iniciar sesi�
 
 ## Despliegue en VPS (push a `main`)
 
-`.github/workflows/frontend.yml`: en cada push a `main`, tras lint, tests, build y smoke test, el job `deploy` publica `ghcr.io/edcastanohunter/halsa-{backoffice,portal}` (`:latest` y `:<sha>`), entra por SSH al VPS, hace `podman pull` y reinicia las unidades quadlet. NPM sigue apuntando a `http://halsa-backoffice:8080` y `http://halsa-portal:8080`.
+Sin registry, igual que `Halsa.Backend`: el job `deploy` de `.github/workflows/frontend.yml` (con aprobación del environment `produccion`) construye las imágenes para **linux/arm64**, las envía por SSH como `paquete.tar` y `halsa-recibir-despliegue-front` las carga y reinicia los Quadlets en el VPS. La llave del CI solo puede ejecutar ese script.
 
-### Una vez en el VPS
+| Archivo                                                                | Función                                                                             |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `vps/recibir-despliegue-front.sh`                                      | script del VPS: valida, `podman load`, cambia `HALSA_FRONT_TAG`, reinicia, rollback |
+| `quadlet/halsa-backoffice.container`, `quadlet/halsa-portal.container` | unidades systemd rootless en la red `halsa_borde`, `Notify=healthy`                 |
+| `quadlet/frontend.env.ejemplo`                                         | `~/.config/halsa-frontend/frontend.env`: tag actual y URLs del backoffice           |
 
-Usuario sin privilegios (`deploy`), Podman rootless:
-
-```bash
-sudo loginctl enable-linger deploy                  # las unidades sobreviven sin sesión
-mkdir -p ~/.config/containers/systemd
-# copiar deploy/quadlet/*.container a ese directorio y ajustar las Environment= del backoffice
-systemctl --user daemon-reload
-systemctl --user start halsa-backoffice halsa-portal   # el primer pull falla hasta el primer deploy
-```
-
-- **Red:** los `.container` usan `Network=proxy`. Debe ser la red de Podman donde ya vive Nginx Proxy Manager (`podman network ls`); si se llama distinto, cambia esa línea. Así NPM resuelve los contenedores por nombre y no se publica ningún puerto.
-- **Linger + `XDG_RUNTIME_DIR`:** el job usa `systemctl --user` por SSH; funciona con linger activo.
-- Si el VPS usa Podman como root, copia los `.container` a `/etc/containers/systemd/`, quita `--user` en el workflow y conecta como root (no recomendado).
-- Cambiar `HALSA_KEYCLOAK_AUTHORITY` / `HALSA_API_BASE_URL`: edita el `.container`, `daemon-reload` y `restart`; no hace falta reconstruir la imagen.
-
-### Secretos del repositorio (Settings → Secrets and variables → Actions)
-
-| Secreto           | Valor                                                                                |
-| ----------------- | ------------------------------------------------------------------------------------ |
-| `VPS_HOST`        | IP o DNS del VPS                                                                     |
-| `VPS_USER`        | `deploy`                                                                             |
-| `VPS_PORT`        | opcional, 22 por defecto                                                             |
-| `VPS_SSH_KEY`     | clave privada ed25519 dedicada (su pública va en `~deploy/.ssh/authorized_keys`)     |
-| `VPS_KNOWN_HOSTS` | salida de `ssh-keyscan -p <puerto> <host>`, verificada contra la huella real del VPS |
-
-El pull del VPS usa el `GITHUB_TOKEN` del propio job (`podman login` por stdin y `logout` al terminar), así que los paquetes de GHCR pueden quedar privados sin guardar un PAT.
-
-### Rollback
-
-```bash
-podman tag ghcr.io/edcastanohunter/halsa-backoffice:<sha-anterior> ghcr.io/edcastanohunter/halsa-backoffice:latest
-systemctl --user restart halsa-backoffice
-```
+Instalación, secretos, verificación y rollback: [`docs/RUNBOOK.md`](../docs/RUNBOOK.md) §4.4, §5.4 y §5.6.
 
 ## Compose (fragmento para el stack del backend)
 

@@ -1,24 +1,32 @@
-# Quadlet unit for the patient portal (deploy/README.md, "Despliegue en VPS").
+# Quadlet del portal de pacientes. Mismo esquema que halsa-backoffice.container (runbook §4.4).
 [Unit]
-Description=Halsa patient portal (nginx + SPA)
-After=network-online.target
-Wants=network-online.target
+Description=Halsa portal de pacientes (nginx + SPA)
+After=halsa-borde-network.service
 
 [Container]
 ContainerName=halsa-portal
-Image=ghcr.io/edcastanohunter/halsa-portal:latest
-Network=proxy
+NetworkAlias=halsa-portal
+Image=localhost/halsa-portal:${HALSA_FRONT_TAG}
+Pull=never
+Network=halsa-borde.network
 ReadOnly=true
 Tmpfs=/tmp
 Tmpfs=/etc/nginx/conf.d
-NoNewPrivileges=true
 DropCapability=ALL
+NoNewPrivileges=true
+LogDriver=journald
+Notify=healthy
 HealthCmd=wget -q -O /dev/null http://127.0.0.1:8080/health
-HealthInterval=30s
+HealthInterval=15s
+HealthTimeout=3s
+HealthRetries=3
+HealthStartPeriod=10s
 
 [Service]
+EnvironmentFile=%h/.config/halsa-frontend/frontend.env
 Restart=always
-TimeoutStartSec=300
+RestartSec=10
+TimeoutStartSec=120
 
 [Install]
 WantedBy=default.target

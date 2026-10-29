@@ -1,28 +1,37 @@
-# Quadlet unit for the backoffice (deploy/README.md, "Despliegue en VPS").
-# Install in ~/.config/containers/systemd/ (rootless) or /etc/containers/systemd/ (root).
+# Quadlet del backoffice. Se instala a mano en ~/.config/containers/systemd/ del usuario dueño de NPM y de los
+# Quadlets del backend (runbook §4.4). El CI solo carga la imagen y cambia HALSA_FRONT_TAG; no toca este archivo.
 [Unit]
 Description=Halsa backoffice (nginx + SPA)
-After=network-online.target
-Wants=network-online.target
+After=halsa-borde-network.service
 
 [Container]
 ContainerName=halsa-backoffice
-Image=ghcr.io/edcastanohunter/halsa-backoffice:latest
-# Same network as Nginx Proxy Manager: NPM reaches http://halsa-backoffice:8080 by name.
-Network=proxy
+# NPM (en halsa_borde) lo alcanza como http://halsa-backoffice:8080
+NetworkAlias=halsa-backoffice
+Image=localhost/halsa-backoffice:${HALSA_FRONT_TAG}
+Pull=never
+Network=halsa-borde.network
 ReadOnly=true
 Tmpfs=/tmp
 Tmpfs=/etc/nginx/conf.d
-Environment=HALSA_KEYCLOAK_AUTHORITY=https://auth.alcast.dev/realms/halsa
-Environment=HALSA_API_BASE_URL=https://halsa-api.alcast.dev
-NoNewPrivileges=true
 DropCapability=ALL
+NoNewPrivileges=true
+LogDriver=journald
+Environment=HALSA_KEYCLOAK_AUTHORITY=${HALSA_KEYCLOAK_AUTHORITY}
+Environment=HALSA_API_BASE_URL=${HALSA_API_BASE_URL}
+# Notify=healthy: systemctl restart solo vuelve cuando /health responde (el despliegue lo usa como compuerta).
+Notify=healthy
 HealthCmd=wget -q -O /dev/null http://127.0.0.1:8080/health
-HealthInterval=30s
+HealthInterval=15s
+HealthTimeout=3s
+HealthRetries=3
+HealthStartPeriod=10s
 
 [Service]
+EnvironmentFile=%h/.config/halsa-frontend/frontend.env
 Restart=always
-TimeoutStartSec=300
+RestartSec=10
+TimeoutStartSec=120
 
 [Install]
 WantedBy=default.target

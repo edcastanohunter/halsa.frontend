@@ -3,7 +3,8 @@
 #   docker build -f deploy/backoffice/Dockerfile -t halsa-backoffice .
 # Runtime env: HALSA_KEYCLOAK_AUTHORITY (required), HALSA_API_BASE_URL, HALSA_KEYCLOAK_CLIENT_ID.
 
-FROM node:22.23.4-alpine AS build
+# The output is static JS: build natively on the runner and only the nginx stage is per-arch.
+FROM --platform=$BUILDPLATFORM node:22.23.4-alpine AS build
 WORKDIR /src
 COPY package.json package-lock.json ./
 # The lockfile is written by the npm in package.json "packageManager"; npm 10 (node 22) rejects it.
