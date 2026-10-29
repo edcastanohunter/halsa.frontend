@@ -47,6 +47,13 @@ server {
         include /etc/nginx/conf.d/seguridad.inc;
     }
 
+    # Favicon: served as a real file, never through the SPA fallback (a client error must not change it).
+    location ~ ^/favicon\.(?:ico|svg)$ {
+        try_files $uri =404;
+        add_header Cache-Control "no-cache" always;
+        include /etc/nginx/conf.d/seguridad.inc;
+    }
+
     # index.html, theme-init.js, favicon and every client route (SPA fallback): always revalidated.
     location / {
         try_files $uri $uri/ /index.html;
