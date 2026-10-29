@@ -1,0 +1,24 @@
+# Quadlet unit for the patient portal (deploy/README.md, "Despliegue en VPS").
+[Unit]
+Description=Halsa patient portal (nginx + SPA)
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+ContainerName=halsa-portal
+Image=ghcr.io/edcastanohunter/halsa-portal:latest
+Network=proxy
+ReadOnly=true
+Tmpfs=/tmp
+Tmpfs=/etc/nginx/conf.d
+NoNewPrivileges=true
+DropCapability=ALL
+HealthCmd=wget -q -O /dev/null http://127.0.0.1:8080/health
+HealthInterval=30s
+
+[Service]
+Restart=always
+TimeoutStartSec=300
+
+[Install]
+WantedBy=default.target

@@ -104,6 +104,7 @@ npm run kc:reset
   - G17: el paso Cookie al inicio de `browser-loa`, para que el step-up pida solo el código y no la contraseña otra vez.
 
   Cuando el backend los incorpore, `kc:sync` deja de aplicarlos solo. Después de cambiar los realms corre `npm run kc:reset`.
+
 - Backoffice contra este Keycloak con el API simulado: `npm run start:mock`.
 - El issuer es `http://localhost:8180`, así que el API real rechaza estos tokens (es intencional). El portal no usa este Keycloak: su BFF apunta al Keycloak del backend.
 

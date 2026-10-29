@@ -1,0 +1,28 @@
+# Quadlet unit for the backoffice (deploy/README.md, "Despliegue en VPS").
+# Install in ~/.config/containers/systemd/ (rootless) or /etc/containers/systemd/ (root).
+[Unit]
+Description=Halsa backoffice (nginx + SPA)
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+ContainerName=halsa-backoffice
+Image=ghcr.io/edcastanohunter/halsa-backoffice:latest
+# Same network as Nginx Proxy Manager: NPM reaches http://halsa-backoffice:8080 by name.
+Network=proxy
+ReadOnly=true
+Tmpfs=/tmp
+Tmpfs=/etc/nginx/conf.d
+Environment=HALSA_KEYCLOAK_AUTHORITY=https://auth.alcast.dev/realms/halsa
+Environment=HALSA_API_BASE_URL=https://halsa-api.alcast.dev
+NoNewPrivileges=true
+DropCapability=ALL
+HealthCmd=wget -q -O /dev/null http://127.0.0.1:8080/health
+HealthInterval=30s
+
+[Service]
+Restart=always
+TimeoutStartSec=300
+
+[Install]
+WantedBy=default.target

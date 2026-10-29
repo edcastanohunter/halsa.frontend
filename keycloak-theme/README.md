@@ -71,7 +71,7 @@ El frontend entrega el JAR; **no** lo instala. Pasos para el equipo de backend/i
 2. **Realms:** en `halsa-realm.json`, `halsa-pacientes-realm.json` y en `deploy/keycloak/importar-realms.sh`:
    - `"loginTheme": "halsa"` (o `"halsa-pacientes"`),
    - `"internationalizationEnabled": true`, `"supportedLocales": ["es"]`, `"defaultLocale": "es"`.
-3. **Producción (`auth.edcastdev.com`):** quien administra ese Keycloak compartido copia el JAR a `providers/` y reinicia. Luego selecciona el tema de login en cada realm (o reimporta con el paso 2).
+3. **Producción (`auth.alcast.dev`):** quien administra ese Keycloak compartido copia el JAR a `providers/` y reinicia. Luego selecciona el tema de login en cada realm (o reimporta con el paso 2).
 
 Para comprobarlo: abre `https://<keycloak>/realms/halsa/account`; debe verse "Ingresa a Halsa" con el panel verde azulado y sin estilos de PatternFly.
 

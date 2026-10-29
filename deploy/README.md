@@ -2,10 +2,10 @@
 
 Dos imágenes, una por aplicación, servidas por nginx sin privilegios (plan §10). La misma imagen sirve cualquier ambiente: las URLs llegan por variables de entorno y se escriben en `config.json` al arrancar el contenedor.
 
-| Imagen | Dockerfile | Destino (plan §10.4) |
-| --- | --- | --- |
-| `halsa-backoffice` | `deploy/backoffice/Dockerfile` | `https://halsa-backoffice.edcastdev.com` |
-| `halsa-portal` | `deploy/portal/Dockerfile` | `https://halsa-pacientes.edcastdev.com/` (mismo host que el BFF) |
+| Imagen             | Dockerfile                     | Destino (plan §10.4)                                          |
+| ------------------ | ------------------------------ | ------------------------------------------------------------- |
+| `halsa-backoffice` | `deploy/backoffice/Dockerfile` | `https://halsa-backoffice.alcast.dev`                         |
+| `halsa-portal`     | `deploy/portal/Dockerfile`     | `https://halsa-pacientes.alcast.dev/` (mismo host que el BFF) |
 
 ## Contenido
 
@@ -37,11 +37,11 @@ docker build -f deploy/portal/Dockerfile -t halsa-portal .
 
 ### Backoffice
 
-| Variable | Requerida | Ejemplo | Uso |
-| --- | --- | --- | --- |
-| `HALSA_KEYCLOAK_AUTHORITY` | sí | `https://auth.edcastdev.com/realms/halsa` | `config.json` → `keycloak.authority`; su origen va a `connect-src`, `frame-src` y `form-action` de la CSP |
-| `HALSA_API_BASE_URL` | no (vacío = mismo origen) | `https://halsa-api.edcastdev.com` | `config.json` → `apiBaseUrl` (la app agrega `/v1/`); su origen va a `connect-src` |
-| `HALSA_KEYCLOAK_CLIENT_ID` | no | `halsa-backoffice` (por defecto) | `config.json` → `keycloak.clientId` |
+| Variable                   | Requerida                 | Ejemplo                                | Uso                                                                                                       |
+| -------------------------- | ------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `HALSA_KEYCLOAK_AUTHORITY` | sí                        | `https://auth.alcast.dev/realms/halsa` | `config.json` → `keycloak.authority`; su origen va a `connect-src`, `frame-src` y `form-action` de la CSP |
+| `HALSA_API_BASE_URL`       | no (vacío = mismo origen) | `https://halsa-api.alcast.dev`         | `config.json` → `apiBaseUrl` (la app agrega `/v1/`); su origen va a `connect-src`                         |
+| `HALSA_KEYCLOAK_CLIENT_ID` | no                        | `halsa-backoffice` (por defecto)       | `config.json` → `keycloak.clientId`                                                                       |
 
 El contenedor **no arranca** si falta la autoridad, si una URL no es `http(s)://…` o si trae caracteres fuera de una URL (comillas, espacios), porque esos valores terminan dentro de JSON y de una cabecera HTTP.
 
@@ -64,15 +64,15 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()
 Cross-Origin-Opener-Policy: same-origin-allow-popups   (unsafe-none en /auth/callback)
 ```
 
-| Directiva | Backoffice | Portal |
-| --- | --- | --- |
-| `connect-src` | `'self'` + origen del API + origen de Keycloak | `'self'` |
-| `frame-src` | origen de Keycloak | (no se envía) |
-| `form-action` | `'self'` + origen de Keycloak | `'self'` |
+| Directiva     | Backoffice                                     | Portal        |
+| ------------- | ---------------------------------------------- | ------------- |
+| `connect-src` | `'self'` + origen del API + origen de Keycloak | `'self'`      |
+| `frame-src`   | origen de Keycloak                             | (no se envía) |
+| `form-action` | `'self'` + origen de Keycloak                  | `'self'`      |
 
 - **Trusted Types:** `angular` es la política del framework; `halsa#iconos` la crea `provideIconosTrustedTypes()` (`@halsa/ui/iconos`) para los SVG de lucide que `ng-icon` inserta con `innerHTML`. No hay política `default`: cualquier otro `innerHTML` con texto plano queda bloqueado.
 - `'unsafe-inline'` solo en estilos (Angular inyecta los estilos de componentes en runtime). No hay scripts inline: el tema se aplica antes del primer pintado desde `theme-init.js`.
-- `same-origin-allow-popups`: el step-up del backoffice abre Keycloak en un popup que necesita `window.opener`. **Excepción: `/auth/callback` se sirve con `unsafe-none`** (un `map` sobre `$request_uri` en `default.conf`): con cualquier otro COOP, la vuelta del popup desde Keycloak lo pasa a otro *browsing context group*, el opener lo ve cerrado y `window.opener` queda en `null` (G25). El dev server de Angular no puede variar cabeceras por ruta, así que `ng serve backoffice` no envía COOP.
+- `same-origin-allow-popups`: el step-up del backoffice abre Keycloak en un popup que necesita `window.opener`. **Excepción: `/auth/callback` se sirve con `unsafe-none`** (un `map` sobre `$request_uri` en `default.conf`): con cualquier otro COOP, la vuelta del popup desde Keycloak lo pasa a otro _browsing context group_, el opener lo ve cerrado y `window.opener` queda en `null` (G25). El dev server de Angular no puede variar cabeceras por ruta, así que `ng serve backoffice` no envía COOP.
 - **HSTS** lo pone el proxy que termina TLS (NPM: "HSTS Enabled" en la pestaña SSL), no el contenedor, que habla HTTP.
 - Los dev servers (`ng serve`) envían la misma CSP con los orígenes locales (`angular.json` → `serve.options.headers`), y la suite E2E falla ante cualquier violación de CSP o Trusted Types (`e2e/fixtures.ts`).
 
@@ -96,6 +96,46 @@ curl -sI http://localhost:3000/casos | grep -i content-security-policy
 
 El API local no tiene CORS (G1): el backoffice en contenedor puede iniciar sesión en el Keycloak de Podman, pero sus llamadas a `http://localhost:5600` fallan por CORS. Para la prueba de punta a punta con el API se usa `ng serve` con el proxy.
 
+## Despliegue en VPS (push a `main`)
+
+`.github/workflows/frontend.yml`: en cada push a `main`, tras lint, tests, build y smoke test, el job `deploy` publica `ghcr.io/edcastanohunter/halsa-{backoffice,portal}` (`:latest` y `:<sha>`), entra por SSH al VPS, hace `podman pull` y reinicia las unidades quadlet. NPM sigue apuntando a `http://halsa-backoffice:8080` y `http://halsa-portal:8080`.
+
+### Una vez en el VPS
+
+Usuario sin privilegios (`deploy`), Podman rootless:
+
+```bash
+sudo loginctl enable-linger deploy                  # las unidades sobreviven sin sesión
+mkdir -p ~/.config/containers/systemd
+# copiar deploy/quadlet/*.container a ese directorio y ajustar las Environment= del backoffice
+systemctl --user daemon-reload
+systemctl --user start halsa-backoffice halsa-portal   # el primer pull falla hasta el primer deploy
+```
+
+- **Red:** los `.container` usan `Network=proxy`. Debe ser la red de Podman donde ya vive Nginx Proxy Manager (`podman network ls`); si se llama distinto, cambia esa línea. Así NPM resuelve los contenedores por nombre y no se publica ningún puerto.
+- **Linger + `XDG_RUNTIME_DIR`:** el job usa `systemctl --user` por SSH; funciona con linger activo.
+- Si el VPS usa Podman como root, copia los `.container` a `/etc/containers/systemd/`, quita `--user` en el workflow y conecta como root (no recomendado).
+- Cambiar `HALSA_KEYCLOAK_AUTHORITY` / `HALSA_API_BASE_URL`: edita el `.container`, `daemon-reload` y `restart`; no hace falta reconstruir la imagen.
+
+### Secretos del repositorio (Settings → Secrets and variables → Actions)
+
+| Secreto           | Valor                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------ |
+| `VPS_HOST`        | IP o DNS del VPS                                                                     |
+| `VPS_USER`        | `deploy`                                                                             |
+| `VPS_PORT`        | opcional, 22 por defecto                                                             |
+| `VPS_SSH_KEY`     | clave privada ed25519 dedicada (su pública va en `~deploy/.ssh/authorized_keys`)     |
+| `VPS_KNOWN_HOSTS` | salida de `ssh-keyscan -p <puerto> <host>`, verificada contra la huella real del VPS |
+
+El pull del VPS usa el `GITHUB_TOKEN` del propio job (`podman login` por stdin y `logout` al terminar), así que los paquetes de GHCR pueden quedar privados sin guardar un PAT.
+
+### Rollback
+
+```bash
+podman tag ghcr.io/edcastanohunter/halsa-backoffice:<sha-anterior> ghcr.io/edcastanohunter/halsa-backoffice:latest
+systemctl --user restart halsa-backoffice
+```
+
 ## Compose (fragmento para el stack del backend)
 
 ```yaml
@@ -106,8 +146,8 @@ services:
     read_only: true
     tmpfs: [/tmp, /etc/nginx/conf.d]
     environment:
-      HALSA_KEYCLOAK_AUTHORITY: https://auth.edcastdev.com/realms/halsa
-      HALSA_API_BASE_URL: https://halsa-api.edcastdev.com
+      HALSA_KEYCLOAK_AUTHORITY: https://auth.alcast.dev/realms/halsa
+      HALSA_API_BASE_URL: https://halsa-api.alcast.dev
     networks: [proxy]
 
   halsa-portal:
@@ -124,11 +164,11 @@ services:
 
 ### Backoffice (G2)
 
-Nuevo *Proxy Host* `halsa-backoffice.edcastdev.com` → `http://halsa-backoffice:8080`, SSL con Let's Encrypt, "Force SSL" y HSTS. Sin configuración avanzada.
+Nuevo _Proxy Host_ `halsa-backoffice.alcast.dev` → `http://halsa-backoffice:8080`, SSL con Let's Encrypt, "Force SSL" y HSTS. Sin configuración avanzada.
 
 ### Portal (G2): `/` al portal, `/paciente/*` al BFF
 
-El host `halsa-pacientes.edcastdev.com` ya existe para el BFF y hoy responde `404` en `/`. Debe quedar así (pestaña *Advanced*, o *Custom locations*):
+El host `halsa-pacientes.alcast.dev` ya existe para el BFF y hoy responde `404` en `/`. Debe quedar así (pestaña _Advanced_, o _Custom locations_):
 
 ```nginx
 # El BFF conserva /paciente/* (login, callbacks OIDC, API). Host y esquema originales: el BFF arma
@@ -151,10 +191,10 @@ Ajusta el nombre y puerto del contenedor del BFF a los del compose del backend. 
 
 ## Lo que falta del lado del backend
 
-| Gap | Qué hacer |
-| --- | --- |
-| **G1 · CORS en el API** | Permitir el origen `https://halsa-backoffice.edcastdev.com`; métodos `GET, POST, PATCH, DELETE`; cabeceras `Authorization, Content-Type, Idempotency-Key, Halsa-Motivo-Acceso, X-Correlation-Id`; **cabeceras expuestas** `WWW-Authenticate, Location, Content-Disposition, Retry-After`. Sin `WWW-Authenticate` expuesta el step-up no se detecta. |
-| **G2 · Hosting** | Los dos proxy hosts de arriba. |
-| **G3 · Redirect URI del BFF** | Para desarrollo: agregar `https://localhost:4300/paciente/bff/signin-oidc` y el post-logout `https://localhost:4300/paciente/bff/signout-callback-oidc` a `halsa-bff-paciente`. |
-| **Keycloak `halsa-backoffice`** | Producción: redirect URI `https://halsa-backoffice.edcastdev.com/*` y web origin `https://halsa-backoffice.edcastdev.com`. |
-| **G14 · Tema de login** | `keycloak-theme/README.md`. |
+| Gap                             | Qué hacer                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **G1 · CORS en el API**         | Permitir el origen `https://halsa-backoffice.alcast.dev`; métodos `GET, POST, PATCH, DELETE`; cabeceras `Authorization, Content-Type, Idempotency-Key, Halsa-Motivo-Acceso, X-Correlation-Id`; **cabeceras expuestas** `WWW-Authenticate, Location, Content-Disposition, Retry-After`. Sin `WWW-Authenticate` expuesta el step-up no se detecta. |
+| **G2 · Hosting**                | Los dos proxy hosts de arriba.                                                                                                                                                                                                                                                                                                                   |
+| **G3 · Redirect URI del BFF**   | Para desarrollo: agregar `https://localhost:4300/paciente/bff/signin-oidc` y el post-logout `https://localhost:4300/paciente/bff/signout-callback-oidc` a `halsa-bff-paciente`.                                                                                                                                                                  |
+| **Keycloak `halsa-backoffice`** | Producción: redirect URI `https://halsa-backoffice.alcast.dev/*` y web origin `https://halsa-backoffice.alcast.dev`.                                                                                                                                                                                                                             |
+| **G14 · Tema de login**         | `keycloak-theme/README.md`.                                                                                                                                                                                                                                                                                                                      |
