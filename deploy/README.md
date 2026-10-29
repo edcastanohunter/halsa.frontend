@@ -130,7 +130,7 @@ services:
     networks: [proxy]
 ```
 
-`/etc/nginx/conf.d` como `tmpfs` queda vacío al arrancar y el entrypoint lo llena desde `/etc/nginx/templates`, así que no se pierde nada.
+El entrypoint llena `/etc/nginx/conf.d` desde `/etc/nginx/templates` y necesita poder escribir ahí como uid 101. Docker monta los `tmpfs` con modo 1777; **Podman los monta `root:root` 0775**, así que en Podman/Quadlet hay que pedir `Tmpfs=/etc/nginx/conf.d:mode=1777` (sin eso el entrypoint falla con `conf.d is not writable` y nginx sirve su configuración por defecto, sin `/health`).
 
 ## Nginx Proxy Manager
 

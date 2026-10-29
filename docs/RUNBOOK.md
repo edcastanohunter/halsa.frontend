@@ -531,21 +531,22 @@ sudo -u edhunter /usr/local/sbin/halsa-recibir-despliegue-front revertir v1.0.41
 
 ### 5.5 Problemas comunes
 
-| Síntoma                                          | Causa probable                                              | Acción                                                               |
-| ------------------------------------------------ | ----------------------------------------------------------- | -------------------------------------------------------------------- |
-| Contenedor backoffice no arranca                 | `HALSA_KEYCLOAK_AUTHORITY` falta o inválida                 | Revisar variables (§4.2); ver log del entrypoint                     |
-| Login de backoffice cae al callback y vuelve     | Redirect URI no registrada en el realm                      | Agregar el origin en Keycloak (§4.6)                                 |
-| Llamadas al API fallan solo en prod              | Falta CORS (G1)                                             | Agregar origen/cabeceras en el API                                   |
-| Step-up no se detecta                            | `WWW-Authenticate` no expuesta por CORS                     | G1: cabeceras expuestas                                              |
-| Portal en blanco en el host del BFF              | NPM responde 404 en `/` (G2)                                | Configurar `location /` → portal (§4.5)                              |
-| `config.json` muestra URLs viejas                | La imagen cachea `config.json`                              | Es `no-cache`; forzar recarga / reiniciar contenedor                 |
-| Job `deploy` falla en SSH                        | Secretos del environment mal o `known_hosts` desactualizado | Revisar `VPS_*` del environment `produccion`                         |
-| `desplegar: command not found` (127)             | La llave entró sin `command=`                               | Revisar `authorized_keys` (§4.4 paso 8)                              |
-| Exit `2` "comando no permitido"                  | Falta `env_keep` o el comando no es `desplegar <tag>`       | Revisar el sudoers (§4.4 paso 5)                                     |
-| Deploy rojo con "las unidades no quedaron sanas" | Env inválido, imagen rota o `/health` no responde           | `journalctl --user -u halsa-backoffice`; volvió solo al tag anterior |
-| `exec format error` al arrancar                  | Imagen amd64 en un VPS arm64                                | El workflow fija `platforms: linux/arm64`; no lo cambies             |
-| NPM responde 502                                 | Contenedor caído o fuera de `halsa_borde`                   | `podman ps`, `Network=` del Quadlet                                  |
-| E2E local falla en el OTP                        | Contención de la ventana TOTP en workers paralelos          | Reintentar con `--workers=1`                                         |
+| Síntoma                                            | Causa probable                                                                      | Acción                                                                                                                |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Contenedor backoffice no arranca                   | `HALSA_KEYCLOAK_AUTHORITY` falta o inválida                                         | Revisar variables (§4.2); ver log del entrypoint                                                                      |
+| Login de backoffice cae al callback y vuelve       | Redirect URI no registrada en el realm                                              | Agregar el origin en Keycloak (§4.6)                                                                                  |
+| Llamadas al API fallan solo en prod                | Falta CORS (G1)                                                                     | Agregar origen/cabeceras en el API                                                                                    |
+| Step-up no se detecta                              | `WWW-Authenticate` no expuesta por CORS                                             | G1: cabeceras expuestas                                                                                               |
+| Portal en blanco en el host del BFF                | NPM responde 404 en `/` (G2)                                                        | Configurar `location /` → portal (§4.5)                                                                               |
+| `config.json` muestra URLs viejas                  | La imagen cachea `config.json`                                                      | Es `no-cache`; forzar recarga / reiniciar contenedor                                                                  |
+| Job `deploy` falla en SSH                          | Secretos del environment mal o `known_hosts` desactualizado                         | Revisar `VPS_*` del environment `produccion`                                                                          |
+| `desplegar: command not found` (127)               | La llave entró sin `command=`                                                       | Revisar `authorized_keys` (§4.4 paso 8)                                                                               |
+| Exit `2` "comando no permitido"                    | Falta `env_keep` o el comando no es `desplegar <tag>`                               | Revisar el sudoers (§4.4 paso 5)                                                                                      |
+| Deploy rojo con "las unidades no quedaron sanas"   | Env inválido, imagen rota o `/health` no responde                                   | `journalctl --user -u halsa-backoffice`; volvió solo al tag anterior                                                  |
+| Unidades en timeout; log: `conf.d is not writable` | El `tmpfs` de `conf.d` nace `root:root` 0775 en Podman y nginx (uid 101) no escribe | `Tmpfs=/etc/nginx/conf.d:mode=1777` en el `.container` (§4.4 paso 2), `daemon-reload` y reinstalar el script (paso 3) |
+| `exec format error` al arrancar                    | Imagen amd64 en un VPS arm64                                                        | El workflow fija `platforms: linux/arm64`; no lo cambies                                                              |
+| NPM responde 502                                   | Contenedor caído o fuera de `halsa_borde`                                           | `podman ps`, `Network=` del Quadlet                                                                                   |
+| E2E local falla en el OTP                          | Contención de la ventana TOTP en workers paralelos                                  | Reintentar con `--workers=1`                                                                                          |
 
 ### 5.6 CI/CD
 

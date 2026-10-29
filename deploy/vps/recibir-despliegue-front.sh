@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# version: 1
+# version: 2
 # ─────────────────────────────────────────────────────────────────────────────
 # recibir-despliegue-front.sh — the only command the front CI's SSH key can run on the VPS (deploy/README.md).
 #
@@ -130,6 +130,12 @@ info "3/4 $tag (antes: ${anterior:-ninguna})"
 fijar_tag "$tag"
 if ! reiniciar; then
     echo "FALLO: las unidades no quedaron sanas con $tag." >&2
+    # The CI log is the only place the person looking at a red deploy can read this.
+    for c in halsa-backoffice halsa-portal; do
+        echo "--- $c: estado y últimas líneas del log" >&2
+        podman ps -a --filter "name=^$c\$" --format '{{.Names}} {{.Status}}' >&2 || true
+        podman logs --tail 25 "$c" >&2 2>&1 || true
+    done
     if [[ -n "$anterior" && "$anterior" != "$tag" ]] && verificar_imagenes "$anterior"; then
         info "volviendo a $anterior"
         fijar_tag "$anterior"

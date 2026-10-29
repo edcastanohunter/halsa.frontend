@@ -11,7 +11,9 @@ Pull=never
 Network=halsa-borde.network
 ReadOnly=true
 Tmpfs=/tmp
-Tmpfs=/etc/nginx/conf.d
+# mode=1777: el tmpfs nace root:root 0775 y nginx (uid 101) no podría escribir; sin esto el entrypoint
+# no genera default.conf desde las plantillas y nginx sirve la config por defecto (sin /health).
+Tmpfs=/etc/nginx/conf.d:mode=1777
 DropCapability=ALL
 NoNewPrivileges=true
 LogDriver=journald
