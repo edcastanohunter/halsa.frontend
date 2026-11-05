@@ -34,14 +34,11 @@ paciente.2@pruebas.halsa.invalid │ 01999f00-0000-7000-8000-00000000d002 │ Vi
 paciente.3@pruebas.halsa.invalid │ 01999f00-0000-7000-8000-00000000d003 │ Sin vínculo inicial (para canjear PRB013-MSRG2YTBS9, caso A13)
 dameliatus@hotmail.com │ a09d6586-151f-459d-bb21-660dbf524cb8 │ —
 
-
-
-
 Por ejemplo, para asignarle una nueva contraseña a analista.a@pruebas.halsa.invalid sin borrarlo:
-  
-    podman exec -it keycloak /opt/keycloak/bin/kcadm.sh config credentials \ 
+
+    podman exec -it keycloak /opt/keycloak/bin/kcadm.sh config credentials \
       --server http://localhost:8080 --realm master --user edhunter
-  
+
     # Reemplaza <NUEVA_CLAVE> (con --temporary si quieres que la cambie al entrar, o sin --temporary para dejarla fija)
-    podman exec -it keycloak /opt/keycloak/bin/kcadm.sh set-password \ 
-      -r halsa --username analista.a@pruebas.halsa.invalid --new-password '<NUEVA_CLAVE>' --temporary 
+    podman exec -it keycloak /opt/keycloak/bin/kcadm.sh set-password \
+      -r halsa --username analista.a@pruebas.halsa.invalid --new-password '<NUEVA_CLAVE>' --temporary
