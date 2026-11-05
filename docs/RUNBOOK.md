@@ -44,7 +44,7 @@ npm run check:contrast                 # WCAG 2.2 AA de los tokens
 
 ### 3.1 Requisitos
 
-- **Node 22** (CI y contenedores usan v22) y **npm 11.6.2** (el `packageManager`; el npm 10 de node 22 rechaza el lockfile).
+- **Node 26.13.0** (CI y contenedores usan esta versión) y **npm 11.6.2** (el `packageManager`; el npm 10 rechaza el lockfile).
 - **Podman 6** para el Keycloak local, con la máquina iniciada (`podman machine start`) y un proveedor de compose (`podman compose version`; si no hay, `pip install podman-compose`). No se usa Docker.
 - Para E2E/visual: `npx playwright install chromium` la primera vez.
 
@@ -103,7 +103,7 @@ Consola de administración: `http://localhost:8180/admin` (`admin`/`admin`). Los
 
 ### 4.1 Imágenes
 
-Una imagen por app, multi-stage (`node:22.23.4-alpine` → `nginxinc/nginx-unprivileged:1.30.6-alpine`), no-root (uid 101), puerto **8080**, `HEALTHCHECK /health`. La misma imagen sirve cualquier ambiente: las URLs llegan por variables de entorno y se escriben en `config.json` al arrancar.
+Una imagen por app, multi-stage (`node:26.13.0-alpine` → `nginxinc/nginx-unprivileged:1.30.6-alpine`), no-root (uid 101), puerto **8080**, `HEALTHCHECK /health`. La misma imagen sirve cualquier ambiente: las URLs llegan por variables de entorno y se escriben en `config.json` al arrancar.
 
 ```bash
 # Contexto: la raíz del repo. En la máquina dev: podman build ... (mismos argumentos).

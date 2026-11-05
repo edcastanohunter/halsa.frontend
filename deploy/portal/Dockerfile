@@ -5,10 +5,10 @@
 # reverse proxy routes before this container (deploy/README.md).
 
 # The output is static JS: build natively on the runner and only the nginx stage is per-arch.
-FROM --platform=$BUILDPLATFORM node:22.23.4-alpine AS build
+FROM --platform=$BUILDPLATFORM node:26.13.0-alpine AS build
 WORKDIR /src
 COPY package.json package-lock.json ./
-# The lockfile is written by the npm in package.json "packageManager"; npm 10 (node 22) rejects it.
+# The lockfile is written by the npm in package.json "packageManager"; npm 10 rejects it.
 RUN npm install -g npm@11.6.2 && npm ci --no-audit --no-fund
 COPY angular.json tsconfig.json .postcssrc.json ./
 COPY libs libs

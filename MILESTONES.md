@@ -308,7 +308,7 @@
 
 ### [x] M11: Hardening y Entrega
 - **Alcance:**
-  - Dockerfiles multi-stage optimizados para ambas aplicaciones (`node:22.23.4-alpine` → `nginxinc/nginx-unprivileged:1.30.6-alpine`).
+  - Dockerfiles multi-stage optimizados para ambas aplicaciones (`node:26.13.0-alpine` → `nginxinc/nginx-unprivileged:1.30.6-alpine`).
   - Configuración Nginx con inyección de variables de entorno para `config.json` en tiempo de ejecución.
   - Cabeceras de seguridad estrictas: CSP con Trusted Types (`require-trusted-types-for 'script'`), COOP `same-origin-allow-popups`, Referrer-Policy, etc.
   - Documentación de despliegue en `deploy/README.md`.
@@ -319,7 +319,7 @@
   - Cero violaciones de CSP en consola durante la ejecución completa de pruebas E2E.
   - Presupuestos de bundle respetados (Backoffice ≤ 300 kB gz, Portal ≤ 200 kB gz).
 - **Notas de implementación:**
-  - `deploy/backoffice/Dockerfile` y `deploy/portal/Dockerfile` (multi-stage, `node:22.23.4-alpine` → `nginxinc/nginx-unprivileged:1.30.6-alpine`, no-root, puerto 8080, `HEALTHCHECK /health`): `npm ci` con npm 11.6.2 (el npm 10 de node 22 rechaza el lockfile), `ng build` de producción y `scripts/check-bundles.mjs <app>` (falla si se pasan los presupuestos gzip o si entra código `__mock`/showcase); el `config.json` se elimina del build y se genera al arrancar.
+  - `deploy/backoffice/Dockerfile` y `deploy/portal/Dockerfile` (multi-stage, `node:26.13.0-alpine` → `nginxinc/nginx-unprivileged:1.30.6-alpine`, no-root, puerto 8080, `HEALTHCHECK /health`): `npm ci` con npm 11.6.2 (el npm 10 rechaza el lockfile), `ng build` de producción y `scripts/check-bundles.mjs <app>` (falla si se pasan los presupuestos gzip o si entra código `__mock`/showcase); el `config.json` se elimina del build y se genera al arrancar.
   - Nginx: `deploy/nginx/default.conf.template` (fallback SPA, `/health`, `config.json` alias a `/tmp/halsa/config.json`, caché `immutable` para hasheados y `no-cache` para `index.html`/`theme-init.js`/rutas) y `deploy/nginx/seguridad.inc.template` (cabeceras en cada `location`, porque nginx descarta `add_header` en un `location` con directivas propias). `16-halsa.envsh` valida el entorno (solo caracteres de URL, porque los valores terminan en JSON y en una cabecera), escribe `config.json` y arma la CSP derivando `connect-src`/`frame-src`/`form-action` de los orígenes de API y Keycloak. Arranque `read_only` con `tmpfs` en `/tmp` y `/etc/nginx/conf.d`.
   - CSP con Trusted Types en ambas apps: `trusted-types angular angular#bundler halsa#iconos`. `halsa#iconos` lo crea `provideIconosTrustedTypes()` (`@halsa/ui/iconos`) para los SVG de lucide que `ng-icon` inserta con `innerHTML`; no hay política `default`, así que cualquier otro `innerHTML` queda bloqueado. COOP `same-origin-allow-popups` (el popup de step-up necesita el opener), salvo `unsafe-none` en `/auth/callback` (G25). HSTS lo pone el proxy que termina TLS, no el contenedor.
   - CI `.github/workflows/frontend.yml`: `validate` (format:check + lint + unit + build con presupuestos) y `images` (build de las dos imágenes + smoke test: arranca el contenedor, comprueba `/health`, `config.json` y que la CSP traiga `require-trusted-types-for 'script'`).

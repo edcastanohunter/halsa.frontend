@@ -11,14 +11,14 @@ Dos imágenes, una por aplicación, servidas por nginx sin privilegios (plan §1
 
 ```
 deploy/
-  backoffice/Dockerfile        node:22.23.4-alpine (build) → nginxinc/nginx-unprivileged:1.30.6-alpine
+  backoffice/Dockerfile        node:26.13.0-alpine (build) → nginxinc/nginx-unprivileged:1.30.6-alpine
   portal/Dockerfile            idem
   nginx/16-halsa.envsh         al arrancar: valida el entorno, escribe config.json y arma la CSP
   nginx/default.conf.template  servidor SPA (puerto 8080, /health, caché)
   nginx/seguridad.inc.template cabeceras de seguridad, incluidas en cada location
 ```
 
-- **Build:** `npm ci` con npm 11.6.2 (el de `packageManager`; el npm 10 de node 22 rechaza el lockfile), `ng build <app>` en producción y `scripts/check-bundles.mjs <app>`: el build falla si se pasan los presupuestos gzip o si entra código de mocks.
+- **Build:** `npm ci` con npm 11.6.2 (el de `packageManager`; el npm 10 rechaza el lockfile), `ng build <app>` en producción y `scripts/check-bundles.mjs <app>`: el build falla si se pasan los presupuestos gzip o si entra código de mocks.
 - **Ejecución:** usuario `nginx` (uid 101), puerto **8080**, `HEALTHCHECK` contra `/health`. Escribe solo en `/etc/nginx/conf.d` (plantillas) y `/tmp` (`config.json` y temporales de nginx). Con `read_only: true` monta ambos como `tmpfs`.
 - **Caché:** los archivos con hash (`main-ABCD1234.js`, fuentes en `media/`) llevan `max-age=31536000, immutable`; `index.html`, `config.json`, `theme-init.js` y toda ruta del cliente (fallback SPA a `index.html`) llevan `no-cache`.
 - **gzip** en nginx para JS, CSS, JSON y SVG.

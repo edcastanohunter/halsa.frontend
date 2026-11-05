@@ -748,7 +748,7 @@ The `mock` configuration only swaps `public/config.json` for `public/config.mock
 
 ### 10.2 Containers
 
-One Dockerfile per app (multi-stage: `node:22-alpine` build → `nginxinc/nginx-unprivileged:stable-alpine` serve, non-root, port 8080):
+One Dockerfile per app (multi-stage: `node:26.13.0-alpine` build → `nginxinc/nginx-unprivileged:stable-alpine` serve, non-root, port 8080):
 
 - SPA fallback (`try_files $uri $uri/ /index.html`). Long cache for hashed assets. `no-cache` for `index.html` and `config.json`.
 - `config.json` generated at container start from env vars (`envsubst` in an entrypoint), e.g. `HALSA_API_BASE_URL`, `HALSA_KEYCLOAK_AUTHORITY`, `HALSA_KEYCLOAK_CLIENT_ID`.
